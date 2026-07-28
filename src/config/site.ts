@@ -5,11 +5,6 @@ export const site = {
   tagline: "Gayrimenkul ekipleri için modern CRM",
 } as const;
 
-/** Faz 1'de auth yok — arayüzü doldurmak için sabit kullanıcı. */
-export const currentUser = {
-  name: "Erden Saygut",
-  role: "Ofis Yöneticisi",
-  email: "erdensnygt@gmail.com",
-  initials: "ES",
-  status: "online" as "online" | "away" | "offline",
-};
+/* Faz 1-4'te burada sabit bir `currentUser` kaydı vardı; arayüzü dolduruyordu.
+   Faz 5'te Supabase Auth devreye girince kaldırıldı — kullanıcı bilgisi artık
+   oturumdan geliyor (`lib/auth/session.ts`, `components/layout/session-provider.tsx`). */

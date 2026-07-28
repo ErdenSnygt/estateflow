@@ -72,7 +72,7 @@ export const navigation: NavGroup[] = [
         label: "Randevular",
         icon: CalendarDays,
         description:
-          "Yer gösterme ve görüşme takviminizi planlayın, ekibinizle paylaşın, hatırlatma alın.",
+          "Yer gösterme ve görüşme takviminizi günlük, haftalık ve aylık görünümde planlayın.",
       },
     ],
   },
@@ -169,6 +169,41 @@ export const navigation: NavGroup[] = [
 
 /** Gruplardan bağımsız düz liste — arama ve route çözümlemesi için. */
 export const navItems: NavItem[] = navigation.flatMap((group) => group.items);
+
+/**
+ * Mobil alt gezinme çubuğundaki öğeler.
+ *
+ * SEÇİM ÖLÇÜTÜ: gerçekten çalışan modüller. Menüdeki 13 öğenin sekizi hâlâ
+ * "yakında" ekranı; bir danışmanı boş bir sayfaya götüren kısayol koymak o
+ * slotu çöpe atmak olurdu.
+ *
+ * Faz 9'da dört modül vardı; Faz 11'de Randevular da çalışır hale gelince
+ * beşe çıktı. Sıralama sahadaki kullanıma göre: takvim, danışmanın telefonda
+ * en sık açtığı ekranlardan biri (günün programı) ve müşterilerden hemen
+ * sonra geliyor. Satışlar listede kalıyor ama en sağda — masa başı işi.
+ *
+ * Burada yalnızca ADRESLER duruyor, öğelerin kendisi değil — etiket, ikon ve
+ * rozet yine `navigation` dizisinden geliyor. Tek kaynak ilkesi korunuyor.
+ */
+const MOBILE_PRIMARY_HREFS = [
+  "/dashboard",
+  "/ilanlar",
+  "/musteriler",
+  "/randevular",
+  "/satislar",
+] as const;
+
+export const mobilePrimaryItems: NavItem[] = MOBILE_PRIMARY_HREFS.map(
+  (href) => {
+    const item = navItems.find((candidate) => candidate.href === href);
+    if (!item) {
+      throw new Error(
+        `Alt gezinme çubuğu "${href}" adresini bekliyor ama navigation içinde yok.`,
+      );
+    }
+    return item;
+  },
+);
 
 /** Verilen pathname için eşleşen menü öğesini döner (alt route'ları da kapsar). */
 export function findNavItem(pathname: string): NavItem | undefined {

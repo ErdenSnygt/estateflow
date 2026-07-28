@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { AnimatePresence, motion, type Transition } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -24,21 +24,55 @@ export const SIDEBAR_WIDTH_COLLAPSED = 76;
 type SidebarProps = {
   isCollapsed: boolean;
   onToggle: () => void;
-  /** AppShell ile paylaşılan geçiş ayarı — genişlik animasyonu senkron kalsın. */
-  transition: Transition;
+  /**
+   * Genişlik değişimi animasyonlu mu — yalnızca kullanıcı daraltma düğmesine
+   * bastığında. İlk boyamada ve breakpoint geçişlerinde anında olmalı.
+   */
+  animateWidth: boolean;
+  /**
+   * Tablet aralığında (md–lg) daraltma bir tercih değil zorunluluk; genişletme
+   * düğmesi gösterilmez. Çalışmayan bir düğme göstermek, hiç göstermemekten
+   * kötüdür.
+   */
+  canToggle?: boolean;
 };
 
-export function Sidebar({ isCollapsed, onToggle, transition }: SidebarProps) {
+/**
+ * GENİŞLİK NEDEN FRAMER İLE DEĞİL CSS İLE:
+ *
+ * Faz 9'da somut bir hata çıktı — tablet aralığında sidebar daraltılmış
+ * davranıyor (etiketler gizli, düğme yok) ama genişliği 268 px'te takılı
+ * kalıyordu; 768 px'lik ekranda içeriğe 500 px bırakıp yatay taşma üretiyordu.
+ * Sebep, framer-motion'ın `transition={{ duration: 0 }}` ile verilen anında
+ * geçişi uygulamaması: ilk boyamada 268 commit ediliyor, state değişince
+ * başlatılan sıfır süreli animasyon hiç çalışmıyordu.
+ *
+ * Genişlik zaten bir DÜZEN meselesi, animasyon değil. Artık `style` ile
+ * veriliyor ve yumuşak geçiş CSS `transition-[width]` ile yapılıyor —
+ * kütüphane davranışına bağımlılık yok. Etiketlerin belirip kaybolması
+ * (`AnimatePresence`) framer'da kaldı; orası gerçekten bir giriş/çıkış
+ * animasyonu.
+ */
+export function Sidebar({
+  isCollapsed,
+  onToggle,
+  animateWidth,
+  canToggle = true,
+}: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <motion.aside
-      initial={false}
-      animate={{ width: isCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH }}
-      transition={transition}
+    <aside
+      style={{ width: isCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH }}
       className={cn(
+        "transition-[width] ease-[var(--ease-out-quint)]",
+        animateWidth ? "duration-300" : "duration-0",
         "fixed inset-y-0 left-0 z-40 flex flex-col",
         "border-r border-hairline bg-canvas-subtle",
+        /* `md` altında sidebar kalkar ve yerini alt gezinme çubuğuna bırakır
+           (`components/layout/mobile-nav.tsx`). 768 px ile 1024 px arasında
+           ise daraltılmış olarak KALIR — gerekçe `app-shell.tsx` başlığında. */
+        "max-md:hidden",
       )}
     >
       {/* --- Logo ---------------------------------------------------------- */}
@@ -155,6 +189,7 @@ export function Sidebar({ isCollapsed, onToggle, transition }: SidebarProps) {
           )}
         </AnimatePresence>
 
+        {canToggle && (
         <Tooltip>
           <TooltipTrigger asChild>
             <button
@@ -180,7 +215,8 @@ export function Sidebar({ isCollapsed, onToggle, transition }: SidebarProps) {
             <TooltipContent side="right">Menüyü genişlet</TooltipContent>
           )}
         </Tooltip>
+        )}
       </div>
-    </motion.aside>
+    </aside>
   );
 }

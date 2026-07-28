@@ -18,9 +18,10 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { currentUser } from "@/config/site";
 import { findNavItem } from "@/config/navigation";
 import { useMetaKey } from "@/hooks/use-meta-key";
+import { signOut } from "@/lib/auth/client";
+import { useSessionUser } from "@/components/layout/session-provider";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Kbd } from "@/components/ui/kbd";
 import { Separator } from "@/components/ui/separator";
@@ -52,6 +53,15 @@ export function Navbar({ onOpenSearch }: NavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const metaKey = useMetaKey();
+  const user = useSessionUser();
+
+  async function handleSignOut() {
+    await signOut();
+    router.push("/login");
+    /* Sunucu bileşenlerinin önbelleğe alınmış çıktısı hâlâ oturumlu hâli
+       tutuyor; tazelenmezse kullanıcı adı çıkıştan sonra da görünür. */
+    router.refresh();
+  }
 
   const activeItem = findNavItem(pathname);
   const title = activeItem?.label ?? "Emlak CRM";
@@ -59,7 +69,7 @@ export function Navbar({ onOpenSearch }: NavbarProps) {
   return (
     <header
       className={cn(
-        "sticky top-0 z-30 flex h-16 shrink-0 items-center gap-4 px-6",
+        "sticky top-0 z-30 flex h-16 shrink-0 items-center gap-4 px-4 sm:px-6",
         "border-b border-hairline bg-canvas/80 backdrop-blur-xl",
       )}
     >
@@ -76,14 +86,31 @@ export function Navbar({ onOpenSearch }: NavbarProps) {
         </motion.h1>
       </div>
 
-      {/* --- Sağ: araçlar --------------------------------------------------- */}
-      <div className="flex shrink-0 items-center gap-2">
+      {/* --- Sağ: araçlar ---------------------------------------------------
+          MOBİLDE YALNIZCA ÜÇ ŞEY: arama, bildirim, profil. Altı ikon 375 px'de
+          başlığı ezip kendisi de sıkışıyordu. Mesajlar, tema, dil ve hesap
+          menüsünün tamamı alt çubuktaki "Daha Fazla" çekmecesine taşındı —
+          gezinme zaten oraya taşındığı için kullanıcı onu açmayı biliyor. */}
+      <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+        {/* Mobil arama — masaüstündeki geniş kutunun ikon hâli */}
+        <button
+          type="button"
+          onClick={onOpenSearch}
+          aria-label="Ara"
+          className={cn(
+            "flex size-9 items-center justify-center rounded-lg text-muted-foreground md:hidden",
+            "transition-colors duration-200 hover:bg-surface-hover hover:text-foreground",
+          )}
+        >
+          <Search className="size-[18px]" />
+        </button>
+
         {/* Arama — tıklayınca komut paletini açar */}
         <button
           type="button"
           onClick={onOpenSearch}
           className={cn(
-            "group flex h-9 w-56 items-center gap-2.5 rounded-lg px-3",
+            "group hidden h-9 w-56 items-center gap-2.5 rounded-lg px-3 md:flex",
             "border border-hairline bg-surface-inset text-[13px] text-muted-foreground",
             "transition-all duration-200 ease-[var(--ease-out-quint)]",
             "hover:border-hairline-strong hover:bg-surface hover:text-secondary-foreground",
@@ -99,7 +126,10 @@ export function Navbar({ onOpenSearch }: NavbarProps) {
           </Kbd>
         </button>
 
-        <Separator orientation="vertical" className="mx-1 h-5" />
+        <Separator
+          orientation="vertical"
+          className="mx-1 hidden h-5 md:block"
+        />
 
         <IconButton
           label="Bildirimler"
@@ -107,7 +137,12 @@ export function Navbar({ onOpenSearch }: NavbarProps) {
           icon={Bell}
           hasIndicator
         />
-        <IconButton label="Mesajlar" href="/mesajlar" icon={MessageSquare} />
+        <IconButton
+          label="Mesajlar"
+          href="/mesajlar"
+          icon={MessageSquare}
+          className="hidden md:flex"
+        />
 
         {/* Tema — şu an tek tema var, UI hazır dursun */}
         <Tooltip>
@@ -115,7 +150,7 @@ export function Navbar({ onOpenSearch }: NavbarProps) {
             <button
               type="button"
               className={cn(
-                "flex size-9 items-center justify-center rounded-lg text-muted-foreground",
+                "hidden size-9 items-center justify-center rounded-lg text-muted-foreground md:flex",
                 "transition-colors duration-200 hover:bg-surface-hover hover:text-foreground",
               )}
             >
@@ -132,7 +167,7 @@ export function Navbar({ onOpenSearch }: NavbarProps) {
               type="button"
               aria-label="Dil seçimi"
               className={cn(
-                "flex size-9 items-center justify-center rounded-lg text-muted-foreground",
+                "hidden size-9 items-center justify-center rounded-lg text-muted-foreground md:flex",
                 "transition-colors duration-200 hover:bg-surface-hover hover:text-foreground",
                 "data-[state=open]:bg-surface-hover data-[state=open]:text-foreground",
               )}
@@ -153,9 +188,14 @@ export function Navbar({ onOpenSearch }: NavbarProps) {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <Separator orientation="vertical" className="mx-1 h-5" />
+        <Separator
+          orientation="vertical"
+          className="mx-1 hidden h-5 md:block"
+        />
 
-        {/* Profil */}
+        {/* Profil — mobilde de kalıyor: hesap menüsü çekmecede de var ama
+            avatarın üstte durması "kim olarak bakıyorum" sorusunu tek bakışta
+            yanıtlıyor ve rol değiştirme testlerinde bu önemli oldu. */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
@@ -169,7 +209,7 @@ export function Navbar({ onOpenSearch }: NavbarProps) {
               )}
             >
               <Avatar className="size-9">
-                <AvatarFallback>{currentUser.initials}</AvatarFallback>
+                <AvatarFallback>{user.initials}</AvatarFallback>
               </Avatar>
             </button>
           </DropdownMenuTrigger>
@@ -177,14 +217,14 @@ export function Navbar({ onOpenSearch }: NavbarProps) {
           <DropdownMenuContent align="end" className="min-w-[15rem]">
             <div className="flex items-center gap-3 px-2.5 py-2">
               <Avatar className="size-9">
-                <AvatarFallback>{currentUser.initials}</AvatarFallback>
+                <AvatarFallback>{user.initials}</AvatarFallback>
               </Avatar>
               <div className="min-w-0">
                 <p className="truncate text-[13px] font-medium text-foreground">
-                  {currentUser.name}
+                  {user.name}
                 </p>
                 <p className="truncate text-[11.5px] text-muted-foreground">
-                  {currentUser.email}
+                  {user.email}
                 </p>
               </div>
             </div>
@@ -210,10 +250,7 @@ export function Navbar({ onOpenSearch }: NavbarProps) {
 
             <DropdownMenuSeparator />
 
-            <DropdownMenuItem
-              variant="danger"
-              onSelect={() => router.push("/login")}
-            >
+            <DropdownMenuItem variant="danger" onSelect={handleSignOut}>
               <LogOut />
               Çıkış yap
             </DropdownMenuItem>
@@ -230,11 +267,13 @@ function IconButton({
   href,
   icon: Icon,
   hasIndicator,
+  className,
 }: {
   label: string;
   href: string;
   icon: React.ElementType;
   hasIndicator?: boolean;
+  className?: string;
 }) {
   return (
     <Tooltip>
@@ -245,6 +284,7 @@ function IconButton({
           className={cn(
             "relative flex size-9 items-center justify-center rounded-lg text-muted-foreground",
             "transition-colors duration-200 hover:bg-surface-hover hover:text-foreground",
+            className,
           )}
         >
           <Icon className="size-[18px]" />

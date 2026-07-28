@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { motion, type Transition } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 import {
   Sidebar,
@@ -9,17 +9,53 @@ import {
   SIDEBAR_WIDTH_COLLAPSED,
 } from "@/components/layout/sidebar";
 import { Navbar } from "@/components/layout/navbar";
+import { MobileNav } from "@/components/layout/mobile-nav";
 import { CommandPalette } from "@/components/layout/command-palette";
 import { PageTransition } from "@/components/layout/page-transition";
+import { SessionProvider } from "@/components/layout/session-provider";
+import { AgentNotice } from "@/components/layout/agent-notice";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import type { Session } from "@/lib/auth/session";
 
 const COLLAPSE_STORAGE_KEY = "emlak-crm:sidebar-collapsed";
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+/**
+ * ============================================================================
+ * UYGULAMA KABUĞU — ÜÇ KADEMELİ GEZİNME
+ * ============================================================================
+ *
+ *   < 768px  (md altı)   alt gezinme çubuğu + çekmece, sidebar yok
+ *   768–1023 (md–lg)     sidebar DARALTILMIŞ (yalnızca ikon), alt çubuk yok
+ *   ≥ 1024px (lg üstü)   sidebar tam, kullanıcı tercihine göre daraltılabilir
+ *
+ * Faz 1-8 boyunca yalnızca üçüncü kademe vardı; sidebar `lg` altında tamamen
+ * gizleniyor ve gezinme komut paletine devrediliyordu. Masaüstünde savunulabilir
+ * bir tercihti ama bu uygulama sahada, telefonda kullanılıyor.
+ *
+ * Tablet kademesinde sidebar daraltılıyor ama KAYBOLMUYOR: 768 px'de 268 px'lik
+ * bir sidebar içeriğe 500 px bırakır (ilan kartları iki sütuna sığmaz), 76 px'lik
+ * ikon şeridi ise hem gezinmeyi görünür tutar hem 690 px içerik bırakır.
+ */
+export function AppShell({
+  session,
+  children,
+}: {
+  session: Session | null;
+  children: React.ReactNode;
+}) {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const [isSearchOpen, setIsSearchOpen] = React.useState(false);
   /** Sadece kullanıcı daraltma butonuna bastığında animasyon oynasın;
    *  localStorage'dan geri yükleme anında oynamasın. */
   const [shouldAnimate, setShouldAnimate] = React.useState(false);
+
+  /* Tablet aralığında daraltma bir TERCİH değil, zorunluluk — kullanıcının
+     kaydedilmiş seçimi bu aralıkta yok sayılıyor ve genişletme düğmesi de
+     gizleniyor (`Sidebar` içinde). */
+  const isTablet = useMediaQuery(
+    "(min-width: 768px) and (max-width: 1023.98px)",
+  );
+  const collapsed = isTablet || isCollapsed;
 
   React.useEffect(() => {
     if (localStorage.getItem(COLLAPSE_STORAGE_KEY) === "1") {
@@ -38,42 +74,51 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     localStorage.setItem(COLLAPSE_STORAGE_KEY, isCollapsed ? "1" : "0");
   }, [isCollapsed, shouldAnimate]);
 
-  const transition: Transition = shouldAnimate
-    ? { duration: 0.28, ease: [0.22, 1, 0.36, 1] }
-    : { duration: 0 };
-
   return (
-    <div className="relative min-h-svh bg-canvas">
-      {/* Sayfanın üstünde çok hafif bir aydınlanma — düz koyu zemini kırar */}
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-x-0 top-0 h-[420px] bg-[radial-gradient(60%_100%_at_50%_0%,rgba(76,125,255,0.07),transparent_70%)]"
-      />
+    <SessionProvider session={session}>
+      <div className="relative min-h-svh bg-canvas">
+        {/* Sayfanın üstünde çok hafif bir aydınlanma — düz koyu zemini kırar */}
+        <div
+          aria-hidden
+          className="pointer-events-none fixed inset-x-0 top-0 h-[420px] bg-[radial-gradient(60%_100%_at_50%_0%,rgba(76,125,255,0.07),transparent_70%)]"
+        />
 
-      <Sidebar
-        isCollapsed={isCollapsed}
-        onToggle={toggleSidebar}
-        transition={transition}
-      />
+        <Sidebar
+          isCollapsed={collapsed}
+          onToggle={toggleSidebar}
+          animateWidth={shouldAnimate}
+          canToggle={!isTablet}
+        />
 
-      <motion.div
-        initial={false}
-        animate={{
-          paddingLeft: isCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH,
-        }}
-        transition={transition}
-        className="relative flex min-h-svh flex-col"
-      >
-        <Navbar onOpenSearch={() => setIsSearchOpen(true)} />
+        <div
+          style={{
+            paddingLeft: collapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH,
+          }}
+          /* Sidebar md altında gizli olduğu için ayrılan boşluk da kalkmalı;
+             `!` inline stildeki paddingLeft'i ezer. Geçiş sidebar'ınkiyle
+             aynı süre ve eğride — ikisi birlikte kaymalı. */
+          className={cn(
+            "relative flex min-h-svh flex-col max-md:pl-0!",
+            "transition-[padding] ease-[var(--ease-out-quint)]",
+            shouldAnimate ? "duration-300" : "duration-0",
+          )}
+        >
+          <Navbar onOpenSearch={() => setIsSearchOpen(true)} />
 
-        <main className="flex-1">
-          <div className="mx-auto h-full w-full max-w-[1600px] px-6 py-6">
-            <PageTransition>{children}</PageTransition>
-          </div>
-        </main>
-      </motion.div>
+          <main className="flex-1">
+            {/* Alt boşluk yalnızca mobilde: sabit alt çubuk son kartı
+                örtmesin. 64 px çubuk + telefon home göstergesi. */}
+            <div className="mx-auto h-full w-full max-w-[1600px] px-4 py-6 pb-[calc(5rem+env(safe-area-inset-bottom))] sm:px-6 md:pb-6">
+              <AgentNotice />
+              <PageTransition>{children}</PageTransition>
+            </div>
+          </main>
+        </div>
 
-      <CommandPalette open={isSearchOpen} onOpenChange={setIsSearchOpen} />
-    </div>
+        <MobileNav />
+
+        <CommandPalette open={isSearchOpen} onOpenChange={setIsSearchOpen} />
+      </div>
+    </SessionProvider>
   );
 }

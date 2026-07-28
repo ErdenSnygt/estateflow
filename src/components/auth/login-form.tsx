@@ -8,10 +8,16 @@ import { ArrowRight, Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { site } from "@/config/site";
+import {
+  signInWithPassword,
+  signInWithProvider,
+  type OAuthProvider,
+} from "@/lib/auth/client";
 import { LogoMark } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AppleMark, GoogleMark } from "@/components/auth/provider-marks";
 
 /** Giriş öğelerinin sırayla belirmesi için ortak varyant. */
 const fadeUp = {
@@ -28,13 +34,60 @@ const stagger = {
 export function LoginForm() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [pendingProvider, setPendingProvider] =
+    React.useState<OAuthProvider | null>(null);
   const [showPassword, setShowPassword] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
-  /** Faz 1'de gerçek auth yok — yalnızca akış simülasyonu. */
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  /* Sağlayıcıdan hatayla dönülmüşse (`/auth/callback` yönlendirir) göster.
+     `useSearchParams` yerine doğrudan okuma: bu bileşen Suspense sınırı
+     istemesin, giriş ekranı ilk boyamada eksiksiz çıksın. */
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const message = params.get("error");
+    if (message) setError(message);
+  }, []);
+
+  /** Middleware'in `?next=` ile geri gönderdiği hedef. */
+  const nextPath = () =>
+    new URLSearchParams(window.location.search).get("next") ?? "/dashboard";
+
+  const busy = isSubmitting || pendingProvider !== null;
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setError(null);
     setIsSubmitting(true);
-    setTimeout(() => router.push("/dashboard"), 900);
+
+    const data = new FormData(event.currentTarget);
+    const result = await signInWithPassword(
+      String(data.get("email") ?? ""),
+      String(data.get("password") ?? ""),
+    );
+
+    if (!result.ok) {
+      setError(result.error);
+      setIsSubmitting(false);
+      return;
+    }
+
+    /* `refresh()` şart: oturum çerezi yazıldı ama sunucu bileşenlerinin
+       önbelleğe alınmış çıktısı hâlâ "girişsiz" hâli gösteriyor. */
+    router.push(nextPath());
+    router.refresh();
+  }
+
+  async function handleProvider(provider: OAuthProvider) {
+    setError(null);
+    setPendingProvider(provider);
+
+    const result = await signInWithProvider(provider, nextPath());
+
+    /* Başarılıysa tarayıcı sağlayıcıya gider ve buraya dönülmez. */
+    if (!result.ok) {
+      setError(result.error);
+      setPendingProvider(null);
+    }
   }
 
   return (
@@ -70,6 +123,17 @@ export function LoginForm() {
         )}
       >
         <form onSubmit={handleSubmit} className="space-y-5">
+          {error && (
+            <motion.p
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              role="alert"
+              className="rounded-lg border border-danger/30 bg-danger-soft px-3.5 py-2.5 text-[12.5px] leading-relaxed text-danger"
+            >
+              {error}
+            </motion.p>
+          )}
+
           <motion.div variants={fadeUp} className="space-y-2">
             <Label htmlFor="email">E-posta</Label>
             <div className="relative">
@@ -147,7 +211,7 @@ export function LoginForm() {
             <Button
               type="submit"
               size="lg"
-              disabled={isSubmitting}
+              disabled={busy}
               className="group w-full"
             >
               {isSubmitting ? (
@@ -162,6 +226,32 @@ export function LoginForm() {
                 </>
               )}
             </Button>
+          </motion.div>
+
+          {/* --- Sağlayıcı girişleri --- */}
+          <motion.div variants={fadeUp} className="flex items-center gap-3">
+            <span className="h-px flex-1 bg-hairline-strong" />
+            <span className="text-[11.5px] uppercase tracking-[0.08em] text-muted-foreground">
+              veya
+            </span>
+            <span className="h-px flex-1 bg-hairline-strong" />
+          </motion.div>
+
+          <motion.div variants={fadeUp} className="grid gap-2.5">
+            <ProviderButton
+              onClick={() => handleProvider("google")}
+              disabled={busy}
+              pending={pendingProvider === "google"}
+              icon={<GoogleMark className="size-[17px]" />}
+              label="Google ile devam et"
+            />
+            <ProviderButton
+              onClick={() => handleProvider("apple")}
+              disabled={busy}
+              pending={pendingProvider === "apple"}
+              icon={<AppleMark className="size-[19px]" />}
+              label="Apple ile devam et"
+            />
           </motion.div>
         </form>
       </motion.div>
@@ -180,5 +270,50 @@ export function LoginForm() {
         </Link>
       </motion.p>
     </motion.div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Sağlayıcı butonu.
+ *
+ * `Button` bileşeninin `secondary` varyantı yerine kendi kabuğu var: marka
+ * butonlarında ikon solda sabit, metin ortada durmalı ve yükseklik e-posta
+ * girişindeki `size="lg"` ile aynı olmalı.
+ */
+function ProviderButton({
+  onClick,
+  disabled,
+  pending,
+  icon,
+  label,
+}: {
+  onClick: () => void;
+  disabled: boolean;
+  pending: boolean;
+  icon: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        "relative flex h-11 w-full items-center justify-center gap-2.5 rounded-lg",
+        "border border-hairline-strong bg-surface-inset text-[13.5px] font-medium text-foreground",
+        "transition-colors hover:bg-surface-hover",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "disabled:cursor-not-allowed disabled:opacity-60",
+      )}
+    >
+      {pending ? (
+        <Loader2 className="size-4 animate-spin" />
+      ) : (
+        <span className="absolute left-4 flex items-center">{icon}</span>
+      )}
+      {pending ? "Yönlendiriliyor…" : label}
+    </button>
   );
 }

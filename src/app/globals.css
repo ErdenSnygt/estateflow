@@ -49,6 +49,17 @@
   /* --- Odak halkası ------------------------------------------------------ */
   --ring: oklch(0.62 0.19 265 / 60%);
 
+  /* --- Grafik paleti ------------------------------------------------------
+     Marka mavisinden başlayıp ton çemberinde ilerler; koyu zeminde beşi de
+     birbirinden ayırt edilebilir. Seriler sırayla 1→5 kullanır, kategori
+     bazlı sabit eşleme için `CHART_SERIES` (lib/chart.ts) tercih edin. */
+  --chart-1: #4c7dff;
+  --chart-2: #7c5cff;
+  --chart-3: #34d399;
+  --chart-4: #fbbf24;
+  --chart-5: #f472b6;
+  --chart-grid: oklch(1 0 0 / 6%);
+
   /* --- Yarıçap ölçeği (16–20px ana bantta) ------------------------------ */
   --radius-xs: 6px;
   --radius-sm: 10px;
@@ -105,6 +116,37 @@
   --color-danger-soft: var(--danger-soft);
 
   --color-ring: var(--ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-grid: var(--chart-grid);
+
+  /* --- shadcn/ui uyumluluk katmanı --------------------------------------
+     shadcn CLI'dan gelen component'ler `bg-background`, `border-input`,
+     `bg-primary`, `bg-accent` gibi kendi sözlüğünü kullanır. Aşağıdaki
+     eşleme o sözlüğü bizim token'larımıza bağlar; böylece
+     `npx shadcn@latest add …` çıktısı stilsiz kalmaz.
+
+     Kendi kodumuzda YİNE semantic isimleri tercih edin
+     (bg-surface, border-hairline, bg-brand) — bunlar yalnızca köprü. */
+  --color-background: var(--canvas);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--text);
+  --color-popover: var(--surface);
+  --color-popover-foreground: var(--text);
+  --color-primary: var(--brand);
+  --color-primary-foreground: var(--brand-foreground);
+  --color-secondary: var(--surface-hover);
+  --color-muted: var(--surface-inset);
+  --color-accent: var(--surface-hover);
+  --color-accent-foreground: var(--text);
+  --color-destructive: var(--danger);
+  --color-destructive-foreground: var(--canvas);
+  --color-border: var(--border);
+  --color-input: var(--border);
 
   /* Spacing 8px grid: temel adım 4px, tasarımda çift adımlar kullanılır
      (2 = 8px, 3 = 12px, 4 = 16px, 6 = 24px, 8 = 32px, 12 = 48px). */

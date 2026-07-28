@@ -1,11 +1,79 @@
 import type { Metadata } from "next";
 
-import { ComingSoon } from "@/components/coming-soon";
+import {
+  getAppointmentFormOptions,
+  getAppointments,
+} from "@/lib/data/appointments";
+import { getAgentOptions } from "@/lib/data/agents";
+import { getCurrentAgent } from "@/lib/auth/server";
+import { canViewStaff } from "@/lib/agents";
+import {
+  parseAppointmentFilters,
+  parseCalendarDate,
+  parseCalendarView,
+} from "@/lib/appointments-filters";
+import { toDateKey, viewRange } from "@/lib/calendar";
+import { isMobileRequest } from "@/lib/device";
+import type { SearchParamsInput } from "@/lib/search-params";
+import { PageHeader } from "@/components/page-header";
+import { CalendarWorkspace } from "@/components/appointments/calendar-workspace";
 
 export const metadata: Metadata = {
   title: "Randevular",
 };
 
-export default function RandevularPage() {
-  return <ComingSoon href="/randevular" />;
+type PageProps = { searchParams: Promise<SearchParamsInput> };
+
+/**
+ * Takvim.
+ *
+ * VARSAYILAN GÖRÜNÜM CİHAZA GÖRE: mobilde günlük, masaüstünde haftalık. Karar
+ * sunucuda, istek başlıklarından veriliyor — gerekçe `lib/device.ts`. URL'de
+ * `view` varsa o kazanıyor; kullanıcı bir kez sekmeye dokunduktan sonra tahmin
+ * devreden çıkıyor.
+ *
+ * VERİ HER ZAMAN AY IZGARASININ TAMAMI. Görünüm hangisi olursa olsun aynı
+ * aralık çekiliyor; böylece sekme değiştirmek sunucuya gitmiyor (gerekçe
+ * `calendar-workspace.tsx`).
+ */
+export default async function RandevularPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+
+  const isMobile = await isMobileRequest();
+  const view = parseCalendarView(params, isMobile ? "gun" : "hafta");
+  const date = parseCalendarDate(params);
+  const filters = parseAppointmentFilters(params);
+
+  /* Dördü de paralel — `SatislarPage` ile aynı gerekçe: rolü öğrenmek takvimi
+     beklettirmemeli. Danışman için RLS listeyi zaten daraltıyor. */
+  const [currentAgent, appointments, formOptions, agents] = await Promise.all([
+    getCurrentAgent(),
+    getAppointments(viewRange("ay", date), filters),
+    getAppointmentFormOptions(),
+    getAgentOptions(),
+  ]);
+
+  /* Danışman filtresi yalnızca yöneticiye; danışman zaten yalnızca kendi
+     takvimini görüyor ve tek seçenekli bir açılır işe yaramazdı. */
+  const agentOptions = canViewStaff(currentAgent?.role) ? agents : [];
+
+  return (
+    <div className="space-y-6 pb-4">
+      <PageHeader
+        title="Randevular"
+        description="Yer gösterme ve görüşme takviminiz. Tamamlanan randevu, müşterinin görüşme geçmişine otomatik işlenir."
+      />
+
+      <CalendarWorkspace
+        view={view}
+        date={date}
+        todayKey={toDateKey(Date.now())}
+        appointments={appointments}
+        customerOptions={formOptions.customers}
+        listingOptions={formOptions.listings}
+        agentOptions={agentOptions}
+        currentAgentId={currentAgent?.id ?? null}
+      />
+    </div>
+  );
 }

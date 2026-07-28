@@ -4,28 +4,27 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronsUpDown } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { currentUser } from "@/config/site";
+import { AGENT_ROLE_LABELS } from "@/lib/agents";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { AgentRoleBadge } from "@/components/agents/agent-role-badge";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useSessionUser } from "@/components/layout/session-provider";
 
-const statusStyles: Record<typeof currentUser.status, string> = {
-  online: "bg-success",
-  away: "bg-warning",
-  offline: "bg-muted-foreground",
-};
-
-const statusLabels: Record<typeof currentUser.status, string> = {
-  online: "Çevrimiçi",
-  away: "Uzakta",
-  offline: "Çevrimdışı",
-};
-
-/** Sidebar üstündeki kullanıcı kartı. Faz 1'de tıklanabilir ama işlevsiz. */
+/**
+ * Sidebar üstündeki kullanıcı kartı. Kart tıklanabilir ama henüz işlevsiz;
+ * hesap menüsü navbar'daki avatarda duruyor.
+ *
+ * Durum göstergesi sabit "çevrimiçi": oturumu açık olan kullanıcının kendisini
+ * gösteriyor. Gerçek varlık bilgisi (uzakta / çevrimdışı) bir presence
+ * kanalı ister, o da Mesajlar modülüyle birlikte gelecek.
+ */
 export function UserCard({ isCollapsed }: { isCollapsed: boolean }) {
+  const user = useSessionUser();
+
   const card = (
     <button
       type="button"
@@ -38,21 +37,16 @@ export function UserCard({ isCollapsed }: { isCollapsed: boolean }) {
     >
       <span className="relative shrink-0">
         <Avatar className="size-9 ring-1 ring-hairline-strong">
-          <AvatarFallback>{currentUser.initials}</AvatarFallback>
+          <AvatarFallback>{user.initials}</AvatarFallback>
         </Avatar>
         <span
           aria-hidden
-          className={cn(
-            "absolute -bottom-0.5 -right-0.5 size-3 rounded-full ring-[2.5px] ring-canvas-subtle",
-            statusStyles[currentUser.status],
-          )}
+          className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-success ring-[2.5px] ring-canvas-subtle"
         />
-        {currentUser.status === "online" && (
-          <span
-            aria-hidden
-            className="absolute -bottom-0.5 -right-0.5 size-3 animate-ping rounded-full bg-success opacity-40"
-          />
-        )}
+        <span
+          aria-hidden
+          className="absolute -bottom-0.5 -right-0.5 size-3 animate-ping rounded-full bg-success opacity-40"
+        />
       </span>
 
       <AnimatePresence initial={false}>
@@ -66,10 +60,18 @@ export function UserCard({ isCollapsed }: { isCollapsed: boolean }) {
           >
             <span className="min-w-0 flex-1">
               <span className="block truncate text-[13.5px] font-medium text-foreground">
-                {currentUser.name}
+                {user.name}
               </span>
-              <span className="block truncate text-[11.5px] text-muted-foreground">
-                {currentUser.role}
+              <span className="flex items-center gap-1.5">
+                <span className="min-w-0 truncate text-[11.5px] text-muted-foreground">
+                  {user.title}
+                </span>
+                {/* Unvan yetki DEĞİL — rolü düşürülmüş bir kullanıcının
+                    unvanı aynı kalır. Rozet olmadan kullanıcı kendi yetki
+                    seviyesini arayüzün hiçbir yerinden okuyamıyordu. */}
+                {user.agentRole && (
+                  <AgentRoleBadge role={user.agentRole} />
+                )}
               </span>
             </span>
             <ChevronsUpDown className="size-3.5 shrink-0 text-muted-foreground transition-colors group-hover:text-secondary-foreground" />
@@ -85,9 +87,10 @@ export function UserCard({ isCollapsed }: { isCollapsed: boolean }) {
     <Tooltip>
       <TooltipTrigger asChild>{card}</TooltipTrigger>
       <TooltipContent side="right">
-        <span className="block font-medium">{currentUser.name}</span>
+        <span className="block font-medium">{user.name}</span>
         <span className="block text-[11px] text-secondary-foreground">
-          {currentUser.role} · {statusLabels[currentUser.status]}
+          {user.title}
+          {user.agentRole && ` · ${AGENT_ROLE_LABELS[user.agentRole]}`}
         </span>
       </TooltipContent>
     </Tooltip>
