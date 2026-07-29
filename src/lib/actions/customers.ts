@@ -6,6 +6,8 @@ import type { CustomerInsert, CustomerUpdate } from "@/types/database";
 import { createClient } from "@/lib/supabase/server";
 import { fail, ok, toMessage, type ActionResult } from "@/lib/actions/result";
 import { removeStorageObjects } from "@/lib/storage/cleanup";
+import { getCurrentAgent } from "@/lib/auth/server";
+import { notify } from "@/lib/actions/notify";
 
 /**
  * ============================================================================
@@ -44,6 +46,24 @@ export async function createCustomer(
     actor_agent_id: input.assigned_agent_id,
     related_listing_id: null,
     related_customer_id: data.id,
+  });
+
+  /* KİŞİSEL BİLDİRİM — yukarıdaki `activity_log` satırıyla karıştırılmamalı.
+     O ofisin ortak akışına düşüyor ve herkes aynı listeyi görüyor; bu ise
+     müşterinin atandığı danışmanın gelen kutusuna.
+
+     Danışman müşteriyi kendisi eklediyse bildirim YAZILMIYOR: `notify()`
+     `actorAgentId` eşleşmesinde atlıyor. Bildirim ancak bir yönetici başka
+     birinin üzerine müşteri açtığında anlamlı — o kişinin haberi olmalı. */
+  const actor = await getCurrentAgent();
+  await notify(supabase, {
+    agentId: input.assigned_agent_id,
+    actorAgentId: actor?.id,
+    type: "customer_added",
+    title: "Size yeni bir müşteri atandı",
+    description: input.full_name,
+    entityType: "customer",
+    entityId: data.id,
   });
 
   revalidateCustomers(data.id);

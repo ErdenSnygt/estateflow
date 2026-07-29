@@ -8,6 +8,7 @@ import { getAgentOptions } from "@/lib/data/agents";
 import { getCurrentAgent } from "@/lib/auth/server";
 import { canViewStaff } from "@/lib/agents";
 import {
+  countActiveAppointmentFilters,
   parseAppointmentFilters,
   parseCalendarDate,
   parseCalendarView,
@@ -73,6 +74,7 @@ export default async function RandevularPage({ searchParams }: PageProps) {
         listingOptions={formOptions.listings}
         agentOptions={agentOptions}
         currentAgentId={currentAgent?.id ?? null}
+        hasFilters={countActiveAppointmentFilters(params) > 0}
       />
     </div>
   );

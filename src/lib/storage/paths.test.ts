@@ -5,7 +5,7 @@ import {
   MAX_UPLOAD_BYTES,
   parseStorageUrl,
   publicUrlFor,
-  STORAGE_BUCKETS,
+  PUBLIC_BUCKETS,
 } from "@/lib/storage/paths";
 
 /**
@@ -32,7 +32,9 @@ describe("publicUrlFor", () => {
   });
 
   it("ürettiği adres geri ayrıştırılabilir", () => {
-    for (const bucket of STORAGE_BUCKETS) {
+    /* PUBLIC_BUCKETS, STORAGE_BUCKETS değil: Faz 12'de eklenen `documents`
+       private ve public bir adresi hiç yok. */
+    for (const bucket of PUBLIC_BUCKETS) {
       const path = "9f8c-1234.webp";
       expect(parseStorageUrl(publicUrlFor(bucket, path))).toEqual({
         bucket,

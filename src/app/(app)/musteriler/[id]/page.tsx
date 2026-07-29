@@ -24,6 +24,9 @@ import { CustomerTimeline } from "@/components/customers/customer-timeline";
 import { AddEventForm } from "@/components/customers/add-event-form";
 import { OfferDialog } from "@/components/offers/offer-dialog";
 import { InterestCard } from "@/components/customers/interest-card";
+import { getDocumentsForCustomer } from "@/lib/data/documents";
+import { RelatedDocuments } from "@/components/documents/related-documents";
+import { MessageCustomerButton } from "@/components/messages/message-customer-button";
 import { AppointmentRow } from "@/components/appointments/appointment-row";
 
 type PageProps = { params: Promise<{ id: string }> };
@@ -39,11 +42,12 @@ export async function generateMetadata({
 export default async function CustomerDetailPage({ params }: PageProps) {
   const { id } = await params;
 
-  /* Üç sorgu birbirinden bağımsız — paralel. */
-  const [customer, timeline, appointments] = await Promise.all([
+  /* Dört sorgu birbirinden bağımsız — paralel. */
+  const [customer, timeline, appointments, documents] = await Promise.all([
     getCustomerById(id),
     getCustomerTimeline(id),
     getUpcomingAppointmentsForCustomer(id),
+    getDocumentsForCustomer(id),
   ]);
 
   if (!customer) notFound();
@@ -69,6 +73,7 @@ export default async function CustomerDetailPage({ params }: PageProps) {
                   hint: formatCurrency(listing.price, listing.currency),
                 }))}
             />
+            <MessageCustomerButton customerId={customer.id} />
             <Button variant="secondary" asChild>
               <a href={`tel:${customer.phone.replace(/\s/g, "")}`}>
                 <Phone className="size-4" />
@@ -238,6 +243,14 @@ export default async function CustomerDetailPage({ params }: PageProps) {
               </CardContent>
             </Card>
           )}
+
+          {/* Evrak kartı, randevu kartının aksine BOŞKEN DE duruyor: belge
+              yüklemek müşteri sürecinin beklenen bir adımı ve boş kart
+              "buraya tapu koyabilirsin" diyen tek yer. */}
+          <RelatedDocuments
+            documents={documents}
+            filterHref={`/evraklar?customer=${customer.id}`}
+          />
 
           <Card>
             <CardHeader>

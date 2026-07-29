@@ -7,7 +7,12 @@ import { motion } from "framer-motion";
 import { Menu } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { mobilePrimaryItems, type NavItem } from "@/config/navigation";
+import {
+  mobilePrimaryItems,
+  type NavBadgeKey,
+  type NavItem,
+} from "@/config/navigation";
+import { useNavBadge } from "@/components/layout/nav-badge-provider";
 import { MobileMenuDrawer } from "@/components/layout/mobile-menu-drawer";
 
 /**
@@ -63,7 +68,7 @@ export function MobileNav() {
                 href={item.href}
                 label={item.label}
                 icon={item.icon}
-                badge={item.badge}
+                badgeKey={item.badgeKey}
                 isActive={activeHref === item.href}
               />
             </li>
@@ -91,17 +96,20 @@ function MobileNavLink({
   href,
   label,
   icon: Icon,
-  badge,
+  badgeKey,
   isActive,
   onClick,
 }: {
   href?: string;
   label: string;
   icon: React.ElementType;
-  badge?: number;
+  badgeKey?: NavBadgeKey;
   isActive: boolean;
   onClick?: () => void;
 }) {
+  /* Sayı canlı; sıfırsa rozet çizilmiyor. */
+  const badge = useNavBadge(badgeKey);
+
   const content = (
     <>
       {/* Aktif zemin — sidebar'daki ile aynı görsel dil, alt çubuğa uyarlanmış */}
@@ -122,7 +130,7 @@ function MobileNavLink({
             )}
             strokeWidth={isActive ? 2.1 : 1.8}
           />
-          {badge ? (
+          {badge > 0 ? (
             <span className="absolute -right-1.5 -top-1 flex h-[15px] min-w-[15px] items-center justify-center rounded-full bg-brand px-1 text-[9.5px] font-semibold tabular-nums text-white ring-2 ring-canvas-subtle">
               {badge}
             </span>

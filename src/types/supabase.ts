@@ -36,8 +36,12 @@
  *   customer_timeline_events.event_type   activity_log.event_type
  *   offers.status       agents.role       agent_audit_log.action
  *   appointments.appointment_type         appointments.status
+ *   sales.commission_status
+ *   messages.sender_type                  messages.attachment_type
+ *   documents.document_type               notifications.type
+ *   notifications.related_entity_type
  *
- * Üreticiyi çalıştırdıktan sonra bu on iki daraltma yeniden uygulanmalı; aksi
+ * Üreticiyi çalıştırdıktan sonra bu on sekiz daraltma yeniden uygulanmalı; aksi
  * halde `types/database.ts` üzerinden tüm arayüz `string` görmeye başlar ve
  * rozet/etiket sözlükleri sessizce derlenir.
  */
@@ -80,6 +84,9 @@ export type ActivityEventType =
   | "appointment_scheduled";
 export type OfferStatus = "pending" | "accepted" | "rejected" | "expired";
 
+/** `sales.commission_status` — komisyonun tahsilat durumu (Faz 16). */
+export type CommissionStatus = "pending" | "collected" | "overdue";
+
 /**
  * Yetkilendirme rolü. `agents.title` (görünen unvan) ile karıştırılmamalı:
  * unvan serbest metin ve yalnızca gösterim, rol RLS politikalarının okuduğu
@@ -99,6 +106,31 @@ export type AppointmentType =
   | "diger";
 
 export type AppointmentStatus = "planlandi" | "tamamlandi" | "iptal";
+
+/* --- Faz 12: mesajlar, evraklar, bildirimler ------------------------------ */
+
+/** Mesajın YÖNÜ — kimlik değil. Balonun sağda mı solda mı çizileceği. */
+export type MessageSender = "agent" | "customer";
+
+/** Ek türü: arayüz görseli önizliyor, dosyayı satır olarak çiziyor. */
+export type MessageAttachmentType = "image" | "file";
+
+export type DocumentType = "pdf" | "tapu" | "kimlik" | "sozlesme";
+
+export type NotificationType =
+  | "customer_added"
+  | "listing_created"
+  | "sale_closed"
+  | "message_received"
+  | "appointment_scheduled";
+
+/** Bildirimin işaret ettiği kaydın türü — polimorfik bağ, FK yok. */
+export type NotificationEntity =
+  | "customer"
+  | "listing"
+  | "sale"
+  | "conversation"
+  | "appointment";
 
 /** `agent_audit_log.action` — rol ve prim değişikliğinin izi. */
 export type AgentAuditAction =
@@ -127,6 +159,16 @@ export type Database = {
           avatar_url: string | null;
           commission_rate: number;
           is_active: boolean;
+          cover_url: string | null;
+          /**
+           * Bildirim türü → açık/kapalı.
+           *
+           * `Json` olarak duruyor, daraltılmadı: jsonb'nin içeriğini
+           * veritabanı denetlemiyor, yani şemadan gelen bir tip GARANTİ
+           * DEĞİL, temenni olurdu. Çözümleme ve varsayılana düşme
+           * `lib/notification-preferences.ts` içinde.
+           */
+          notification_preferences: Json;
           created_at: string;
         };
         Insert: {
@@ -141,6 +183,8 @@ export type Database = {
           avatar_url?: string | null;
           commission_rate?: number;
           is_active?: boolean;
+          cover_url?: string | null;
+          notification_preferences?: Json;
           created_at?: string;
         };
         Update: {
@@ -155,6 +199,8 @@ export type Database = {
           avatar_url?: string | null;
           commission_rate?: number;
           is_active?: boolean;
+          cover_url?: string | null;
+          notification_preferences?: Json;
           created_at?: string;
         };
         Relationships: [];
@@ -486,6 +532,7 @@ export type Database = {
           customer_id: string | null;
           agent_id: string | null;
           amount: number;
+          commission_status: CommissionStatus;
           closed_at: string;
           created_at: string;
         };
@@ -495,6 +542,7 @@ export type Database = {
           customer_id?: string | null;
           agent_id?: string | null;
           amount: number;
+          commission_status?: CommissionStatus;
           closed_at: string;
           created_at?: string;
         };
@@ -504,6 +552,7 @@ export type Database = {
           customer_id?: string | null;
           agent_id?: string | null;
           amount?: number;
+          commission_status?: CommissionStatus;
           closed_at?: string;
           created_at?: string;
         };
@@ -655,6 +704,227 @@ export type Database = {
             columns: ["listing_id"];
             isOneToOne: false;
             referencedRelation: "listings";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      conversations: {
+        Row: {
+          id: string;
+          customer_id: string;
+          agent_id: string;
+          last_message_at: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          customer_id: string;
+          agent_id: string;
+          last_message_at?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          customer_id?: string;
+          agent_id?: string;
+          last_message_at?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "conversations_agent_id_fkey";
+            columns: ["agent_id"];
+            isOneToOne: false;
+            referencedRelation: "agents";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "conversations_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: true;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      messages: {
+        Row: {
+          id: string;
+          conversation_id: string;
+          sender_type: MessageSender;
+          content: string;
+          attachment_url: string | null;
+          attachment_type: MessageAttachmentType | null;
+          created_at: string;
+          read_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          conversation_id: string;
+          sender_type: MessageSender;
+          content?: string;
+          attachment_url?: string | null;
+          attachment_type?: MessageAttachmentType | null;
+          created_at?: string;
+          read_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          conversation_id?: string;
+          sender_type?: MessageSender;
+          content?: string;
+          attachment_url?: string | null;
+          attachment_type?: MessageAttachmentType | null;
+          created_at?: string;
+          read_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey";
+            columns: ["conversation_id"];
+            isOneToOne: false;
+            referencedRelation: "conversations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      documents: {
+        Row: {
+          id: string;
+          title: string;
+          document_type: DocumentType;
+          related_customer_id: string | null;
+          related_listing_id: string | null;
+          file_url: string;
+          file_size: number;
+          mime_type: string;
+          uploaded_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          document_type?: DocumentType;
+          related_customer_id?: string | null;
+          related_listing_id?: string | null;
+          file_url: string;
+          file_size?: number;
+          mime_type?: string;
+          uploaded_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          document_type?: DocumentType;
+          related_customer_id?: string | null;
+          related_listing_id?: string | null;
+          file_url?: string;
+          file_size?: number;
+          mime_type?: string;
+          uploaded_by?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "documents_related_customer_id_fkey";
+            columns: ["related_customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "documents_related_listing_id_fkey";
+            columns: ["related_listing_id"];
+            isOneToOne: false;
+            referencedRelation: "listings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "documents_uploaded_by_fkey";
+            columns: ["uploaded_by"];
+            isOneToOne: false;
+            referencedRelation: "agents";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      company_settings: {
+        Row: {
+          id: string;
+          name: string;
+          logo_url: string | null;
+          address: string;
+          tax_office: string;
+          tax_number: string;
+          phone: string;
+          email: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name?: string;
+          logo_url?: string | null;
+          address?: string;
+          tax_office?: string;
+          tax_number?: string;
+          phone?: string;
+          email?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          logo_url?: string | null;
+          address?: string;
+          tax_office?: string;
+          tax_number?: string;
+          phone?: string;
+          email?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      notifications: {
+        Row: {
+          id: string;
+          agent_id: string;
+          type: NotificationType;
+          title: string;
+          description: string;
+          related_entity_type: NotificationEntity | null;
+          related_entity_id: string | null;
+          read_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          agent_id: string;
+          type: NotificationType;
+          title: string;
+          description?: string;
+          related_entity_type?: NotificationEntity | null;
+          related_entity_id?: string | null;
+          read_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          agent_id?: string;
+          type?: NotificationType;
+          title?: string;
+          description?: string;
+          related_entity_type?: NotificationEntity | null;
+          related_entity_id?: string | null;
+          read_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "notifications_agent_id_fkey";
+            columns: ["agent_id"];
+            isOneToOne: false;
+            referencedRelation: "agents";
             referencedColumns: ["id"];
           },
         ];

@@ -7,6 +7,8 @@ import { createClient } from "@/lib/supabase/server";
 import { canTransition, closesSale } from "@/lib/offers";
 import { formatCurrency } from "@/lib/format";
 import { fail, ok, toMessage, type ActionResult } from "@/lib/actions/result";
+import { getCurrentAgent } from "@/lib/auth/server";
+import { notify } from "@/lib/actions/notify";
 
 /**
  * ============================================================================
@@ -274,6 +276,21 @@ export async function updateOfferStatus(
       listing_id: offer.listing_id,
     });
   }
+
+  /* SATIŞ BİLDİRİMİ İLANIN DANIŞMANINA. Prim kararıyla aynı mantık: teklifi
+     kim kapatırsa kapatsın satış portföy sahibinin, dolayısıyla haber de
+     onun. Kendi teklifini kabul eden danışman bildirim almıyor — `notify()`
+     aktörle hedef aynıysa atlıyor. */
+  const actor = await getCurrentAgent();
+  await notify(supabase, {
+    agentId,
+    actorAgentId: actor?.id,
+    type: "sale_closed",
+    title: "İlanınız satıldı",
+    description: `${listing?.title ?? offer.listing_id.toUpperCase()} · ${formatCurrency(offer.amount)}`,
+    entityType: "sale",
+    entityId: offer.listing_id,
+  });
 
   revalidateSales(offer.listing_id, offer.customer_id ?? undefined);
   revalidatePath("/ilanlar");

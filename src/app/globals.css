@@ -25,10 +25,27 @@
   --border-strong: oklch(1 0 0 / 12%);
   --border-accent: oklch(0.62 0.19 265 / 45%);
 
-  /* --- Tipografi renkleri ---------------------------------------------- */
+  /* --- Tipografi renkleri ----------------------------------------------
+     KONTRAST ÖLÇÜLDÜ (Faz 15). WCAG AA küçük metin için 4.5:1 istiyor ve
+     bu üç renk de 11–13 px boyutlarda kullanılıyor, yani "büyük metin"
+     istisnası (3:1) geçerli değil.
+
+       --text            14.7:1  ✓
+       --text-secondary   6.8:1  ✓
+       --text-muted       3.4:1  ✗  → #626e85 idi, AA'nın altındaydı
+
+     `--text-muted` en yaygın kullanılan üçüncü renk (meta satırları,
+     placeholder, ikon) ve ölçümde her zemin üzerinde kalıyordu. Aynı ton
+     (219°) ve doygunluk korunarak açıklığı yükseltildi; yeni değer yüzey
+     merdiveninin TAMAMINDA geçiyor:
+
+       canvas 6.0   inset 5.8   surface 5.4   hover 5.0   active 4.5
+
+     Hiyerarşi bozulmadı: secondary hâlâ belirgin şekilde daha açık
+     (6.8 vs 5.4), yani "meta" ile "açıklama" ayrımı korunuyor. */
   --text: #e9edf5; /* birincil metin */
   --text-secondary: #98a3b8; /* açıklama, label */
-  --text-muted: #626e85; /* placeholder, meta */
+  --text-muted: #8691a6; /* placeholder, meta */
 
   /* --- Marka / aksan ---------------------------------------------------- */
   --brand: #4c7dff;
@@ -237,14 +254,24 @@
   transition:
     background-color 200ms var(--ease-out-quint),
     border-color 200ms var(--ease-out-quint),
-    box-shadow 200ms var(--ease-out-quint);
+    box-shadow 200ms var(--ease-out-quint),
+    transform 200ms var(--ease-out-quint);
 }
 
+/* Tıklanabilir kart: aydınlanma + 2px yukarı kalkma.
+   KALKMA TEK YERDE TANIMLI ve bu bilinçli — dört ayrı kart bileşeni
+   (ilan, ilan satırı, müşteri, personel) bu utility'yi paylaşıyor. Her
+   birine ayrı `hover:-translate-y-0.5` yazılsaydı biri eklenmeyi unutulur
+   ve modüller arasında fark doğardı.
+
+   2px: hissedilir ama ızgarayı oynatmıyor. Daha fazlası, yan yana duran
+   kartlarda gölgelerin çakışmasına yol açıyor. */
 @utility surface-card-interactive {
   &:hover {
     background-color: var(--surface-hover);
     border-color: var(--border-strong);
     box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
   }
 }
 

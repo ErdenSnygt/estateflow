@@ -6,7 +6,10 @@ import { getOffersList } from "@/lib/data/sales";
 import { getAgentOptions } from "@/lib/data/agents";
 import { getCurrentAgent } from "@/lib/auth/server";
 import { canViewStaff } from "@/lib/agents";
-import { parseOfferFilters } from "@/lib/sales-filters";
+import {
+  countActiveOfferFilters,
+  parseOfferFilters,
+} from "@/lib/sales-filters";
 import { formatCurrency, formatShortDate } from "@/lib/format";
 import type { SearchParamsInput } from "@/lib/search-params";
 import { PageHeader } from "@/components/page-header";
@@ -37,6 +40,7 @@ export default async function TekliflerPage({ searchParams }: PageProps) {
   const agentOptions = canViewStaff(currentAgent?.role) ? agents : [];
 
   const pending = offers.filter((offer) => offer.status === "pending").length;
+  const hasFilters = countActiveOfferFilters(params) > 0;
 
   return (
     <div className="space-y-6 pb-4">
@@ -49,11 +53,20 @@ export default async function TekliflerPage({ searchParams }: PageProps) {
       <OffersFilterBar agentOptions={agentOptions} />
 
       {offers.length === 0 ? (
+        /* Filtre boşluğu ile gerçek boşluk ayrı — gerekçe `/satislar`da. */
         <EmptyState
           icon={Handshake}
-          badge="Boş"
-          title="Görüntülenecek teklif yok"
-          description="Teklifler ilan detayındaki 'Teklif Al' ya da müşteri detayındaki 'Teklif Ver' düğmesiyle oluşturulur."
+          badge={hasFilters ? "Sonuç yok" : "Boş"}
+          title={
+            hasFilters
+              ? "Bu filtrelerle eşleşen teklif yok"
+              : "Henüz teklif yok"
+          }
+          description={
+            hasFilters
+              ? "Durum ya da danışman filtresini kaldırıp tekrar deneyin."
+              : "Teklifler ilan detayındaki “Teklif Al” ya da müşteri detayındaki “Teklif Ver” düğmesiyle oluşturulur."
+          }
         />
       ) : (
         <>

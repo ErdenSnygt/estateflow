@@ -5,6 +5,8 @@ import { revalidatePath } from "next/cache";
 import type { ListingInsert, ListingUpdate } from "@/types/database";
 import { createClient } from "@/lib/supabase/server";
 import { fail, ok, toMessage, type ActionResult } from "@/lib/actions/result";
+import { getCurrentAgent } from "@/lib/auth/server";
+import { notify } from "@/lib/actions/notify";
 import {
   removeStorageObjects,
   removeUnusedObjects,
@@ -55,6 +57,20 @@ export async function createListing(
     .single();
 
   if (error) return fail(toMessage(error));
+
+  /* İlanın atandığı danışmanın gelen kutusuna. Kendi ilanını ekleyen danışman
+     bildirim almıyor (`notify()` aktörle hedef aynıysa atlıyor); bildirim
+     ancak bir yönetici başkasının portföyüne ilan girdiğinde düşüyor. */
+  const actor = await getCurrentAgent();
+  await notify(supabase, {
+    agentId: input.agent_id,
+    actorAgentId: actor?.id,
+    type: "listing_created",
+    title: "Portföyünüze yeni ilan eklendi",
+    description: input.title,
+    entityType: "listing",
+    entityId: data.id as string,
+  });
 
   revalidateListings(data.id);
   return ok({ id: data.id as string });

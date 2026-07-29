@@ -8,7 +8,6 @@ import {
   MessageSquare,
   Receipt,
   Settings,
-  Sparkles,
   TrendingUp,
   UserRound,
   Users,
@@ -23,9 +22,20 @@ export type NavItem = {
   icon: LucideIcon;
   /** Empty state ve arama modalında gösterilen kısa açıklama. */
   description: string;
-  /** Sidebar'da rozet olarak gösterilecek sayaç (şimdilik statik demo verisi). */
-  badge?: number;
+  /**
+   * Rozetin hangi CANLI sayaçtan besleneceği.
+   *
+   * Faz 1'den Faz 16'ya kadar burada sabit sayılar duruyordu (`badge: 4`,
+   * `badge: 9`) ve hiçbir veriye bağlı değildi: mesaj okunduğunda ya da
+   * bildirim temizlendiğinde sayı olduğu yerde kalıyordu. Artık yalnızca
+   * HANGİ sayaç olduğu yazılı; değeri sunucu veriyor
+   * (`components/layout/nav-badge-provider.tsx`).
+   */
+  badgeKey?: NavBadgeKey;
 };
+
+/** Canlı rozet kaynakları. */
+export type NavBadgeKey = "messages" | "notifications";
 
 export type NavGroup = {
   /** Sidebar'da gösterilen grup başlığı; null ise başlıksız grup. */
@@ -86,7 +96,7 @@ export const navigation: NavGroup[] = [
         icon: MessageSquare,
         description:
           "Müşteri yazışmalarınızı tek gelen kutusunda toplayın, ekip içinde devredin.",
-        badge: 4,
+        badgeKey: "messages",
       },
       {
         href: "/evraklar",
@@ -135,13 +145,6 @@ export const navigation: NavGroup[] = [
         description:
           "Portföy, satış ve ekip performansına dair detaylı analizleri buradan alacaksınız.",
       },
-      {
-        href: "/ai-asistan",
-        label: "AI Asistan",
-        icon: Sparkles,
-        description:
-          "İlan metni yazma, müşteri eşleştirme ve fiyat önerisi için yapay zekâ desteği.",
-      },
     ],
   },
   {
@@ -154,7 +157,7 @@ export const navigation: NavGroup[] = [
         icon: Bell,
         description:
           "Sistem uyarıları, hatırlatmalar ve ekip bildirimleri tek akışta toplanacak.",
-        badge: 9,
+        badgeKey: "notifications",
       },
       {
         href: "/ayarlar",
@@ -173,14 +176,18 @@ export const navItems: NavItem[] = navigation.flatMap((group) => group.items);
 /**
  * Mobil alt gezinme çubuğundaki öğeler.
  *
- * SEÇİM ÖLÇÜTÜ: gerçekten çalışan modüller. Menüdeki 13 öğenin sekizi hâlâ
- * "yakında" ekranı; bir danışmanı boş bir sayfaya götüren kısayol koymak o
- * slotu çöpe atmak olurdu.
+ * SEÇİM ÖLÇÜTÜ: telefonda en sık açılan modüller. Faz 16'dan beri menüdeki
+ * on iki öğenin TAMAMI gerçek bir sayfaya bağlı, yani seçim artık "hangisi
+ * çalışıyor" değil "hangisi sahada gerekiyor" sorusuna göre yapılıyor.
  *
  * Faz 9'da dört modül vardı; Faz 11'de Randevular da çalışır hale gelince
  * beşe çıktı. Sıralama sahadaki kullanıma göre: takvim, danışmanın telefonda
  * en sık açtığı ekranlardan biri (günün programı) ve müşterilerden hemen
  * sonra geliyor. Satışlar listede kalıyor ama en sağda — masa başı işi.
+ *
+ * Faz 12'de Mesajlar ve Evraklar da çalışır hale geldi ama alt çubuğa
+ * GİRMEDİLER: beş slot dolu ve altıncı bir öğe 375 px'de dokunma hedeflerini
+ * 60 px'in altına indiriyor. İkisi de çekmecede, bir dokunuş uzakta.
  *
  * Burada yalnızca ADRESLER duruyor, öğelerin kendisi değil — etiket, ikon ve
  * rozet yine `navigation` dizisinden geliyor. Tek kaynak ilkesi korunuyor.

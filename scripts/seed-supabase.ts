@@ -841,6 +841,7 @@ type SaleRow = {
   customer_id: string | null;
   agent_id: string;
   amount: number;
+  commission_status: "pending" | "collected" | "overdue";
   closed_at: string;
 };
 
@@ -882,14 +883,39 @@ function buildSales(): SaleRow[] {
     for (let i = 0; i < count; i += 1) {
       const listing = pick(random, sellable);
       const customer = pick(random, customers);
+      const closedAt = Math.floor(
+        between(random, monthStart, Math.max(windowEnd - 1, monthStart + 1)),
+      );
+
+      /* TAHSİLAT DURUMU YAŞA GÖRE. Eski satışların komisyonu çoğunlukla
+         tahsil edilmiş, yenilerinki bekliyor; birkaçı gecikmiş. Hepsini
+         "bekliyor" bırakmak Gelirler sayfasında tek renkli bir grafik
+         üretirdi ve tahsilat oranı hep %0 görünürdü. */
+      const ageDays = (NOW - closedAt) / DAY;
+      const commissionStatus =
+        ageDays > 120
+          ? weighted<SaleRow["commission_status"]>(random, [
+              ["collected", 88],
+              ["overdue", 12],
+            ])
+          : ageDays > 45
+            ? weighted<SaleRow["commission_status"]>(random, [
+                ["collected", 55],
+                ["pending", 30],
+                ["overdue", 15],
+              ])
+            : weighted<SaleRow["commission_status"]>(random, [
+                ["pending", 78],
+                ["collected", 22],
+              ]);
+
       rows.push({
         listing_id: listing.id,
         customer_id: customer.id,
         agent_id: pick(random, agents).id,
         amount: averageTicket,
-        closed_at: iso(
-          Math.floor(between(random, monthStart, Math.max(windowEnd - 1, monthStart + 1))),
-        ),
+        commission_status: commissionStatus,
+        closed_at: iso(closedAt),
       });
     }
   }
@@ -1026,6 +1052,477 @@ function buildActivity(): ActivityRow[] {
 const activity = buildActivity();
 
 /* ==========================================================================
+   9b. Faz 11–14 tabloları
+   ==========================================================================
+   Faz 15'e kadar seed yalnızca Faz 5'te var olan sekiz tabloyu dolduruyordu.
+   Sonraki fazlarda gelen altı tablo (randevular, konuşmalar, mesajlar,
+   evraklar, bildirimler, şirket ayarları) boş kalıyordu — yani demo'yu
+   izleyen biri dört sayfayı bomboş görüyordu. Bu bölüm o boşluğu kapatıyor.
+   ========================================================================== */
+
+/* --- 9b.1 appointments --------------------------------------------------- */
+
+type AppointmentRow = {
+  title: string;
+  appointment_type:
+    | "ev_gezme"
+    | "telefon_gorusmesi"
+    | "ofis_gorusmesi"
+    | "sozlesme_imzalama"
+    | "diger";
+  customer_id: string;
+  listing_id: string | null;
+  agent_id: string;
+  start_time: string;
+  end_time: string;
+  location: string;
+  notes: string;
+  status: "planlandi" | "tamamlandi" | "iptal";
+};
+
+const APPOINTMENT_TITLES: Record<string, string[]> = {
+  ev_gezme: ["Daire gezme", "İkinci ziyaret", "Yerinde inceleme"],
+  telefon_gorusmesi: ["Ön görüşme", "Bilgilendirme araması", "Geri dönüş"],
+  ofis_gorusmesi: ["Ofis görüşmesi", "Portföy sunumu", "Bütçe görüşmesi"],
+  sozlesme_imzalama: ["Sözleşme imzası", "Tapu randevusu"],
+  diger: ["Ekspertiz", "Kredi görüşmesi"],
+};
+
+/**
+ * Randevular takvime YAYILIYOR: geçmiş üç hafta ve gelecek üç hafta.
+ *
+ * Tek bir güne yığılsaydı hafta ve ay görünümleri boş kalırdı; demo'da
+ * takvimin üç görünümü de dolu görünmeli. Geçmiştekiler ağırlıkla
+ * "tamamlandı", gelecektekiler "planlandı" — tersi tuhaf olurdu.
+ *
+ * ÇALIŞMA SAATİ 09:00–18:00 ve slot 30 dakikanın katı: ızgara böyle çiziliyor,
+ * 09:17'de başlayan bir randevu demoda dikkat dağıtırdı.
+ */
+function buildAppointments(): AppointmentRow[] {
+  const rows: AppointmentRow[] = [];
+  const customersWithInterest = customers.filter((customer) =>
+    interestsByCustomer.has(customer.id),
+  );
+
+  for (let index = 0; index < 46; index += 1) {
+    const random = mulberry32(hashSeed(index + 120_000));
+    const customer =
+      customersWithInterest[index % customersWithInterest.length];
+    const listingIds = interestsByCustomer.get(customer.id) ?? [];
+
+    const type = weighted<AppointmentRow["appointment_type"]>(random, [
+      ["ev_gezme", 40],
+      ["telefon_gorusmesi", 22],
+      ["ofis_gorusmesi", 20],
+      ["sozlesme_imzalama", 10],
+      ["diger", 8],
+    ]);
+
+    /* -21 … +21 gün. Bugün çevresinde yoğunlaşsın diye iki uçtan da
+       eşit çekiyoruz. */
+    const dayOffset = intBetween(random, -21, 21);
+    const startHour = intBetween(random, 9, 17);
+    const startMinute = pick(random, [0, 30]);
+    const durationMinutes = pick(random, [30, 60, 60, 90]);
+
+    const base = new Date(NOW + dayOffset * DAY);
+    base.setUTCHours(startHour - 3, startMinute, 0, 0); // UTC+3 ofis saati
+    const start = base.getTime();
+
+    /* Hafta sonuna düşenleri pazartesiye kaydırıyoruz — emlak ofisi hafta
+       sonu da çalışır ama demo'da iş günü yoğunluğu daha gerçekçi. */
+    const weekday = new Date(start).getUTCDay();
+    const shift = weekday === 6 ? 2 * DAY : weekday === 0 ? DAY : 0;
+
+    const startTime = start + shift;
+    const endTime = startTime + durationMinutes * 60_000;
+
+    /* Geçmiş randevu tamamlanmış ya da iptal; gelecek olan planlı. */
+    const isPast = startTime < NOW;
+    const status: AppointmentRow["status"] = isPast
+      ? weighted(random, [
+          ["tamamlandi", 78],
+          ["iptal", 22],
+        ])
+      : "planlandi";
+
+    const listingId =
+      type === "ev_gezme" || type === "sozlesme_imzalama"
+        ? (listingIds[index % listingIds.length] ?? null)
+        : listingIds.length > 0 && random() < 0.4
+          ? listingIds[0]
+          : null;
+
+    rows.push({
+      title: pick(random, APPOINTMENT_TITLES[type]),
+      appointment_type: type,
+      customer_id: customer.id,
+      listing_id: listingId,
+      agent_id: customer.assigned_agent_id,
+      start_time: iso(startTime),
+      end_time: iso(endTime),
+      location:
+        type === "ofis_gorusmesi"
+          ? "Ofis — Bağdat Cad. No:184"
+          : type === "telefon_gorusmesi"
+            ? ""
+            : pick(random, [
+                "Kadıköy, Moda",
+                "Beşiktaş, Etiler",
+                "Şişli, Nişantaşı",
+                "Ataşehir, Batı",
+              ]),
+      notes: pick(random, [
+        "",
+        "Müşteri otoparkı önemsiyor.",
+        "Eşiyle birlikte gelecek.",
+        "Kredi ön onayı hazır.",
+        "Görüşme öncesi fiyat listesi hazırlanacak.",
+      ]),
+      status,
+    });
+  }
+
+  return rows;
+}
+
+const appointments = buildAppointments();
+
+/* --- 9b.2 conversations + messages --------------------------------------- */
+
+type ConversationRow = {
+  id: string;
+  customer_id: string;
+  agent_id: string;
+  last_message_at: string;
+};
+
+type MessageRow = {
+  conversation_id: string;
+  sender_type: "agent" | "customer";
+  content: string;
+  created_at: string;
+  read_at: string | null;
+};
+
+const CUSTOMER_LINES = [
+  "Merhaba, ilanı gördüm. Hâlâ müsait mi?",
+  "Fiyatta bir esneklik var mı?",
+  "Hafta sonu görebilir miyiz?",
+  "Aidat ne kadar acaba?",
+  "Krediye uygun mu?",
+  "Fotoğraflardaki mutfak yenilendi mi?",
+  "Teşekkürler, ailemle konuşup döneceğim.",
+  "Otopark dahil mi?",
+];
+
+const AGENT_LINES = [
+  "Merhaba, evet müsait. Detayları hemen paylaşıyorum.",
+  "Mal sahibiyle görüşüp size dönüş yapacağım.",
+  "Cumartesi 14:00 uygun mu?",
+  "Aidat 2.500 TL, ısıtma dahil.",
+  "Kredi için ön onay alabilirsiniz, banka listesini gönderiyorum.",
+  "Mutfak geçen yıl komple yenilendi.",
+  "Tabii, acele etmeyin. Sorularınız olursa buradayım.",
+  "Kapalı otopark dahil, ikinci araç için ek ücret var.",
+];
+
+/**
+ * Konuşmalar MÜŞTERİ BAŞINA TEK (şemadaki unique kısıt).
+ *
+ * Sıcak müşterilerin hepsinde, normallerin bir kısmında yazışma var —
+ * ilgisi yüksek müşteriyle daha çok konuşulur. Soğuk müşterilerde yok.
+ *
+ * OKUNMAMIŞ MESAJ BIRAKILIYOR: birkaç konuşmanın son mesajı müşteriden ve
+ * okunmamış. Rozet ve kalın yazı tipi demo'da görünsün diye — hepsi okunmuş
+ * olsaydı o durumlar hiç çizilmezdi.
+ */
+function buildConversations(): {
+  conversations: ConversationRow[];
+  messages: MessageRow[];
+} {
+  const conversations: ConversationRow[] = [];
+  const messages: MessageRow[] = [];
+
+  const eligible = customers.filter(
+    (customer, index) =>
+      customer.status === "sicak" ||
+      (customer.status === "normal" && index % 3 === 0),
+  );
+
+  eligible.forEach((customer, index) => {
+    const random = mulberry32(hashSeed(index + 200_000));
+    const conversationId = `c0000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`;
+
+    const turns = intBetween(random, 4, 9);
+    /* Son mesajın zamanı: son 10 gün içinde. */
+    const lastAt = NOW - intBetween(random, 0, 10) * DAY;
+    /* Mesajlar geriye doğru 40–90 dakikalık aralıklarla diziliyor. */
+    let cursor = lastAt - turns * intBetween(random, 40, 90) * 60_000;
+
+    /* Son mesaj kimden: dörtte birinde müşteriden ve OKUNMAMIŞ. */
+    const endsWithCustomer = random() < 0.28;
+
+    for (let turn = 0; turn < turns; turn += 1) {
+      /* Sohbet müşteriden başlıyor, sonra sırayla. Son mesajın kimden
+         geleceği yukarıdaki karara göre yön ayarlanıyor. */
+      const fromCustomer =
+        (turn + (endsWithCustomer ? turns + 1 : turns)) % 2 === 0;
+
+      cursor += intBetween(random, 40, 90) * 60_000;
+
+      messages.push({
+        conversation_id: conversationId,
+        sender_type: fromCustomer ? "customer" : "agent",
+        content: fromCustomer
+          ? pick(random, CUSTOMER_LINES)
+          : pick(random, AGENT_LINES),
+        created_at: iso(cursor),
+        /* Danışmanın mesajı baştan okunmuş sayılıyor (uygulama da öyle
+           yazıyor); müşteriden gelen son mesaj okunmamış kalıyor. */
+        read_at: fromCustomer
+          ? turn === turns - 1 && endsWithCustomer
+            ? null
+            : iso(cursor + 5 * 60_000)
+          : iso(cursor),
+      });
+    }
+
+    conversations.push({
+      id: conversationId,
+      customer_id: customer.id,
+      agent_id: customer.assigned_agent_id,
+      last_message_at: iso(cursor),
+    });
+  });
+
+  return { conversations, messages };
+}
+
+const { conversations, messages } = buildConversations();
+
+/* --- 9b.3 notifications -------------------------------------------------- */
+
+type NotificationRow = {
+  agent_id: string;
+  type:
+    | "customer_added"
+    | "listing_created"
+    | "sale_closed"
+    | "message_received"
+    | "appointment_scheduled";
+  title: string;
+  description: string;
+  related_entity_type:
+    | "customer"
+    | "listing"
+    | "sale"
+    | "conversation"
+    | "appointment"
+    | null;
+  related_entity_id: string | null;
+  read_at: string | null;
+  created_at: string;
+};
+
+/**
+ * Bildirimler GERÇEK KAYITLARA bağlanıyor.
+ *
+ * Uydurma kimliklerle doldurulsaydı her satır tıklandığında 404 verirdi;
+ * `notificationHref()` bağı çözemediğinde satırı tıklanamaz çiziyor ama
+ * demo'da bağlantıların çalışması gerekiyor.
+ *
+ * Bir kısmı okunmamış: zil rozeti demo'da görünsün.
+ */
+function buildNotifications(): NotificationRow[] {
+  const rows: NotificationRow[] = [];
+
+  /* Satışlar → ilanın danışmanına "satış kapandı". */
+  sales.slice(0, 6).forEach((sale, index) => {
+    const random = mulberry32(hashSeed(index + 300_000));
+    const listing = listings.find((item) => item.id === sale.listing_id);
+    if (!listing) return;
+
+    const at = Date.parse(sale.closed_at);
+    rows.push({
+      agent_id: listing.agent_id,
+      type: "sale_closed",
+      title: "İlanınız satıldı",
+      description: `${listing.title} · ₺${sale.amount.toLocaleString("tr-TR")}`,
+      related_entity_type: "sale",
+      related_entity_id: listing.id,
+      read_at: random() < 0.6 ? iso(at + 2 * 3_600_000) : null,
+      created_at: iso(at),
+    });
+  });
+
+  /* Yeni müşteri atamaları. */
+  customers.slice(0, 8).forEach((customer, index) => {
+    const random = mulberry32(hashSeed(index + 310_000));
+    const at = NOW - intBetween(random, 1, 20) * DAY;
+    rows.push({
+      agent_id: customer.assigned_agent_id,
+      type: "customer_added",
+      title: "Size yeni bir müşteri atandı",
+      description: customer.full_name,
+      related_entity_type: "customer",
+      related_entity_id: customer.id,
+      read_at: random() < 0.5 ? iso(at + 3_600_000) : null,
+      created_at: iso(at),
+    });
+  });
+
+  /* Okunmamış mesajı olan konuşmalar → "yeni mesaj". */
+  const unreadConversationIds = new Set(
+    messages
+      .filter((message) => message.sender_type === "customer" && message.read_at === null)
+      .map((message) => message.conversation_id),
+  );
+
+  conversations
+    .filter((conversation) => unreadConversationIds.has(conversation.id))
+    .slice(0, 6)
+    .forEach((conversation) => {
+      const customer = customers.find(
+        (item) => item.id === conversation.customer_id,
+      );
+      rows.push({
+        agent_id: conversation.agent_id,
+        type: "message_received",
+        title: `${customer?.full_name ?? "Müşteri"} mesaj gönderdi`,
+        description: "Yanıt bekleyen bir mesajınız var.",
+        related_entity_type: "conversation",
+        related_entity_id: conversation.id,
+        read_at: null,
+        created_at: conversation.last_message_at,
+      });
+    });
+
+  /* Yaklaşan randevular. */
+  appointments
+    .filter((appointment) => appointment.status === "planlandi")
+    .slice(0, 5)
+    .forEach((appointment, index) => {
+      const random = mulberry32(hashSeed(index + 320_000));
+      rows.push({
+        agent_id: appointment.agent_id,
+        type: "appointment_scheduled",
+        title: "Takviminize randevu eklendi",
+        description: appointment.title,
+        related_entity_type: "appointment",
+        related_entity_id: null,
+        read_at: random() < 0.4 ? iso(NOW - DAY) : null,
+        created_at: iso(Date.parse(appointment.start_time) - 3 * DAY),
+      });
+    });
+
+  return rows.sort(
+    (a, b) => Date.parse(b.created_at) - Date.parse(a.created_at),
+  );
+}
+
+const notifications = buildNotifications();
+
+/* --- 9b.4 documents ------------------------------------------------------ */
+
+type DocumentRow = {
+  title: string;
+  document_type: "pdf" | "tapu" | "kimlik" | "sozlesme";
+  related_customer_id: string | null;
+  related_listing_id: string | null;
+  file_url: string;
+  file_size: number;
+  mime_type: string;
+  uploaded_by: string;
+  created_at: string;
+};
+
+/**
+ * Geçerli, en küçük PDF.
+ *
+ * NEDEN GERÇEK DOSYA YÜKLENİYOR: `documents.file_url` private bucket'taki
+ * nesne yolunu taşıyor ve indirme anında imzalanıyor. Var olmayan bir yola
+ * işaret eden satırlar listeyi dolu gösterir ama her indirme denemesi
+ * hataya düşerdi — demo'da en çok göze batacak şey de bu olurdu.
+ *
+ * Bu yüzden seed bucket'a gerçekten yazıyor. Dosya 300 bayttan küçük ve
+ * açıldığında tek satırlık bir metin gösteriyor.
+ */
+function minimalPdf(label: string): Uint8Array {
+  const text = label.replace(/[()\\]/g, "");
+  const body = `1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 300 120]/Contents 4 0 R/Resources<</Font<</F1 5 0 R>>>>>>endobj
+4 0 obj<</Length 70>>stream
+BT /F1 12 Tf 20 60 Td (${text}) Tj ET
+endstream endobj
+5 0 obj<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>endobj
+trailer<</Root 1 0 R>>`;
+  return new TextEncoder().encode(`%PDF-1.4\n${body}\n%%EOF\n`);
+}
+
+function buildDocuments(): DocumentRow[] {
+  const rows: DocumentRow[] = [];
+
+  const plan: {
+    type: DocumentRow["document_type"];
+    label: string;
+    count: number;
+  }[] = [
+    { type: "tapu", label: "Tapu fotokopisi", count: 6 },
+    { type: "sozlesme", label: "Satış sözleşmesi", count: 5 },
+    { type: "kimlik", label: "Kimlik fotokopisi", count: 4 },
+    { type: "pdf", label: "Ekspertiz raporu", count: 4 },
+  ];
+
+  let counter = 0;
+
+  for (const entry of plan) {
+    for (let index = 0; index < entry.count; index += 1) {
+      const random = mulberry32(hashSeed(counter + 400_000));
+      const customer = customers[(counter * 5) % customers.length];
+      const listingIds = interestsByCustomer.get(customer.id) ?? [];
+      const listingId = listingIds[0] ?? null;
+
+      rows.push({
+        title:
+          entry.type === "kimlik"
+            ? `${entry.label} — ${customer.full_name}`
+            : `${entry.label} — ${listingId ? listingId.toUpperCase() : customer.full_name}`,
+        document_type: entry.type,
+        related_customer_id: customer.id,
+        /* Kimlik belgesi ilana bağlanmıyor: kişiye ait bir belge. */
+        related_listing_id: entry.type === "kimlik" ? null : listingId,
+        file_url: `seed-${String(counter + 1).padStart(3, "0")}.pdf`,
+        file_size: 0, // gerçek boyut yüklemeden sonra yazılıyor
+        mime_type: "application/pdf",
+        uploaded_by: customer.assigned_agent_id,
+        created_at: iso(NOW - intBetween(random, 1, 60) * DAY),
+      });
+
+      counter += 1;
+    }
+  }
+
+  return rows;
+}
+
+const documents = buildDocuments();
+
+/* --- 9b.5 company_settings ----------------------------------------------- */
+
+const companySettings = {
+  id: "default",
+  name: "Emlak CRM Gayrimenkul",
+  logo_url: null,
+  address: "Bağdat Caddesi No:184, Kadıköy / İstanbul",
+  tax_office: "Kadıköy",
+  tax_number: "1234567890",
+  phone: "+90 216 555 12 34",
+  email: "info@emlakcrm.com",
+};
+
+/* ==========================================================================
    10. Yazma
    ========================================================================== */
 
@@ -1046,6 +1543,13 @@ async function insertAll(table: string, rows: object[]) {
 
 /** Silme sırası yabancı anahtarları takip eder: çocuklar önce. */
 const DELETE_ORDER = [
+  /* Faz 11–14 tabloları en başta: hepsi listings/customers/agents'a bağlı.
+     `messages` `conversations`tan önce, `conversations` `customers`tan önce. */
+  "notifications",
+  "messages",
+  "conversations",
+  "documents",
+  "appointments",
   "offers",
   "sales",
   "activity_log",
@@ -1055,6 +1559,38 @@ const DELETE_ORDER = [
   "customers",
   "agents",
 ];
+
+/**
+ * Demo belgelerini private bucket'a yükler ve gerçek boyutu satırlara yazar.
+ *
+ * Satırlar yazılmadan ÖNCE çalışmalı: `file_size` kolonunu buradan dönen
+ * gerçek bayt sayısı dolduruyor. Yükleme başarısız olursa seed durmuyor —
+ * belge listesi yine dolu görünür, yalnızca indirme çalışmaz; bu, tüm
+ * seed'in çökmesinden iyi.
+ */
+async function uploadDemoDocuments() {
+  let uploaded = 0;
+
+  for (const document of documents) {
+    const bytes = minimalPdf(document.title);
+    document.file_size = bytes.byteLength;
+
+    const { error } = await supabase.storage
+      .from("documents")
+      .upload(document.file_url, bytes, {
+        contentType: "application/pdf",
+        upsert: true,
+      });
+
+    if (error) {
+      console.warn(`  ! ${document.file_url} yüklenemedi: ${error.message}`);
+      continue;
+    }
+    uploaded += 1;
+  }
+
+  console.log(`  ✓ ${"documents (dosya)".padEnd(28)} ${uploaded} dosya`);
+}
 
 async function main() {
   console.log(`\n  Supabase seed → ${url}`);
@@ -1086,6 +1622,27 @@ async function main() {
   await insertAll("offers", offers);
   await insertAll("activity_log", activity);
 
+  /* --- Faz 11–14 tabloları --- */
+  await insertAll("appointments", appointments);
+  await insertAll("conversations", conversations);
+  await insertAll("messages", messages);
+
+  /* Dosyalar satırlardan önce: `file_size` yüklemeden dönüyor. */
+  await uploadDemoDocuments();
+  await insertAll("documents", documents);
+
+  await insertAll("notifications", notifications);
+
+  /* Şirket ayarları TEK SATIR ve migration'da açıldı; siliniyor değil,
+     üzerine yazılıyor. */
+  const { error: companyError } = await supabase
+    .from("company_settings")
+    .upsert(companySettings);
+  if (companyError) {
+    throw new Error(`company_settings yazılamadı: ${companyError.message}`);
+  }
+  console.log(`  ✓ ${"company_settings".padEnd(28)} 1 kayıt`);
+
   const pending = offers.filter((offer) => offer.status === "pending").length;
   const revenue = sales
     .filter((sale) => Date.parse(sale.closed_at) >= Date.UTC(
@@ -1103,8 +1660,12 @@ async function main() {
       `    Müşteri         ${customers.length}`,
       `    İlgi kaydı      ${interests.length} (${interests.filter((row) => row.intent === "rent").length} kiralama)`,
       `    Timeline olayı  ${timeline.length}`,
-      `    Kapanan satış   ${sales.length}`,
+      `    Kapanan satış   ${sales.length} (${sales.filter((row) => row.commission_status === "collected").length} komisyon tahsil edildi)`,
       `    Teklif          ${offers.length} (${pending} bekliyor)`,
+      `    Randevu         ${appointments.length} (${appointments.filter((row) => row.status === "planlandi").length} planlı)`,
+      `    Konuşma         ${conversations.length} · ${messages.length} mesaj (${messages.filter((row) => row.sender_type === "customer" && row.read_at === null).length} okunmamış)`,
+      `    Evrak           ${documents.length}`,
+      `    Bildirim        ${notifications.length} (${notifications.filter((row) => row.read_at === null).length} okunmamış)`,
       `    Bu ay ciro      ₺${revenue.toLocaleString("tr-TR")}`,
       "",
       "  Tamamlandı.",

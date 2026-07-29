@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 
 import { cn } from "@/lib/utils";
 import type { NavItem } from "@/config/navigation";
+import { useNavBadge } from "@/components/layout/nav-badge-provider";
 import {
   Tooltip,
   TooltipContent,
@@ -23,6 +24,9 @@ export function SidebarNavLink({
   isCollapsed,
 }: SidebarNavLinkProps) {
   const Icon = item.icon;
+  /* Sayı canlı: okunmamış mesaj / bildirim sayacı. Sıfırsa rozet hiç
+     çizilmiyor — "Mesajlar 0" bilgi vermeyen görsel gürültü. */
+  const badge = useNavBadge(item.badgeKey);
 
   const link = (
     <Link
@@ -70,7 +74,7 @@ export function SidebarNavLink({
             className="relative z-10 flex min-w-0 flex-1 items-center gap-2"
           >
             <span className="truncate">{item.label}</span>
-            {item.badge ? (
+            {badge > 0 ? (
               <span
                 className={cn(
                   "ml-auto flex h-5 min-w-5 items-center justify-center rounded-full px-1.5",
@@ -80,7 +84,7 @@ export function SidebarNavLink({
                     : "bg-surface-active text-secondary-foreground",
                 )}
               >
-                {item.badge}
+                {badge}
               </span>
             ) : null}
           </motion.span>
@@ -88,7 +92,7 @@ export function SidebarNavLink({
       </AnimatePresence>
 
       {/* Daraltılmışken rozet noktaya dönüşür */}
-      {isCollapsed && item.badge ? (
+      {isCollapsed && badge > 0 ? (
         <span className="absolute right-1.5 top-1.5 z-10 size-[7px] rounded-full bg-brand ring-2 ring-canvas-subtle" />
       ) : null}
     </Link>

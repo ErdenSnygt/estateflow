@@ -1,5 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
-import { parseStorageUrl, type StorageBucket } from "@/lib/storage/paths";
+import {
+  PRIVATE_BUCKET,
+  parseStorageUrl,
+  type StorageBucket,
+} from "@/lib/storage/paths";
 
 /**
  * ============================================================================
@@ -68,4 +72,30 @@ export async function removeUnusedObjects(
 ): Promise<void> {
   const kept = new Set(next);
   await removeStorageObjects(previous.filter((url) => !kept.has(url)));
+}
+
+/**
+ * Private `documents` bucket'ındaki nesneleri siler.
+ *
+ * AYRI BİR FONKSİYON çünkü girdisi farklı: yukarıdakiler public URL alıp
+ * bucket ve yolu ÇÖZÜYOR, burada zaten elimizde düz nesne yolu var
+ * (`documents.file_url` / `messages.attachment_url` kolonları onu taşıyor).
+ * URL çözümlemesinden geçirmek anlamsız olurdu — private bucket'ın public
+ * adresi hiç yok.
+ *
+ * Yukarıdakilerle aynı sözleşme: istisna fırlatmaz. Belge satırı silindi ama
+ * dosya kaldıysa kullanıcı için işlem başarılıdır; sorun günlüğe yazılır.
+ */
+export async function removeDocumentObjects(paths: string[]): Promise<void> {
+  const clean = paths.filter(Boolean);
+  if (clean.length === 0) return;
+
+  const supabase = await createClient();
+  const { error } = await supabase.storage.from(PRIVATE_BUCKET).remove(clean);
+
+  if (error) {
+    console.error(
+      `[storage] ${PRIVATE_BUCKET} temizliği başarısız (${clean.length} dosya): ${error.message}`,
+    );
+  }
 }

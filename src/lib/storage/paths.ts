@@ -15,11 +15,37 @@ import { SUPABASE_URL } from "@/lib/supabase/env";
  * taşı" akışıyla kurulabilirdi; o da yarıda bırakılan her formda çöp bırakırdı.
  */
 
-export const STORAGE_BUCKETS = ["listings", "avatars"] as const;
+/**
+ * PUBLIC BUCKET'LAR — içeriği zaten yayınlanmak için var.
+ *
+ * İlan fotoğrafı portallara çıkacak, portre avatarı arayüzde herkese görünüyor;
+ * "sızması" diye bir kavram yok. Kalıcı public URL bu yüzden sorun değil.
+ */
+export const PUBLIC_BUCKETS = ["listings", "avatars"] as const;
+export type PublicBucket = (typeof PUBLIC_BUCKETS)[number];
+
+/**
+ * PRIVATE BUCKET — tapu, kimlik, sözleşme ve mesaj ekleri.
+ *
+ * Kalıcı adresi YOK: erişim oturum gerektiriyor ve indirme anında süreli bir
+ * imzalı URL üretiliyor (`lib/storage/signed.ts`). Ayrımın tam gerekçesi
+ * `0009_documents_storage.sql` başlığında ve README'de.
+ */
+export const PRIVATE_BUCKET = "documents" as const;
+export type PrivateBucket = typeof PRIVATE_BUCKET;
+
+export const STORAGE_BUCKETS = [...PUBLIC_BUCKETS, PRIVATE_BUCKET] as const;
 export type StorageBucket = (typeof STORAGE_BUCKETS)[number];
 
 /** Bucket seviyesindeki sınırın aynısı — `0003_storage.sql` ile eşleşmeli. */
 export const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
+
+/**
+ * Belge sınırı görselden yüksek: taranmış çok sayfalı bir sözleşme PDF'i
+ * fotoğraftan büyük olabiliyor ve burada sıkıştırma yok — belge içeriği
+ * kayıpsız kalmalı. `0009_documents_storage.sql` ile eşleşmeli.
+ */
+export const MAX_DOCUMENT_BYTES = 20 * 1024 * 1024;
 
 export const ACCEPTED_MIME_TYPES = [
   "image/jpeg",
@@ -30,9 +56,32 @@ export const ACCEPTED_MIME_TYPES = [
 /** `<input accept>` değeri. */
 export const ACCEPT_ATTRIBUTE = ACCEPTED_MIME_TYPES.join(",");
 
+/** Belge yükleme — görsellere ek olarak PDF ve Word. */
+export const ACCEPTED_DOCUMENT_TYPES = [
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+] as const;
+
+export const ACCEPT_DOCUMENT_ATTRIBUTE = ACCEPTED_DOCUMENT_TYPES.join(",");
+
+/** Uzantı çıkarımı — nesne yolu `<uuid>.<ext>` biçiminde kuruluyor. */
+export const DOCUMENT_EXTENSIONS: Record<string, string> = {
+  "application/pdf": "pdf",
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "application/msword": "doc",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+    "docx",
+};
+
 const PUBLIC_PREFIX = `${SUPABASE_URL}/storage/v1/object/public/`;
 
-export function publicUrlFor(bucket: StorageBucket, path: string): string {
+export function publicUrlFor(bucket: PublicBucket, path: string): string {
   return `${PUBLIC_PREFIX}${bucket}/${path}`;
 }
 
@@ -46,7 +95,7 @@ export function publicUrlFor(bucket: StorageBucket, path: string): string {
  */
 export function parseStorageUrl(
   url: string,
-): { bucket: StorageBucket; path: string } | null {
+): { bucket: PublicBucket; path: string } | null {
   if (!url.startsWith(PUBLIC_PREFIX)) return null;
 
   const rest = url.slice(PUBLIC_PREFIX.length);
@@ -56,10 +105,13 @@ export function parseStorageUrl(
   const bucket = rest.slice(0, separator);
   const path = rest.slice(separator + 1);
 
-  if (!STORAGE_BUCKETS.includes(bucket as StorageBucket) || !path) return null;
+  /* Yalnızca PUBLIC bucket'lar: private bucket'ın `/object/public/` altında
+     bir adresi hiç olmuyor, dolayısıyla buraya düşen bir `documents` yolu
+     ancak uydurma olabilir. */
+  if (!PUBLIC_BUCKETS.includes(bucket as PublicBucket) || !path) return null;
 
   /* Sorgu dizesi (ör. `?t=…` önbellek kırıcı) yola dahil edilmemeli. */
-  return { bucket: bucket as StorageBucket, path: path.split("?")[0] };
+  return { bucket: bucket as PublicBucket, path: path.split("?")[0] };
 }
 
 /** "4,2 MB" — hata mesajlarında kullanılır. */

@@ -17,6 +17,7 @@ import { getListingById, getRelatedListings } from "@/lib/data/listings";
 import { getAgentById } from "@/lib/data/agents";
 import { getInterestedCustomers } from "@/lib/data/customers";
 import { getAppointmentsForListing } from "@/lib/data/appointments";
+import { getDocumentsForListing } from "@/lib/data/documents";
 import {
   CATEGORY_LABELS,
   formatListingPrice,
@@ -51,6 +52,7 @@ import { DeleteListingDialog } from "@/components/listings/delete-listing-dialog
 import { OfferDialog } from "@/components/offers/offer-dialog";
 import { ListingCard } from "@/components/listings/listing-card";
 import { AppointmentRow } from "@/components/appointments/appointment-row";
+import { RelatedDocuments } from "@/components/documents/related-documents";
 
 type PageProps = { params: Promise<{ id: string }> };
 
@@ -68,12 +70,14 @@ export default async function ListingDetailPage({ params }: PageProps) {
 
   if (!listing) notFound();
 
-  const [agent, related, interested, appointments] = await Promise.all([
-    getAgentById(listing.agent_id),
-    getRelatedListings(listing),
-    getInterestedCustomers(listing.id),
-    getAppointmentsForListing(listing.id),
-  ]);
+  const [agent, related, interested, appointments, documents] =
+    await Promise.all([
+      getAgentById(listing.agent_id),
+      getRelatedListings(listing),
+      getInterestedCustomers(listing.id),
+      getAppointmentsForListing(listing.id),
+      getDocumentsForListing(listing.id),
+    ]);
 
   const pricePerSqm = Math.round(listing.price / listing.area_sqm);
 
@@ -320,6 +324,14 @@ export default async function ListingDetailPage({ params }: PageProps) {
               </CardContent>
             </Card>
           )}
+
+          {/* İlana bağlı belgeler — tapu ve sözleşme genelde ilanla ilişkili.
+              Randevu kartının aksine boşken de duruyor: gerekçe müşteri
+              detayındaki kardeşiyle aynı. */}
+          <RelatedDocuments
+            documents={documents}
+            filterHref={`/evraklar?listing=${listing.id}`}
+          />
 
           <Card>
             <CardHeader>

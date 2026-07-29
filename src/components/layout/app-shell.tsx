@@ -13,6 +13,10 @@ import { MobileNav } from "@/components/layout/mobile-nav";
 import { CommandPalette } from "@/components/layout/command-palette";
 import { PageTransition } from "@/components/layout/page-transition";
 import { SessionProvider } from "@/components/layout/session-provider";
+import {
+  NavBadgeProvider,
+  type NavBadgeCounts,
+} from "@/components/layout/nav-badge-provider";
 import { AgentNotice } from "@/components/layout/agent-notice";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import type { Session } from "@/lib/auth/session";
@@ -38,9 +42,28 @@ const COLLAPSE_STORAGE_KEY = "emlak-crm:sidebar-collapsed";
  */
 export function AppShell({
   session,
+  notificationBell,
+  navBadges,
   children,
 }: {
   session: Session | null;
+  /**
+   * Navbar'daki bildirim zili — SUNUCUDA çizilip buraya slot olarak geliyor.
+   *
+   * Bu bileşen ve `Navbar` istemci tarafında; bildirim verisi sunucuda. Veriyi
+   * prop olarak iki kademe aşağı taşımak yerine hazır düğüm geçiriliyor, yani
+   * kabuk içinde ne olduğunu bilmiyor. Gerekçe
+   * `components/notifications/notification-bell-server.tsx` başlığında.
+   */
+  notificationBell?: React.ReactNode;
+  /**
+   * Sidebar / alt çubuk / çekmece rozetlerinin CANLI sayıları.
+   *
+   * Sunucuda sayılıp context'e veriliyor; üç çizim noktası da oradan okuyor
+   * (`nav-badge-provider.tsx`). Prop olarak geçirilseydi dört kademe boyunca
+   * yalnızca aktarmak için var olan parametreler doğardı.
+   */
+  navBadges: NavBadgeCounts;
   children: React.ReactNode;
 }) {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
@@ -76,49 +99,54 @@ export function AppShell({
 
   return (
     <SessionProvider session={session}>
-      <div className="relative min-h-svh bg-canvas">
-        {/* Sayfanın üstünde çok hafif bir aydınlanma — düz koyu zemini kırar */}
-        <div
-          aria-hidden
-          className="pointer-events-none fixed inset-x-0 top-0 h-[420px] bg-[radial-gradient(60%_100%_at_50%_0%,rgba(76,125,255,0.07),transparent_70%)]"
-        />
+      <NavBadgeProvider counts={navBadges}>
+        <div className="relative min-h-svh bg-canvas">
+          {/* Sayfanın üstünde çok hafif bir aydınlanma — düz koyu zemini kırar */}
+          <div
+            aria-hidden
+            className="pointer-events-none fixed inset-x-0 top-0 h-[420px] bg-[radial-gradient(60%_100%_at_50%_0%,rgba(76,125,255,0.07),transparent_70%)]"
+          />
 
-        <Sidebar
-          isCollapsed={collapsed}
-          onToggle={toggleSidebar}
-          animateWidth={shouldAnimate}
-          canToggle={!isTablet}
-        />
+          <Sidebar
+            isCollapsed={collapsed}
+            onToggle={toggleSidebar}
+            animateWidth={shouldAnimate}
+            canToggle={!isTablet}
+          />
 
-        <div
-          style={{
-            paddingLeft: collapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH,
-          }}
-          /* Sidebar md altında gizli olduğu için ayrılan boşluk da kalkmalı;
-             `!` inline stildeki paddingLeft'i ezer. Geçiş sidebar'ınkiyle
-             aynı süre ve eğride — ikisi birlikte kaymalı. */
-          className={cn(
-            "relative flex min-h-svh flex-col max-md:pl-0!",
-            "transition-[padding] ease-[var(--ease-out-quint)]",
-            shouldAnimate ? "duration-300" : "duration-0",
-          )}
-        >
-          <Navbar onOpenSearch={() => setIsSearchOpen(true)} />
+          <div
+            style={{
+              paddingLeft: collapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH,
+            }}
+            /* Sidebar md altında gizli olduğu için ayrılan boşluk da kalkmalı;
+               `!` inline stildeki paddingLeft'i ezer. Geçiş sidebar'ınkiyle
+               aynı süre ve eğride — ikisi birlikte kaymalı. */
+            className={cn(
+              "relative flex min-h-svh flex-col max-md:pl-0!",
+              "transition-[padding] ease-[var(--ease-out-quint)]",
+              shouldAnimate ? "duration-300" : "duration-0",
+            )}
+          >
+            <Navbar
+              onOpenSearch={() => setIsSearchOpen(true)}
+              notificationBell={notificationBell}
+            />
 
-          <main className="flex-1">
-            {/* Alt boşluk yalnızca mobilde: sabit alt çubuk son kartı
-                örtmesin. 64 px çubuk + telefon home göstergesi. */}
-            <div className="mx-auto h-full w-full max-w-[1600px] px-4 py-6 pb-[calc(5rem+env(safe-area-inset-bottom))] sm:px-6 md:pb-6">
-              <AgentNotice />
-              <PageTransition>{children}</PageTransition>
-            </div>
-          </main>
+            <main className="flex-1">
+              {/* Alt boşluk yalnızca mobilde: sabit alt çubuk son kartı
+                  örtmesin. 64 px çubuk + telefon home göstergesi. */}
+              <div className="mx-auto h-full w-full max-w-[1600px] px-4 py-6 pb-[calc(5rem+env(safe-area-inset-bottom))] sm:px-6 md:pb-6">
+                <AgentNotice />
+                <PageTransition>{children}</PageTransition>
+              </div>
+            </main>
+          </div>
+
+          <MobileNav />
+
+          <CommandPalette open={isSearchOpen} onOpenChange={setIsSearchOpen} />
         </div>
-
-        <MobileNav />
-
-        <CommandPalette open={isSearchOpen} onOpenChange={setIsSearchOpen} />
-      </div>
+      </NavBadgeProvider>
     </SessionProvider>
   );
 }

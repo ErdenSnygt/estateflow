@@ -24,7 +24,7 @@
  * `src/lib/customers.ts` ve `src/lib/agents.ts` dosyalarına bakın.
  */
 
-import type { Tables, TablesInsert } from "@/types/supabase";
+import type { Tables, TablesInsert, TablesUpdate } from "@/types/supabase";
 
 export type { Database } from "@/types/supabase";
 
@@ -33,7 +33,13 @@ export type {
   AgentRole,
   AppointmentStatus,
   AppointmentType,
+  CommissionStatus,
   Currency,
+  DocumentType,
+  MessageAttachmentType,
+  MessageSender,
+  NotificationEntity,
+  NotificationType,
   CustomerEventType,
   CustomerStatus,
   InterestIntent,
@@ -152,3 +158,86 @@ export type AppointmentInsert = Omit<
 >;
 
 export type AppointmentUpdate = Partial<AppointmentInsert>;
+
+/* ==========================================================================
+   Mesajlar
+   ========================================================================== */
+
+/**
+ * Müşteri yazışma dizisi.
+ *
+ * MÜŞTERİ BAŞINA TEK KAYIT (`customer_id` unique). `agent_id` sahiplik değil,
+ * "şu an kim yürütüyor" bilgisi — müşteri devredildiğinde yazışma bölünmesin
+ * diye. Gerekçe `0008_messaging.sql` içinde.
+ */
+export type Conversation = Tables<"conversations">;
+
+/**
+ * Tek mesaj.
+ *
+ * `attachment_url` bir URL DEĞİL, private `documents` bucket'ındaki nesne
+ * yolu; kalıcı adres yok, indirme anında imzalanıyor. Kolon adı şemadaki
+ * adla aynı kalsın diye korundu — `lib/storage/signed.ts`.
+ */
+export type Message = Tables<"messages">;
+
+/** `sender_type` ve `conversation_id` dışarıdan gelmez; action ikisini de kurar. */
+export type MessageInsert = Omit<
+  TablesInsert<"messages">,
+  "id" | "created_at" | "read_at"
+>;
+
+/* ==========================================================================
+   Evraklar
+   ========================================================================== */
+
+/**
+ * Belge kaydı.
+ *
+ * `file_url` yine bir nesne yolu (bkz. `Message`). Bu tablonun RLS'i asıl
+ * erişim kapısı: yol yalnızca buradan öğrenilebiliyor, Storage politikası
+ * bilerek geniş tutuldu — gerekçe `0009_documents_storage.sql`.
+ */
+export type Document = Tables<"documents">;
+
+export type DocumentInsert = Omit<
+  TablesInsert<"documents">,
+  "id" | "created_at"
+>;
+
+/* ==========================================================================
+   Bildirimler
+   ========================================================================== */
+
+/**
+ * Kişisel gelen kutusu satırı.
+ *
+ * `activity_log` İLE KARIŞTIRILMAMALI: o ofisin ortak akışı ("ne oldu"),
+ * bu kişisel gelen kutusu ("benim ilgilenmem gereken ne var"). Aynı olay iki
+ * kişiyi ilgilendiriyorsa burada iki satır doğar, orada bir satır kalır.
+ * Ayrım `0008_messaging.sql` başlığında ve README'de.
+ */
+export type Notification = Tables<"notifications">;
+
+export type NotificationInsert = Omit<
+  TablesInsert<"notifications">,
+  "id" | "created_at" | "read_at"
+>;
+
+/* ==========================================================================
+   Şirket ayarları
+   ========================================================================== */
+
+/**
+ * Ofis geneli ayarlar — TEK SATIR.
+ *
+ * `id` her zaman `'default'`; CHECK kısıtı ikinci satırı reddediyor, yani
+ * "hangi satır" sorusu hiç sorulmuyor. Gerekçe `0010_settings.sql` içinde.
+ */
+export type CompanySettings = Tables<"company_settings">;
+
+/** Formdan gelen alanlar; `id` ve `updated_at` uygulamaya kapalı. */
+export type CompanySettingsUpdate = Omit<
+  TablesUpdate<"company_settings">,
+  "id" | "updated_at"
+>;

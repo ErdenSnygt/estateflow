@@ -1,13 +1,12 @@
 "use client";
 
-import { createClient } from "@/lib/supabase/client";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase/env";
 import {
   ACCEPTED_MIME_TYPES,
   MAX_UPLOAD_BYTES,
   formatBytes,
   publicUrlFor,
-  type StorageBucket,
+  type PublicBucket,
 } from "@/lib/storage/paths";
 
 /**
@@ -126,12 +125,26 @@ function validate(file: File) {
  * Hata durumunda `UploadError` fırlatır — mesajı doğrudan kullanıcıya
  * gösterilebilir.
  */
+/**
+ * Yalnızca PUBLIC bucket'lar: bu fonksiyon görselleri sıkıştırıp kalıcı bir
+ * public URL dönüyor. Private `documents` bucket'ı için
+ * `lib/storage/upload-document.ts` var — orada sıkıştırma yok ve dönen değer
+ * URL değil, nesne yolu.
+ */
 export async function uploadImage(
   file: File,
-  bucket: StorageBucket,
+  bucket: PublicBucket,
   onProgress?: UploadProgress,
 ): Promise<string> {
   validate(file);
+
+  /* SUPABASE İSTEMCİSİ GEÇ YÜKLENİYOR (dinamik import).
+     Bu modülden tek ihtiyacımız oturum jetonu, ama `@supabase/supabase-js`
+     tek parça olarak ~184 KB ve statik import edildiğinde form sayfası
+     AÇILIRKEN indiriliyordu — kullanıcı hiç fotoğraf seçmese bile.
+     Dinamik import onu dosya seçildiği ana erteliyor; o an kullanıcı zaten
+     bir yükleme bekliyor, ek gecikme fark edilmiyor. */
+  const { createClient } = await import("@/lib/supabase/client");
 
   const supabase = createClient();
   const {

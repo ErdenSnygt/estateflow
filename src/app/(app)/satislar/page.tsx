@@ -6,7 +6,10 @@ import { getSalesList } from "@/lib/data/sales";
 import { getAgentOptions } from "@/lib/data/agents";
 import { getCurrentAgent } from "@/lib/auth/server";
 import { canViewStaff } from "@/lib/agents";
-import { parseSaleFilters } from "@/lib/sales-filters";
+import {
+  countActiveSaleFilters,
+  parseSaleFilters,
+} from "@/lib/sales-filters";
 import { formatCurrency, formatShortDate } from "@/lib/format";
 import type { SearchParamsInput } from "@/lib/search-params";
 import { PageHeader } from "@/components/page-header";
@@ -40,6 +43,7 @@ export default async function SatislarPage({ searchParams }: PageProps) {
   const agentOptions = canViewStaff(currentAgent?.role) ? agents : [];
 
   const total = sales.reduce((sum, sale) => sum + sale.amount, 0);
+  const hasFilters = countActiveSaleFilters(params) > 0;
 
   return (
     <div className="space-y-6 pb-4">
@@ -52,11 +56,23 @@ export default async function SatislarPage({ searchParams }: PageProps) {
       <SalesFilterBar agentOptions={agentOptions} />
 
       {sales.length === 0 ? (
+        /* İKİ AYRI DURUM, İKİ AYRI METİN. Önceki sürüm ikisine de aynı
+           cümleyi gösteriyordu: filtre yüzünden boş kalan bir listeye "henüz
+           satış yok" demek, kullanıcıya var olan verisini yok saydırıyordu.
+           İlanlar ve Müşteriler bu ayrımı Faz 2/4'ten beri yapıyordu. */
         <EmptyState
           icon={Receipt}
-          badge="Boş"
-          title="Bu aralıkta kapanan satış yok"
-          description="Satışlar teklif kabul edildiğinde oluşur. Teklifler sekmesinden bekleyen teklifleri görebilirsiniz."
+          badge={hasFilters ? "Sonuç yok" : "Boş"}
+          title={
+            hasFilters
+              ? "Bu filtrelerle eşleşen satış yok"
+              : "Henüz kapanan satış yok"
+          }
+          description={
+            hasFilters
+              ? "Tarih aralığını genişletmeyi ya da danışman filtresini kaldırmayı deneyin."
+              : "Satışlar teklif kabul edildiğinde otomatik oluşur. Teklifler sekmesinden bekleyen teklifleri görebilirsiniz."
+          }
         />
       ) : (
         <>

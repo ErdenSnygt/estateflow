@@ -23,6 +23,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AgentAvatar } from "@/components/agents/agent-avatar";
 import { AgentRoleBadge } from "@/components/agents/agent-role-badge";
 import { AgentStatusToggle } from "@/components/agents/agent-status-toggle";
+import { AgentCover } from "@/components/agents/agent-cover";
+import { AgentBadges } from "@/components/agents/agent-badges";
+import { computeBadges } from "@/lib/badges";
 import { Button } from "@/components/ui/button";
 import { StaffGuard } from "@/components/agents/staff-guard";
 import { ListingRow } from "@/components/listings/listing-row";
@@ -87,6 +90,11 @@ export default async function AgentDetailPage({ params }: PageProps) {
           </>
         }
       />
+
+      {/* Kapak + kimlik şeridi — `/profil` ile AYNI bileşen. İki sayfa aynı
+          kaydı gösteriyor; tek fark kimin baktığı ve hangi düğmelerin
+          çıktığı (gerekçe `/profil/page.tsx` başlığında). */}
+      <AgentCover agent={agent} />
 
       {!agent.is_active && (
         <div className="flex items-start gap-3 rounded-xl border border-hairline bg-surface-inset px-4 py-3">
@@ -253,6 +261,10 @@ export default async function AgentDetailPage({ params }: PageProps) {
               </div>
             </CardContent>
           </Card>
+
+          {/* Rozetler — `/profil` ile aynı bileşen ve aynı hesap. Yönetici,
+              danışmanın kendi profilinde gördüğünün aynısını görüyor. */}
+          <AgentBadges badges={computeBadges(performance)} />
         </div>
       </div>
     </div>

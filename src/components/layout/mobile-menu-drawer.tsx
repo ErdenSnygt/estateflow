@@ -5,7 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { LogOut, Moon, Settings } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { navigation } from "@/config/navigation";
+import { navigation, type NavBadgeKey } from "@/config/navigation";
+import { useNavBadge } from "@/components/layout/nav-badge-provider";
 import { signOut } from "@/lib/auth/client";
 import { AGENT_ROLE_LABELS } from "@/lib/agents";
 import { useSessionUser } from "@/components/layout/session-provider";
@@ -118,19 +119,10 @@ export function MobileMenuDrawer({
                         <span className="min-w-0 flex-1 truncate">
                           {item.label}
                         </span>
-                        {item.badge ? (
-                          <span
-                            className={cn(
-                              "flex h-5 min-w-5 items-center justify-center rounded-full px-1.5",
-                              "text-[10.5px] font-semibold tabular-nums",
-                              isActive
-                                ? "bg-brand text-white"
-                                : "bg-surface-active text-secondary-foreground",
-                            )}
-                          >
-                            {item.badge}
-                          </span>
-                        ) : null}
+                        <DrawerBadge
+                          badgeKey={item.badgeKey}
+                          isActive={isActive}
+                        />
                       </Link>
                     );
                   })}
@@ -180,5 +172,36 @@ export function MobileMenuDrawer({
         </SheetBody>
       </SheetContent>
     </Sheet>
+  );
+}
+
+/**
+ * Çekmecedeki canlı rozet.
+ *
+ * AYRI BİLEŞEN çünkü sayı bir React kancasından geliyor ve kancalar döngü
+ * içinde çağrılamaz — liste `map` ile çiziliyor.
+ */
+function DrawerBadge({
+  badgeKey,
+  isActive,
+}: {
+  badgeKey?: NavBadgeKey;
+  isActive: boolean;
+}) {
+  const badge = useNavBadge(badgeKey);
+  if (badge === 0) return null;
+
+  return (
+    <span
+      className={cn(
+        "flex h-5 min-w-5 items-center justify-center rounded-full px-1.5",
+        "text-[10.5px] font-semibold tabular-nums",
+        isActive
+          ? "bg-brand text-white"
+          : "bg-surface-active text-secondary-foreground",
+      )}
+    >
+      {badge}
+    </span>
   );
 }

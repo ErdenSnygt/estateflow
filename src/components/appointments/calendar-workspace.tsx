@@ -56,6 +56,7 @@ export function CalendarWorkspace({
   listingOptions,
   agentOptions,
   currentAgentId,
+  hasFilters,
 }: {
   view: CalendarView;
   date: DateKey;
@@ -66,6 +67,14 @@ export function CalendarWorkspace({
   /** Boş dizi = danışman: ne filtre ne de form danışman seçtiriyor. */
   agentOptions: AgentOption[];
   currentAgentId: string | null;
+  /**
+   * Aralık boş kaldığında hangi cümlenin yazılacağını belirliyor.
+   *
+   * Sunucuda hesaplanıyor (`countActiveAppointmentFilters`), burada
+   * `useSearchParams()` üzerinden yeniden türetilmiyor: filtre anahtarları
+   * tek bir yerde tanımlı ve iki ayrı sayım er ya da geç birbirinden sapar.
+   */
+  hasFilters: boolean;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -204,10 +213,16 @@ export function CalendarWorkspace({
         />
       )}
 
+      {/* IZGARA HER DURUMDA ÇİZİLİYOR — liste sayfalarındaki gibi tam ekran
+          bir boş durum yerine yalnızca altına bir cümle. Boş bir takvim de
+          işe yarar bir arayüz: kullanıcı yine de bir saate tıklayıp randevu
+          açabiliyor. Filtre yüzünden boşalan aralık ise ayrı bir cümle
+          alıyor, yoksa "randevu yok" yanıltıcı olurdu. */}
       {appointments.length === 0 && (
         <p className="text-center text-[12.5px] text-muted-foreground">
-          Bu aralıkta randevu yok. Izgarada boş bir saate tıklayarak
-          oluşturabilirsiniz.
+          {hasFilters
+            ? "Bu filtrelerle eşleşen randevu yok. Filtreleri temizleyip tekrar bakın."
+            : "Bu aralıkta randevu yok. Izgarada boş bir saate tıklayarak oluşturabilirsiniz."}
         </p>
       )}
 

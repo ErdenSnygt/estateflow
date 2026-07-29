@@ -47,9 +47,11 @@ const languages = [
 
 type NavbarProps = {
   onOpenSearch: () => void;
+  /** Sunucuda çizilmiş bildirim zili — gerekçe `app-shell.tsx` içinde. */
+  notificationBell?: React.ReactNode;
 };
 
-export function Navbar({ onOpenSearch }: NavbarProps) {
+export function Navbar({ onOpenSearch, notificationBell }: NavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const metaKey = useMetaKey();
@@ -131,12 +133,15 @@ export function Navbar({ onOpenSearch }: NavbarProps) {
           className="mx-1 hidden h-5 md:block"
         />
 
-        <IconButton
-          label="Bildirimler"
-          href="/bildirimler"
-          icon={Bell}
-          hasIndicator
-        />
+        {/* Zil bir AÇILIR oldu, artık doğrudan bağlantı değil: son bildirimler
+            sayfaya gitmeden görülebilsin diye. Sayfaya geçiş açılırın
+            altındaki "Tümünü gör" ile.
+
+            Slot gelmezse (kabuğun bildirimsiz kullanıldığı bir durum) eski
+            bağlantı davranışı yedek olarak duruyor. */}
+        {notificationBell ?? (
+          <IconButton label="Bildirimler" href="/bildirimler" icon={Bell} />
+        )}
         <IconButton
           label="Mesajlar"
           href="/mesajlar"
@@ -144,11 +149,16 @@ export function Navbar({ onOpenSearch }: NavbarProps) {
           className="hidden md:flex"
         />
 
-        {/* Tema — şu an tek tema var, UI hazır dursun */}
+        {/* Tema — şu an tek tema var, UI hazır dursun.
+            `aria-label` ŞART: içinde yalnızca ikon var ve tooltip erişilebilir
+            isim SAYILMIYOR — ekran okuyucu odaklandığında "düğme" der,
+            hangisi olduğunu söylemez. Yandaki dil düğmesinde bu etiket
+            baştan beri vardı, burada atlanmıştı. */}
         <Tooltip>
           <TooltipTrigger asChild>
             <button
               type="button"
+              aria-label="Tema değiştir"
               className={cn(
                 "hidden size-9 items-center justify-center rounded-lg text-muted-foreground md:flex",
                 "transition-colors duration-200 hover:bg-surface-hover hover:text-foreground",
@@ -231,10 +241,11 @@ export function Navbar({ onOpenSearch }: NavbarProps) {
 
             <DropdownMenuSeparator />
 
-            <DropdownMenuItem>
-              <UserRound />
-              Profilim
-              <DropdownMenuShortcut>{metaKey}P</DropdownMenuShortcut>
+            <DropdownMenuItem asChild>
+              <Link href="/profil">
+                <UserRound />
+                Profilim
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link href="/ayarlar">

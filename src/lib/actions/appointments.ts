@@ -12,6 +12,7 @@ import {
   timelineDescription,
   timelineEventFor,
 } from "@/lib/appointments";
+import { notify } from "@/lib/actions/notify";
 import { fail, ok, toMessage, type ActionResult } from "@/lib/actions/result";
 
 /**
@@ -139,6 +140,23 @@ export async function createAppointment(
     actor_agent_id: owner.agentId,
     related_listing_id: input.listingId || null,
     related_customer_id: input.customerId,
+  });
+
+  /* Randevu bildirimi — takvimin sahibine.
+     HATIRLATMA DEĞİL, "planlandı" bildirimi. Gerçek hatırlatma ("randevunuza
+     1 saat kaldı") zamanlanmış bir iş gerektiriyor: uygulamada cron ya da
+     arka plan kuyruğu yok, o yüzden bilerek kapsam dışı. Buradaki bildirim
+     yalnızca "senin takvimine biri randevu koydu" diyor ve bu ancak
+     BAŞKASI koyduğunda anlamlı — kendi randevusunu açan danışman bildirim
+     almıyor. */
+  await notify(supabase, {
+    agentId: owner.agentId,
+    actorAgentId: (await getCurrentAgent())?.id,
+    type: "appointment_scheduled",
+    title: "Takviminize randevu eklendi",
+    description: appointmentTitle(input.title, input.type),
+    entityType: "appointment",
+    entityId: data.id,
   });
 
   revalidateCalendar(input.customerId, input.listingId);

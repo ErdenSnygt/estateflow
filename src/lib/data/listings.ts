@@ -1,6 +1,11 @@
 import { cache } from "react";
 
-import type { Listing, ListingCategory, ListingStatus } from "@/types/database";
+import type {
+  Currency,
+  Listing,
+  ListingCategory,
+  ListingStatus,
+} from "@/types/database";
 import type { SortKey } from "@/lib/listings";
 import { createClient } from "@/lib/supabase/server";
 import { maybeRow, rows, sanitizeSearch } from "@/lib/data/query";
@@ -292,4 +297,49 @@ export async function getPortfolioTotals(): Promise<PortfolioTotals> {
     averagePricePerSqm: builtArea === 0 ? 0 : Math.round(builtValue / builtArea),
     totalArea: facts.reduce((sum, row) => sum + row.area_sqm, 0),
   };
+}
+
+/* ==========================================================================
+   Raporlar
+   ========================================================================== */
+
+export type TopListing = {
+  id: string;
+  title: string;
+  city: string;
+  district: string;
+  price: number;
+  currency: Currency;
+  views_count: number;
+  favorites_count: number;
+};
+
+/**
+ * En çok ilgi gören ilanlar — Raporlar sayfası için.
+ *
+ * `getListingFacts()` (Faz 9 performans turunda açılan önbellekli sorgu)
+ * KULLANILMIYOR: o sorgu yalnızca kategori/durum/fiyat/alan çekiyor, başlık
+ * ve şehir yok. İlgi sıralaması için ayrı ve DAR bir sorgu daha ucuz —
+ * `select *` ile tüm portföyü çekip JavaScript'te sıralamaktansa Postgres
+ * sıralayıp ilk beşi versin.
+ *
+ * `by` parametresi iki kolondan birini seçiyor; ikisi için ayrı fonksiyon
+ * yazmak aynı sorguyu iki kez kopyalamak olurdu.
+ */
+export async function getTopListings(
+  by: "views_count" | "favorites_count",
+  limit = 5,
+): Promise<TopListing[]> {
+  const supabase = await createClient();
+
+  return rows<TopListing>(
+    await supabase
+      .from("listings")
+      .select(
+        "id, title, city, district, price, currency, views_count, favorites_count",
+      )
+      .order(by, { ascending: false })
+      .limit(limit),
+    "En çok ilgi gören ilanlar",
+  );
 }

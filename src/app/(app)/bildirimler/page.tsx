@@ -1,11 +1,48 @@
 import type { Metadata } from "next";
 
-import { ComingSoon } from "@/components/coming-soon";
+import { getNotifications } from "@/lib/data/notifications";
+import { getCurrentAgent } from "@/lib/auth/server";
+import { PageHeader } from "@/components/page-header";
+import { AgentNotice } from "@/components/layout/agent-notice";
+import { NotificationList } from "@/components/notifications/notification-list";
 
 export const metadata: Metadata = {
   title: "Bildirimler",
 };
 
-export default function BildirimlerPage() {
-  return <ComingSoon href="/bildirimler" />;
+/**
+ * Kişisel gelen kutusu.
+ *
+ * SAYFA ROL KAPISI TAŞIMIYOR — herkesin bildirimi var ve herkes yalnızca
+ * kendininkini görüyor. Veri katmanı her sorguya `agent_id = ben` filtresini
+ * kendisi ekliyor (`data/notifications.ts`), yani bir yöneticinin gelen
+ * kutusunda ekibin bildirimleri belirmiyor.
+ */
+export default async function BildirimlerPage() {
+  const [agent, notifications] = await Promise.all([
+    getCurrentAgent(),
+    getNotifications(),
+  ]);
+
+  return (
+    <div className="space-y-6 pb-4">
+      <PageHeader
+        title="Bildirimler"
+        description="Size atanan müşteriler, portföyünüzdeki hareketler ve gelen mesajlar."
+      />
+
+      {/* Personel kaydına bağlanmamış kullanıcıya boş liste göstermek
+          "bildiriminiz yok" der; oysa sebep farklı — hiç okuyamıyor. */}
+      {agent ? (
+        /* Göreli zamanların ölçüldüğü an sunucuda üretiliyor — gerekçe
+           `lib/format.ts` içinde. */
+        <NotificationList
+          notifications={notifications}
+          reference={Date.now()}
+        />
+      ) : (
+        <AgentNotice />
+      )}
+    </div>
+  );
 }

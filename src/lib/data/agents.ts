@@ -22,7 +22,7 @@ import { getAgentSalesTotal } from "@/lib/data/sales";
  */
 
 const COLUMNS =
-  "id, full_name, initials, title, role, email, phone, user_id, avatar_url, commission_rate, is_active, created_at";
+  "id, full_name, initials, title, role, email, phone, user_id, avatar_url, cover_url, commission_rate, is_active, notification_preferences, created_at";
 
 export async function getAgents(): Promise<Agent[]> {
   const supabase = await createClient();
