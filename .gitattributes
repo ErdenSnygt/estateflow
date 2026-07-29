@@ -1,0 +1,34 @@
+# =============================================================================
+# Satır sonları
+# =============================================================================
+# Depoda HER ZAMAN LF saklanır; çalışma kopyasında işletim sisteminin
+# varsayılanı kullanılır.
+#
+# NEDEN: proje Windows'ta geliştiriliyor ve Git varsayılan olarak checkout
+# sırasında CRLF'e çeviriyor. Bu, her `git add` sırasında "LF will be replaced
+# by CRLF" uyarısı üretiyordu ve daha kötüsü, dosya içeriği değişmese bile
+# satır sonu farkı yüzünden sahte diff'ler doğurabiliyor — bir satırlık bir
+# düzeltme, dosyanın tamamını değişmiş gösteriyor.
+#
+# `text=auto` Git'in dosyanın metin olup olmadığını kendisi tespit etmesini
+# sağlıyor; `eol=lf` ise deponun içeriğini sabitliyor. Vercel ve CI zaten
+# Linux'ta çalışıyor, yani depo formatı orayla da uyumlu.
+
+* text=auto eol=lf
+
+# --- İkili dosyalar ----------------------------------------------------------
+# Bunlarda satır sonu dönüşümü YAPILMAMALI: dönüşüm dosyayı bozar.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.webp binary
+*.gif  binary
+*.ico  binary
+*.pdf  binary
+*.woff  binary
+*.woff2 binary
+
+# --- Diff'te gösterilmeyecekler ----------------------------------------------
+# Üretilen dosya; incelemede gürültüden başka bir şey değil ama depoda
+# durması gerekiyor (kurulumun tekrarlanabilirliği için).
+package-lock.json linguist-generated=true -diff
