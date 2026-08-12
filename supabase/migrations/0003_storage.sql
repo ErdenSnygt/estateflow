@@ -1,5 +1,5 @@
 -- =============================================================================
--- Emlak CRM — Supabase Storage: bucket'lar ve politikalar
+-- EstateFlow — Supabase Storage: bucket'lar ve politikalar
 -- =============================================================================
 -- Faz 7. Buraya kadar fotoğraf yükleme sahteydi: `image-dropzone` seçilen
 -- dosyayı `URL.createObjectURL()` ile `blob:http://localhost:3000/…` adresine

@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { Sparkles } from "lucide-react";
 
 /**
@@ -5,6 +8,7 @@ import { Sparkles } from "lucide-react";
  * Faz 1'de statik — abonelik verisi bağlandığında gerçek değerlerle dolacak.
  */
 export function PlanCard() {
+  const t = useTranslations("sidebar");
   const used = 128;
   const limit = 250;
   const percentage = Math.round((used / limit) * 100);
@@ -14,7 +18,7 @@ export function PlanCard() {
       <div className="flex items-center gap-2">
         <Sparkles className="size-3.5 text-brand" />
         <span className="text-[12.5px] font-medium text-foreground">
-          Pro Plan
+          {t("planTitle")}
         </span>
         <span className="ml-auto text-[11px] tabular-nums text-muted-foreground">
           {used}/{limit}
@@ -29,7 +33,7 @@ export function PlanCard() {
       </div>
 
       <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-        Aktif ilan kotanız
+        {t("planQuota")}
       </p>
     </div>
   );

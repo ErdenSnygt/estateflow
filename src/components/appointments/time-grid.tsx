@@ -1,21 +1,21 @@
 "use client";
 
 import * as React from "react";
+import { useFormatter } from "next-intl";
 
 import type { AppointmentItem } from "@/lib/data/appointments";
 import { APPOINTMENT_TYPE_PALETTE } from "@/lib/appointments";
 import {
   MINUTES_PER_DAY,
   SLOT_MINUTES,
-  WEEKDAY_SHORT,
   clampStart,
   dayNumber,
   formatMinutes,
+  formatWeekdayShort,
   layoutOverlaps,
   minutesOfDay,
   snapToSlot,
   toDateKey,
-  weekdayIndex,
   type DateKey,
 } from "@/lib/calendar";
 import { cn } from "@/lib/utils";
@@ -108,6 +108,7 @@ export function TimeGrid({
   onMove,
   canDrag = true,
 }: TimeGridProps) {
+  const format = useFormatter();
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const columnsRef = React.useRef<(HTMLDivElement | null)[]>([]);
   const [drag, setDrag] = React.useState<DragState | null>(null);
@@ -317,7 +318,7 @@ export function TimeGrid({
               className="flex items-center justify-center gap-1.5 border-l border-hairline py-2.5 first:border-l-0"
             >
               <span className="text-[11.5px] uppercase tracking-[0.06em] text-muted-foreground">
-                {WEEKDAY_SHORT[weekdayIndex(day)]}
+                {formatWeekdayShort(format, day)}
               </span>
               <span
                 className={cn(

@@ -1,5 +1,6 @@
 "use server";
 
+import { getTranslations } from "next-intl/server";
 import { revalidatePath } from "next/cache";
 
 import type { CommissionStatus } from "@/types/database";
@@ -35,11 +36,11 @@ export async function updateCommissionStatus(
 ): Promise<ActionResult<{ id: string }>> {
   const agent = await getCurrentAgent();
 
-  if (!agent) return fail("Personel kaydınız bulunamadı.");
-  if (!agent.is_active) return fail("Hesabınız pasif durumda.");
+  if (!agent) return fail("agentNotFound");
+  if (!agent.is_active) return fail("accountInactive");
   if (!isManagerRole(agent.role)) {
     return fail(
-      "Tahsilat durumunu yalnızca patron veya ofis müdürü değiştirebilir.",
+      "commissionManagerRequired",
     );
   }
 
@@ -52,12 +53,23 @@ export async function updateCommissionStatus(
     .maybeSingle();
 
   if (readError) return fail(toMessage(readError));
-  if (!sale) return fail("Satış kaydı bulunamadı.");
+  if (!sale) return fail("saleNotFound");
 
   /* Geçiş kuralı saf bir fonksiyonda ve arayüz de aynı kaynağa bakıyor —
      düğmeler ile sunucu aynı şeyi söylesin (`lib/offers.ts` ile aynı desen). */
   const check = canTransitionCommission(sale.commission_status, next);
-  if (!check.ok) return fail(check.reason);
+  if (!check.ok) {
+    const tStatus = await getTranslations("revenue.commissionStatus");
+    return fail(
+      check.error,
+      Object.fromEntries(
+        Object.entries(check.params).map(([name, status]) => [
+          name,
+          tStatus(status),
+        ]),
+      ),
+    );
+  }
 
   /* Koşula mevcut durum ekli: aynı kayıt iki sekmede birden işaretlenirse
      ikincisi hiçbir satır güncelleyemez ve kullanıcı bunu görür. */
@@ -70,7 +82,7 @@ export async function updateCommissionStatus(
 
   if (error) return fail(toMessage(error));
   if (!updated || updated.length === 0) {
-    return fail("Kaydın durumu bu sırada değişmiş; sayfayı yenileyin.");
+    return fail("commissionStatusChanged");
   }
 
   revalidatePath("/gelirler");

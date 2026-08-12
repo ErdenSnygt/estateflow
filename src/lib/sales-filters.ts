@@ -1,9 +1,9 @@
 import type { OfferStatus } from "@/types/database";
 import type { OfferFilters, SaleFilters } from "@/lib/data/sales";
 import {
-  OFFER_SORT_OPTIONS,
-  OFFER_STATUS_LABELS,
-  SALE_SORT_OPTIONS,
+  OFFER_SORT_KEYS,
+  OFFER_STATUSES,
+  SALE_SORT_KEYS,
   type OfferSortKey,
   type SaleSortKey,
 } from "@/lib/offers";
@@ -55,7 +55,7 @@ export function parseSaleFilters(params: SearchParamsInput): SaleFilters {
     sort: oneOf<SaleSortKey>(
       params,
       "sort",
-      SALE_SORT_OPTIONS.map((option) => option.value),
+      [...SALE_SORT_KEYS],
     ),
   };
 }
@@ -72,13 +72,13 @@ export function parseOfferFilters(params: SearchParamsInput): OfferFilters {
     status: oneOf<OfferStatus>(
       params,
       "status",
-      Object.keys(OFFER_STATUS_LABELS) as OfferStatus[],
+      [...OFFER_STATUSES],
     ),
     agent: single(params, "agent"),
     sort: oneOf<OfferSortKey>(
       params,
       "sort",
-      OFFER_SORT_OPTIONS.map((option) => option.value),
+      [...OFFER_SORT_KEYS],
     ),
   };
 }

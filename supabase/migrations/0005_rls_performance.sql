@@ -1,5 +1,5 @@
 -- =============================================================================
--- Emlak CRM — RLS politikalarının performans düzeltmesi
+-- EstateFlow — RLS politikalarının performans düzeltmesi
 -- =============================================================================
 -- SEMANTİK DEĞİŞİKLİK YOK. Kimin neyi gördüğü birebir aynı; değişen tek şey
 -- politikaların KAÇ KEZ değerlendirildiği.

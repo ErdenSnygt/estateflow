@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Save } from "lucide-react";
@@ -11,15 +12,16 @@ import { toast } from "sonner";
 import type { Agent, Listing } from "@/types/database";
 import { createListing, updateListing } from "@/lib/actions/listings";
 import {
-  listingFormSchema,
+  createListingFormSchema,
   toListingInput,
   type ListingFormValues,
 } from "@/lib/listings-schema";
 import {
-  CATEGORY_OPTIONS,
   CITY_OPTIONS,
-  ROOM_OPTIONS,
-  STATUS_OPTIONS,
+  LISTING_CATEGORIES,
+  LISTING_STATUSES,
+  ROOM_OPEN_ENDED,
+  ROOM_VALUES,
   districtsOf,
   isResidential,
 } from "@/lib/listings";
@@ -99,9 +101,24 @@ export function ListingForm({
 }) {
   const router = useRouter();
   const isEdit = Boolean(listing);
+  const t = useTranslations("listings");
+  const tAgent = useTranslations("agentField");
+
+  /* ŞEMA `useMemo` İÇİNDE: doğrulama mesajları çeviriden geliyor, yani şema
+     artık dile bağlı (gerekçe `lib/listings-schema.ts` başlığında). Her
+     render'da yeniden kurulsaydı `zodResolver` her seferinde yeni bir referans
+     alır ve react-hook-form gereksiz yere yeniden doğrulardı. */
+  const schema = React.useMemo(
+    () =>
+      createListingFormSchema(
+        (key, values) => t(`validation.${key}`, values),
+        { price: t("form.priceLabel"), area: t("form.areaLabel") },
+      ),
+    [t],
+  );
 
   const form = useForm<ListingFormValues>({
-    resolver: zodResolver(listingFormSchema),
+    resolver: zodResolver(schema),
     defaultValues: listing
       ? toFormValues(listing)
       : /* Yeni ilan giriş yapan kişiye atanır. Faz 5'te bu alan boş
@@ -109,6 +126,24 @@ export function ListingForm({
         { ...EMPTY_VALUES, agent_id: currentAgent?.id ?? "" },
     mode: "onBlur",
   });
+
+  /* Seçenek listeleri çevrilmiş etiketlerle burada kuruluyor — `lib/listings.ts`
+     yalnızca sıralı anahtarları veriyor (Faz 20). */
+  const categoryOptions = LISTING_CATEGORIES.map((value) => ({
+    value,
+    label: t(`category.${value}`),
+  }));
+  const statusOptions = LISTING_STATUSES.map((value) => ({
+    value,
+    label: t(`status.${value}`),
+  }));
+  const roomOptions = ROOM_VALUES.map((value) => ({
+    value,
+    label:
+      value === ROOM_OPEN_ENDED
+        ? t("rooms.andAbove", { value: `${value}+1` })
+        : `${value}+1`,
+  }));
 
   const category = form.watch("category");
   const city = form.watch("city");
@@ -124,13 +159,16 @@ export function ListingForm({
     /* Bildirim gerçek sonucu yansıtır: action `redirect()` çağırmadığı için
        hata mesajı buraya ulaşabiliyor. Gerekçe `lib/actions/result.ts`. */
     if (!result.ok) {
-      toast.error(isEdit ? "İlan güncellenemedi" : "İlan kaydedilemedi", {
-        description: result.error,
-      });
+      toast.error(
+        t(isEdit ? "form.updateErrorTitle" : "form.createErrorTitle"),
+        {
+          description: result.error,
+        },
+      );
       return;
     }
 
-    toast.success(isEdit ? "İlan güncellendi" : "İlan oluşturuldu", {
+    toast.success(t(isEdit ? "form.updatedTitle" : "form.createdTitle"), {
       description: `${result.data.id.toUpperCase()} · ${values.title}`,
     });
 
@@ -146,25 +184,22 @@ export function ListingForm({
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {/* --- Temel bilgiler --- */}
         <FormSection
-          title="Temel Bilgiler"
-          description="İlanın portallarda görünecek başlığı ve tanıtım metni."
+          title={t("form.basicsTitle")}
+          description={t("form.basicsDescription")}
         >
           <FormField
             control={form.control}
             name="title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Başlık</FormLabel>
+                <FormLabel>{t("form.titleLabel")}</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Örn. Deniz Manzaralı 3+1 Daire"
+                    placeholder={t("form.titlePlaceholder")}
                     {...field}
                   />
                 </FormControl>
-                <FormDescription>
-                  Konum ve öne çıkan özelliği içeren başlıklar daha çok
-                  görüntülenir.
-                </FormDescription>
+                <FormDescription>{t("form.titleHint")}</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -176,7 +211,7 @@ export function ListingForm({
               name="category"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Kategori</FormLabel>
+                  <FormLabel>{t("form.categoryLabel")}</FormLabel>
                   <Select
                     value={field.value}
                     onValueChange={field.onChange}
@@ -187,7 +222,7 @@ export function ListingForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {CATEGORY_OPTIONS.map((option) => (
+                      {categoryOptions.map((option) => (
                         <SelectItem key={option.value} value={option.value}>
                           {option.label}
                         </SelectItem>
@@ -204,7 +239,7 @@ export function ListingForm({
               name="status"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Durum</FormLabel>
+                  <FormLabel>{t("form.statusLabel")}</FormLabel>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <FormControl>
                       <SelectTrigger>
@@ -212,7 +247,7 @@ export function ListingForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {STATUS_OPTIONS.map((option) => (
+                      {statusOptions.map((option) => (
                         <SelectItem key={option.value} value={option.value}>
                           {option.label}
                         </SelectItem>
@@ -230,16 +265,18 @@ export function ListingForm({
             name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Açıklama</FormLabel>
+                <FormLabel>{t("form.descriptionLabel")}</FormLabel>
                 <FormControl>
                   <Textarea
                     rows={7}
-                    placeholder="Konumu, yapı özelliklerini ve çevredeki olanakları anlatın…"
+                    placeholder={t("form.descriptionPlaceholder")}
                     {...field}
                   />
                 </FormControl>
                 <FormDescription>
-                  {field.value?.length ?? 0} / 2000 karakter
+                  {t("form.descriptionCounter", {
+                    count: field.value?.length ?? 0,
+                  })}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -249,8 +286,8 @@ export function ListingForm({
 
         {/* --- Konum --- */}
         <FormSection
-          title="Konum"
-          description="Adres bilgisi ilan detayında ve haritada gösterilir."
+          title={t("form.locationTitle")}
+          description={t("form.locationDescription")}
         >
           <div className="grid gap-5 sm:grid-cols-2">
             <FormField
@@ -258,7 +295,7 @@ export function ListingForm({
               name="city"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Şehir</FormLabel>
+                  <FormLabel>{t("form.cityLabel")}</FormLabel>
                   <Select
                     value={field.value}
                     onValueChange={(value) => {
@@ -269,7 +306,7 @@ export function ListingForm({
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Şehir seçin" />
+                        <SelectValue placeholder={t("form.cityPlaceholder")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -290,7 +327,7 @@ export function ListingForm({
               name="district"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>İlçe</FormLabel>
+                  <FormLabel>{t("form.districtLabel")}</FormLabel>
                   <Select
                     value={field.value}
                     onValueChange={field.onChange}
@@ -299,7 +336,11 @@ export function ListingForm({
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue
-                          placeholder={city ? "İlçe seçin" : "Önce şehir seçin"}
+                          placeholder={t(
+                        city
+                          ? "form.districtPlaceholder"
+                          : "form.districtDisabled",
+                      )}
                         />
                       </SelectTrigger>
                     </FormControl>
@@ -322,17 +363,14 @@ export function ListingForm({
             name="address"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Açık adres</FormLabel>
+                <FormLabel>{t("form.addressLabel")}</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Mahalle, sokak ve kapı numarası"
+                    placeholder={t("form.addressPlaceholder")}
                     {...field}
                   />
                 </FormControl>
-                <FormDescription>
-                  Harita işareti şimdilik ilçe merkezine düşer; koordinat
-                  seçici ayrı bir fazda gelecek.
-                </FormDescription>
+                <FormDescription>{t("form.addressHint")}</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -341,16 +379,16 @@ export function ListingForm({
 
         {/* --- Sorumluluk --- */}
         <FormSection
-          title="Portföy Sorumlusu"
-          description="İlanı takip edecek danışman. İlan detayında iletişim kartı olarak gösterilir."
+          title={t("form.agentTitle")}
+          description={t("form.agentDescription")}
         >
           <AgentField
             name="agent_id"
-            label="Danışman"
+            label={tAgent("label")}
             description={
               canReassign
-                ? "Varsayılan olarak siz atandınız; ekipten başka birine devredebilirsiniz."
-                : "İlanlar kendi portföyünüze kaydedilir."
+                ? tAgent("hintSelf")
+                : t("form.agentHintSelf")
             }
             agents={agents}
             currentAgent={currentAgent}
@@ -361,8 +399,8 @@ export function ListingForm({
 
         {/* --- Fiyat & detaylar --- */}
         <FormSection
-          title="Fiyat & Detaylar"
-          description="Kiralık ilanlarda fiyat aylık kira bedeli olarak gösterilir."
+          title={t("form.priceTitle")}
+          description={t("form.priceDescription")}
         >
           <div className="grid gap-5 sm:grid-cols-3">
             <FormField
@@ -370,7 +408,7 @@ export function ListingForm({
               name="price"
               render={({ field }) => (
                 <FormItem className="sm:col-span-2">
-                  <FormLabel>Fiyat</FormLabel>
+                  <FormLabel>{t("form.priceLabel")}</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -390,7 +428,7 @@ export function ListingForm({
               name="currency"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Para birimi</FormLabel>
+                  <FormLabel>{t("form.currencyLabel")}</FormLabel>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <FormControl>
                       <SelectTrigger>
@@ -415,7 +453,7 @@ export function ListingForm({
               name="area_sqm"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Alan (m²)</FormLabel>
+                  <FormLabel>{t("form.areaLabel")}</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -436,15 +474,15 @@ export function ListingForm({
                 name="room_count"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Oda sayısı</FormLabel>
+                    <FormLabel>{t("form.roomsLabel")}</FormLabel>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Seçin" />
+                          <SelectValue placeholder={t("form.roomsPlaceholder")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {ROOM_OPTIONS.map((option) => (
+                        {roomOptions.map((option) => (
                           <SelectItem key={option.value} value={option.value}>
                             {option.label}
                           </SelectItem>
@@ -461,8 +499,8 @@ export function ListingForm({
 
         {/* --- Fotoğraflar --- */}
         <FormSection
-          title="Fotoğraflar"
-          description="İlk görsel kapak olarak kullanılır. Yükleme şu an yerel önizlemedir."
+          title={t("form.photosTitle")}
+          description={t("form.photosDescription")}
         >
           <FormField
             control={form.control}
@@ -484,19 +522,19 @@ export function ListingForm({
         <div className="flex items-center justify-end gap-2 border-t border-hairline pt-5">
           <Button variant="ghost" asChild>
             <Link href={isEdit ? `/ilanlar/${listing?.id}` : "/ilanlar"}>
-              Vazgeç
+              {t("form.cancel")}
             </Link>
           </Button>
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? (
               <>
                 <Loader2 className="size-4 animate-spin" />
-                Kaydediliyor…
+                {t("form.saving")}
               </>
             ) : (
               <>
                 <Save className="size-4" />
-                {isEdit ? "Değişiklikleri kaydet" : "İlanı kaydet"}
+                {t(isEdit ? "form.saveEdit" : "form.saveNew")}
               </>
             )}
           </Button>

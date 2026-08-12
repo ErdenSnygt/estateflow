@@ -2,11 +2,14 @@
 
 import * as React from "react";
 import { ImagePlus, Loader2, Star, X } from "lucide-react";
+import { useFormatter, useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
-import { uploadImage, UploadError } from "@/lib/storage/upload";
-import { ACCEPT_ATTRIBUTE, formatBytes, MAX_UPLOAD_BYTES } from "@/lib/storage/paths";
+import { uploadImage } from "@/lib/storage/upload";
+import { useUploadErrorMessage } from "@/i18n/upload-error";
+import { formatBytes, formatPercent } from "@/i18n/numbers";
+import { ACCEPT_ATTRIBUTE, MAX_UPLOAD_BYTES } from "@/lib/storage/paths";
 
 /**
  * İlan galerisi.
@@ -40,6 +43,9 @@ export function ImageDropzone({
   onChange: (images: string[]) => void;
   invalid?: boolean;
 }) {
+  const t = useTranslations("listings.images");
+  const format = useFormatter();
+  const uploadMessage = useUploadErrorMessage();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = React.useState(false);
   const [pending, setPending] = React.useState<Pending[]>([]);
@@ -75,11 +81,11 @@ export function ImageDropzone({
           const { value: currentValue, onChange: apply } = latest.current;
           apply([...currentValue, url]);
         } catch (error) {
-          toast.error("Fotoğraf yüklenemedi", {
-            description:
-              error instanceof UploadError
-                ? error.message
-                : `"${file.name}" yüklenirken beklenmeyen bir hata oluştu.`,
+          toast.error(t("uploadError"), {
+            description: uploadMessage(
+              error,
+              t("unexpectedError", { name: file.name }),
+            ),
           });
         } finally {
           URL.revokeObjectURL(preview);
@@ -87,7 +93,10 @@ export function ImageDropzone({
         }
       }),
     );
-  }, []);
+    /* `t` ve `uploadMessage` bağımlılıkta: dil değişince yeni çevirmenle
+       yeniden kurulmalı. `latest` ref'i zaten değer/geri çağrı tazeliğini
+       üstlendiği için bu yeniden kurulma bir yükleme akışını bozmuyor. */
+  }, [t, uploadMessage]);
 
   function removeAt(index: number) {
     /* Dosya Storage'dan BURADA silinmiyor: kullanıcı formu kaydetmeden
@@ -144,11 +153,10 @@ export function ImageDropzone({
           <ImagePlus className="size-5 text-brand" strokeWidth={1.7} />
         </span>
         <p className="text-[13.5px] font-medium text-foreground">
-          Fotoğrafları buraya sürükleyin
+          {t("dropTitle")}
         </p>
         <p className="text-[12.5px] text-muted-foreground">
-          veya seçmek için tıklayın · JPG, PNG, WebP · en fazla{" "}
-          {formatBytes(MAX_UPLOAD_BYTES)}
+          {t("dropHint", { size: formatBytes(format, MAX_UPLOAD_BYTES) })}
         </p>
 
         <input
@@ -179,13 +187,13 @@ export function ImageDropzone({
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={image}
-                  alt={`Görsel ${index + 1}`}
+                  alt={t("imageAlt", { index: index + 1 })}
                   className="size-full object-cover"
                 />
 
                 {index === 0 && (
                   <span className="absolute left-2 top-2 rounded-md bg-brand px-1.5 py-0.5 text-[10.5px] font-semibold text-white">
-                    Kapak
+                    {t("coverBadge")}
                   </span>
                 )}
 
@@ -194,8 +202,8 @@ export function ImageDropzone({
                     <button
                       type="button"
                       onClick={() => makeCover(index)}
-                      aria-label="Kapak yap"
-                      title="Kapak yap"
+                      aria-label={t("makeCover")}
+                      title={t("makeCover")}
                       className="rounded-md bg-[#05070C]/75 p-1.5 text-white backdrop-blur-sm transition-colors hover:bg-[#05070C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       <Star className="size-3.5" />
@@ -204,8 +212,8 @@ export function ImageDropzone({
                   <button
                     type="button"
                     onClick={() => removeAt(index)}
-                    aria-label="Görseli kaldır"
-                    title="Kaldır"
+                    aria-label={t("remove")}
+                    title={t("removeShort")}
                     className="rounded-md bg-[#05070C]/75 p-1.5 text-white backdrop-blur-sm transition-colors hover:bg-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <X className="size-3.5" />
@@ -233,7 +241,7 @@ export function ImageDropzone({
                     aria-valuenow={Math.round(item.ratio * 100)}
                     aria-valuemin={0}
                     aria-valuemax={100}
-                    aria-label={`${item.name} yükleniyor`}
+                    aria-label={t("uploading", { name: item.name })}
                     className="h-1 w-full overflow-hidden rounded-full bg-surface-active"
                   >
                     <div
@@ -242,7 +250,7 @@ export function ImageDropzone({
                     />
                   </div>
                   <span className="text-[11px] tabular-nums text-secondary-foreground">
-                    %{Math.round(item.ratio * 100)}
+                    {formatPercent(format, item.ratio)}
                   </span>
                 </div>
               </div>
@@ -250,8 +258,7 @@ export function ImageDropzone({
           </div>
 
           <p className="text-[12px] text-muted-foreground">
-            İlk görsel kapak olarak kullanılır. Sıralamayı değiştirmek için bir
-            görselin üzerine gelip yıldız simgesine tıklayın.
+            {t("orderHint")}
           </p>
         </>
       )}

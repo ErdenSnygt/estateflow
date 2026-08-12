@@ -1,9 +1,12 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { MapPin } from "lucide-react";
 
 import type { ListingSummary } from "@/lib/data/customers";
-import { CATEGORY_LABELS, formatRooms, isResidential } from "@/lib/listings";
+import { formatRooms, isResidential } from "@/lib/listings";
 import { formatArea, formatCurrencyCompact } from "@/lib/format";
 import { ListingStatusBadge } from "@/components/listings/listing-status-badge";
 
@@ -12,6 +15,9 @@ import { ListingStatusBadge } from "@/components/listings/listing-status-badge";
  * kullanılıyor — bu bağlamda görüntülenme/favori sayısı gürültü.
  */
 export function InterestCard({ listing }: { listing: ListingSummary }) {
+  /* Yalnızca kategori etiketi çeviriden; kartın geri kalanı veri. */
+  const t = useTranslations("listings");
+
   return (
     <Link
       href={`/ilanlar/${listing.id}`}
@@ -63,7 +69,7 @@ export function InterestCard({ listing }: { listing: ListingSummary }) {
           <span aria-hidden className="text-hairline-strong">
             ·
           </span>
-          <span>{CATEGORY_LABELS[listing.category]}</span>
+          <span>{t(`category.${listing.category}`)}</span>
         </div>
       </div>
     </Link>

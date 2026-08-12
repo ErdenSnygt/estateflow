@@ -2,21 +2,22 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { useFormatter, useTranslations } from "next-intl";
 import { CloudUpload, FileUp, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import type { DocumentType } from "@/types/database";
 import {
-  DOCUMENT_TYPE_OPTIONS,
+  DOCUMENT_TYPES,
   guessDocumentType,
   titleFromFileName,
-} from "@/lib/messaging";
+} from "@/lib/documents";
 import {
   ACCEPT_DOCUMENT_ATTRIBUTE,
   MAX_DOCUMENT_BYTES,
-  formatBytes,
 } from "@/lib/storage/paths";
-import { UploadError } from "@/lib/storage/upload";
+import { useUploadErrorMessage } from "@/i18n/upload-error";
+import { formatBytes, formatPercent } from "@/i18n/numbers";
 import { uploadDocument } from "@/lib/storage/upload-document";
 import { createDocument } from "@/lib/actions/documents";
 import { cn } from "@/lib/utils";
@@ -70,6 +71,10 @@ export function DocumentDropzone({
   fixedListingId?: string;
 }) {
   const router = useRouter();
+  const t = useTranslations("documents");
+  const format = useFormatter();
+  const uploadMessage = useUploadErrorMessage();
+  const tCommon = useTranslations("common");
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [dragDepth, setDragDepth] = React.useState(0);
   const [pending, setPending] = React.useState<PendingFile | null>(null);
@@ -87,8 +92,12 @@ export function DocumentDropzone({
        bir dosyayı yükleyip 20 MB sınırında reddettirmek kullanıcının
        bağlantısını boşuna harcar. */
     if (file.size > MAX_DOCUMENT_BYTES) {
-      toast.error("Dosya çok büyük", {
-        description: `"${file.name}" ${formatBytes(file.size)}. En fazla ${formatBytes(MAX_DOCUMENT_BYTES)} yükleyebilirsiniz.`,
+      toast.error(t("dropzone.tooLargeTitle"), {
+        description: t("dropzone.tooLargeBody", {
+          name: file.name,
+          size: formatBytes(format, file.size),
+          max: formatBytes(format, MAX_DOCUMENT_BYTES),
+        }),
       });
       return;
     }
@@ -114,8 +123,8 @@ export function DocumentDropzone({
 
     const title = pending.title.trim();
     if (!title) {
-      toast.error("Başlık gerekli", {
-        description: "Belgeyi listede tanıyabilmek için bir başlık yazın.",
+      toast.error(t("dropzone.titleRequiredTitle"), {
+        description: t("dropzone.titleRequiredBody"),
       });
       return;
     }
@@ -140,20 +149,18 @@ export function DocumentDropzone({
       });
 
       if (!result.ok) {
-        toast.error("Belge kaydedilemedi", { description: result.error });
+        toast.error(t("dropzone.saveErrorTitle"), { description: result.error });
         setProgress(null);
         return;
       }
 
-      toast.success("Belge yüklendi", { description: title });
+      toast.success(t("dropzone.success"), { description: title });
       reset();
       router.refresh();
     } catch (error) {
-      const message =
-        error instanceof UploadError
-          ? error.message
-          : "Yükleme sırasında beklenmeyen bir hata oluştu.";
-      toast.error("Yükleme başarısız", { description: message });
+      toast.error(t("dropzone.failedTitle"), {
+        description: uploadMessage(error, t("dropzone.unexpectedError")),
+      });
       setProgress(null);
     }
   }
@@ -174,14 +181,14 @@ export function DocumentDropzone({
               {pending.file.name}
             </p>
             <p className="text-[12px] text-muted-foreground">
-              {formatBytes(pending.file.size)}
+              {formatBytes(format, pending.file.size)}
             </p>
           </div>
           {!isUploading && (
             <button
               type="button"
               onClick={reset}
-              aria-label="Dosyayı kaldır"
+              aria-label={t("dropzone.removeFile")}
               className="flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
             >
               <X className="size-4" />
@@ -199,26 +206,35 @@ export function DocumentDropzone({
             </div>
             <p className="flex items-center gap-1.5 text-[12px] text-muted-foreground">
               <Loader2 className="size-3.5 animate-spin" />
-              Yükleniyor… %{Math.round(progress * 100)}
+              {/* Yüzde işaretinin YERİ dile göre değişiyor: Türkçede sayının
+                  önünde (%50), İngilizcede arkasında (50%). Bu yüzden metin
+                  parçalanmıyor, tamamı çeviriden geliyor. */}
+              {t("dropzone.uploading", {
+                percent: formatPercent(format, progress),
+              })}
             </p>
           </div>
         ) : (
           <>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="document-title">Başlık</Label>
+                <Label htmlFor="document-title">
+                  {t("dropzone.titleLabel")}
+                </Label>
                 <Input
                   id="document-title"
                   value={pending.title}
                   onChange={(event) =>
                     setPending({ ...pending, title: event.target.value })
                   }
-                  placeholder="Örn. Tapu — Kadıköy dairesi"
+                  placeholder={t("dropzone.titlePlaceholder")}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="document-type">Belge türü</Label>
+                <Label htmlFor="document-type">
+                  {t("dropzone.typeLabel")}
+                </Label>
                 <Select
                   value={pending.type}
                   onValueChange={(value) =>
@@ -229,9 +245,9 @@ export function DocumentDropzone({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {DOCUMENT_TYPE_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
+                    {DOCUMENT_TYPES.map((value) => (
+                      <SelectItem key={value} value={value}>
+                        {t(`type.${value}`)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -241,8 +257,10 @@ export function DocumentDropzone({
               {!fixedCustomerId && (
                 <div className="space-y-2">
                   <Label htmlFor="document-customer">
-                    İlgili müşteri{" "}
-                    <span className="text-muted-foreground">(opsiyonel)</span>
+                    {t("dropzone.customerLabel")}{" "}
+                    <span className="text-muted-foreground">
+                      {tCommon("optional")}
+                    </span>
                   </Label>
                   <Select
                     value={customerId || "none"}
@@ -251,10 +269,12 @@ export function DocumentDropzone({
                     }
                   >
                     <SelectTrigger id="document-customer">
-                      <SelectValue placeholder="Seçilmedi" />
+                      <SelectValue placeholder={t("dropzone.notSelected")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">Seçilmedi</SelectItem>
+                      <SelectItem value="none">
+                        {t("dropzone.notSelected")}
+                      </SelectItem>
                       {customerOptions.map((option) => (
                         <SelectItem key={option.id} value={option.id}>
                           {option.label}
@@ -268,8 +288,10 @@ export function DocumentDropzone({
               {!fixedListingId && (
                 <div className="space-y-2">
                   <Label htmlFor="document-listing">
-                    İlgili ilan{" "}
-                    <span className="text-muted-foreground">(opsiyonel)</span>
+                    {t("dropzone.listingLabel")}{" "}
+                    <span className="text-muted-foreground">
+                      {tCommon("optional")}
+                    </span>
                   </Label>
                   <Select
                     value={listingId || "none"}
@@ -278,10 +300,12 @@ export function DocumentDropzone({
                     }
                   >
                     <SelectTrigger id="document-listing">
-                      <SelectValue placeholder="Seçilmedi" />
+                      <SelectValue placeholder={t("dropzone.notSelected")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">Seçilmedi</SelectItem>
+                      <SelectItem value="none">
+                        {t("dropzone.notSelected")}
+                      </SelectItem>
                       {listingOptions.map((option) => (
                         <SelectItem key={option.id} value={option.id}>
                           {option.label}
@@ -295,9 +319,9 @@ export function DocumentDropzone({
 
             <div className="flex items-center justify-end gap-2">
               <Button type="button" variant="ghost" onClick={reset}>
-                Vazgeç
+                {tCommon("cancel")}
               </Button>
-              <Button type="submit">Belgeyi yükle</Button>
+              <Button type="submit">{t("dropzone.submit")}</Button>
             </div>
           </>
         )}
@@ -342,10 +366,12 @@ export function DocumentDropzone({
 
       <div className="space-y-1">
         <p className="text-[13.5px] font-medium text-foreground">
-          Belgeyi buraya sürükleyin
+          {t("dropzone.dropTitle")}
         </p>
         <p className="text-[12.5px] text-muted-foreground">
-          PDF, Word veya görsel · en fazla {formatBytes(MAX_DOCUMENT_BYTES)}
+          {t("dropzone.hint", {
+            max: formatBytes(format, MAX_DOCUMENT_BYTES),
+          })}
         </p>
       </div>
 
@@ -354,7 +380,7 @@ export function DocumentDropzone({
         variant="secondary"
         onClick={() => inputRef.current?.click()}
       >
-        Dosya seç
+        {t("dropzone.choose")}
       </Button>
 
       <input
@@ -367,8 +393,7 @@ export function DocumentDropzone({
 
       {/* Gizlilik notu: kullanıcı tapusunu yüklerken nereye gittiğini bilmeli. */}
       <p className="max-w-sm text-[11.5px] leading-relaxed text-muted-foreground">
-        Belgeler herkese açık olmayan bir alanda saklanır; indirme bağlantıları
-        kişiye özel üretilir ve kısa sürede geçersiz olur.
+        {t("dropzone.privacy")}
       </p>
     </div>
   );

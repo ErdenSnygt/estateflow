@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getFormatter, getTranslations } from "next-intl/server";
 import {
   Building2,
   CalendarClock,
@@ -12,7 +13,8 @@ import {
 
 import { getCustomerById, getCustomerTimeline } from "@/lib/data/customers";
 import { getUpcomingAppointmentsForCustomer } from "@/lib/data/appointments";
-import { formatCurrency, formatDate } from "@/lib/format";
+import { formatCurrency } from "@/lib/format";
+import { formatDate } from "@/i18n/dates";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,8 +27,12 @@ import { AddEventForm } from "@/components/customers/add-event-form";
 import { OfferDialog } from "@/components/offers/offer-dialog";
 import { InterestCard } from "@/components/customers/interest-card";
 import { getDocumentsForCustomer } from "@/lib/data/documents";
-import { RelatedDocuments } from "@/components/documents/related-documents";
-import { MessageCustomerButton } from "@/components/messages/message-customer-button";
+import { DocumentSection } from "@/components/documents/document-section";
+import {
+  getWorkNoteFormOptions,
+  getWorkNotesForCustomer,
+} from "@/lib/data/work-notes";
+import { RelatedWorkNotes } from "@/components/work-notes/related-work-notes";
 import { AppointmentRow } from "@/components/appointments/appointment-row";
 
 type PageProps = { params: Promise<{ id: string }> };
@@ -35,30 +41,56 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const customer = await getCustomerById(id);
-  return { title: customer?.full_name ?? "Müşteri bulunamadı" };
+  const [customer, t] = await Promise.all([
+    getCustomerById(id),
+    getTranslations("customers"),
+  ]);
+  return { title: customer?.full_name ?? t("notFound.title") };
 }
 
 export default async function CustomerDetailPage({ params }: PageProps) {
   const { id } = await params;
 
-  /* Dört sorgu birbirinden bağımsız — paralel. */
-  const [customer, timeline, appointments, documents] = await Promise.all([
+  /* Altı sorgu birbirinden bağımsız — paralel. */
+  const [
+    customer,
+    timeline,
+    appointments,
+    documents,
+    notes,
+    noteOptions,
+    t,
+    tCommon,
+    format,
+  ] = await Promise.all([
     getCustomerById(id),
     getCustomerTimeline(id),
     getUpcomingAppointmentsForCustomer(id),
     getDocumentsForCustomer(id),
+    getWorkNotesForCustomer(id),
+    getWorkNoteFormOptions(),
+    getTranslations("customers.detail"),
+    getTranslations("common"),
+    getFormatter(),
   ]);
 
   if (!customer) notFound();
+
+  /* Göreli zamanlar TEK BİR ANDAN ölçülüyor ve o an sunucuda belirleniyor —
+     istemci bileşenlerinin kendi `Date.now()`unu çağırması hydration
+     uyuşmazlığı üretirdi (`lib/format.ts`). */
+  const reference = Date.now();
 
   return (
     <div className="space-y-6 pb-4">
       <PageHeader
         backHref="/musteriler"
-        backLabel="Müşterilere dön"
+        backLabel={t("back")}
         title={customer.full_name}
-        description={`${customer.id.toUpperCase()} · ${formatDate(customer.created_at)} tarihinde kaydedildi`}
+        description={t("registered", {
+          id: customer.id.toUpperCase(),
+          date: formatDate(format, customer.created_at),
+        })}
         actions={
           <>
             {/* İlgilendiği ilanlar arasından seçim yapılıyor; satılmış olanlar
@@ -73,23 +105,26 @@ export default async function CustomerDetailPage({ params }: PageProps) {
                   hint: formatCurrency(listing.price, listing.currency),
                 }))}
             />
-            <MessageCustomerButton customerId={customer.id} />
+            {/* "Mesaj gönder" düğmesi Faz 18'de KALDIRILDI: müşteriyle
+                yazışma bu sistemde yok. Yerini sayfanın altındaki İş Notları
+                bölümü aldı — ekip içi soru/devir oradan yürüyor. Müşteriye
+                ulaşmak için zaten gerçek kanallar duruyor: Ara ve E-posta. */}
             <Button variant="secondary" asChild>
               <a href={`tel:${customer.phone.replace(/\s/g, "")}`}>
                 <Phone className="size-4" />
-                Ara
+                {t("call")}
               </a>
             </Button>
             <Button variant="secondary" asChild>
               <Link href={`/musteriler/${customer.id}/duzenle`}>
                 <Pencil className="size-4" />
-                Düzenle
+                {tCommon("edit")}
               </Link>
             </Button>
             <Button asChild>
               <a href={`mailto:${customer.email}`}>
                 <Mail className="size-4" />
-                E-posta gönder
+                {t("email")}
               </a>
             </Button>
           </>
@@ -105,7 +140,6 @@ export default async function CustomerDetailPage({ params }: PageProps) {
               <div className="flex flex-wrap items-start gap-4">
                 <CustomerAvatar
                   name={customer.full_name}
-                  src={customer.avatar_url}
                   size={64}
                 />
 
@@ -135,28 +169,30 @@ export default async function CustomerDetailPage({ params }: PageProps) {
               <dl className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <Fact
                   icon={<Wallet className="size-3.5" />}
-                  label="Bütçe aralığı"
+                  label={t("budgetRange")}
                   value={`${formatCurrency(customer.budget_min)} – ${formatCurrency(customer.budget_max)}`}
                 />
                 <Fact
                   icon={<CalendarClock className="size-3.5" />}
-                  label="Son görüşme"
+                  label={t("lastContact")}
                   value={
                     customer.last_contact_at
-                      ? formatDate(customer.last_contact_at)
-                      : "Henüz görüşülmedi"
+                      ? formatDate(format, customer.last_contact_at)
+                      : t("neverContacted")
                   }
                 />
                 <Fact
                   icon={<Building2 className="size-3.5" />}
-                  label="İlgilendiği ilan"
-                  value={`${customer.interests.length} kayıt`}
+                  label={t("interestLabel")}
+                  value={t("interestValue", {
+                    count: customer.interests.length,
+                  })}
                 />
               </dl>
 
               <div className="rounded-lg bg-surface-inset px-4 py-3">
                 <p className="text-[11.5px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
-                  Notlar
+                  {t("notes")}
                 </p>
                 <p className="mt-1.5 text-[13.5px] leading-relaxed text-secondary-foreground">
                   {customer.notes}
@@ -168,12 +204,12 @@ export default async function CustomerDetailPage({ params }: PageProps) {
           {/* İlgilendiği ilanlar */}
           <Card>
             <CardHeader>
-              <CardTitle>İlgilendiği İlanlar</CardTitle>
+              <CardTitle>{t("interests")}</CardTitle>
             </CardHeader>
             <CardContent className="pt-3">
               {customer.interests.length === 0 ? (
                 <p className="text-[13px] text-muted-foreground">
-                  Bu müşteriyle henüz bir ilan eşleştirilmemiş.
+                  {t("interestsEmpty")}
                 </p>
               ) : (
                 <div className="grid gap-2.5 sm:grid-cols-2">
@@ -184,6 +220,21 @@ export default async function CustomerDetailPage({ params }: PageProps) {
               )}
             </CardContent>
           </Card>
+
+          {/* İŞ NOTLARI VE EVRAKLAR SOL SÜTUNDA — Faz 18.
+              İkisi de sayfanın "çalışma yüzeyi": yazılıyor, yükleniyor,
+              kapatılıyor. Sağ sütun ise kaydın üstverisi (sorumlu danışman,
+              randevular, görüşme geçmişi) — okunuyor, dokunulmuyor. Bu ayrım
+              genişliği de doğru dağıtıyor: not formu ve evrak satırları dar bir
+              sütunda sıkışıyordu. */}
+          <RelatedWorkNotes
+            notes={notes}
+            options={noteOptions}
+            reference={reference}
+            customerId={customer.id}
+          />
+
+          <DocumentSection documents={documents} customerId={customer.id} />
         </div>
 
         {/* --- Sağ sütun --- */}
@@ -191,7 +242,7 @@ export default async function CustomerDetailPage({ params }: PageProps) {
           {customer.agent && (
             <Card>
               <CardHeader>
-                <CardTitle>Sorumlu Danışman</CardTitle>
+                <CardTitle>{t("agent")}</CardTitle>
               </CardHeader>
               <CardContent className="pt-3">
                 <div className="flex items-center gap-3">
@@ -231,7 +282,7 @@ export default async function CustomerDetailPage({ params }: PageProps) {
           {appointments.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Yaklaşan Randevular</CardTitle>
+                <CardTitle>{t("upcoming")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 pt-3">
                 {appointments.map((appointment) => (
@@ -244,17 +295,9 @@ export default async function CustomerDetailPage({ params }: PageProps) {
             </Card>
           )}
 
-          {/* Evrak kartı, randevu kartının aksine BOŞKEN DE duruyor: belge
-              yüklemek müşteri sürecinin beklenen bir adımı ve boş kart
-              "buraya tapu koyabilirsin" diyen tek yer. */}
-          <RelatedDocuments
-            documents={documents}
-            filterHref={`/evraklar?customer=${customer.id}`}
-          />
-
           <Card>
             <CardHeader>
-              <CardTitle>Görüşme Geçmişi</CardTitle>
+              <CardTitle>{t("history")}</CardTitle>
             </CardHeader>
             <CardContent className="px-0 pt-3">
               <CustomerTimeline events={timeline} />

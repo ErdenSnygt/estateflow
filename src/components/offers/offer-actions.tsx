@@ -2,11 +2,12 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Check, Clock, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import type { OfferStatus } from "@/types/database";
-import { availableTransitions, OFFER_STATUS_LABELS } from "@/lib/offers";
+import { availableTransitions } from "@/lib/offers";
 import { updateOfferStatus } from "@/lib/actions/offers";
 import { formatCurrency } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -51,6 +52,8 @@ export function OfferActions({
   listingTitle: string;
 }) {
   const router = useRouter();
+  const t = useTranslations("offers");
+  const tCommon = useTranslations("common");
   const [pending, setPending] = React.useState<OfferStatus | null>(null);
   const [confirming, setConfirming] = React.useState(false);
 
@@ -64,14 +67,14 @@ export function OfferActions({
     setConfirming(false);
 
     if (!result.ok) {
-      toast.error("Teklif güncellenemedi", { description: result.error });
+      toast.error(t("actions.error"), { description: result.error });
       return;
     }
 
     toast.success(
       result.data.saleCreated
-        ? "Satış kapandı"
-        : `Teklif "${OFFER_STATUS_LABELS[next].toLocaleLowerCase("tr-TR")}" olarak işaretlendi`,
+        ? t("actions.saleClosed")
+        : t("actions.marked", { status: t(`status.${next}`) }),
       {
         description: result.data.saleCreated
           ? `${listingTitle} · ${formatCurrency(amount)}`
@@ -98,7 +101,7 @@ export function OfferActions({
             ) : (
               ICONS[next]
             )}
-            Kabul et
+            {t("actions.accept")}
           </Button>
         ) : (
           <Button
@@ -113,7 +116,7 @@ export function OfferActions({
             ) : (
               ICONS[next]
             )}
-            {next === "rejected" ? "Reddet" : "Süresi doldu"}
+            {t(next === "rejected" ? "actions.reject" : "actions.expire")}
           </Button>
         ),
       )}
@@ -121,31 +124,40 @@ export function OfferActions({
       <AlertDialog open={confirming} onOpenChange={setConfirming}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Teklifi kabul et</AlertDialogTitle>
+            <AlertDialogTitle>{t("actions.confirmTitle")}</AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-2">
+                {/* İlan adı cümlenin İÇİNDE: Türkçede başta, İngilizcede
+                    sonda ("The offer of X on Y"). Kalın yazım metnin
+                    içinde `<b>` olarak, `t.rich` onu elemana çeviriyor. */}
                 <p>
-                  <span className="font-medium text-foreground">
-                    {listingTitle}
-                  </span>{" "}
-                  için {formatCurrency(amount)} tutarındaki teklif kabul
-                  edilecek.
+                  {t.rich("actions.confirmIntro", {
+                    title: listingTitle,
+                    amount: formatCurrency(amount),
+                    b: (chunks) => (
+                      <span className="font-medium text-foreground">
+                        {chunks}
+                      </span>
+                    ),
+                  })}
                 </p>
-                <p>Bu işlem tek adımda şunları yapar:</p>
+                <p>{t("actions.confirmLead")}</p>
                 <ul className="list-disc space-y-1 pl-5">
-                  <li>Kapanan satış kaydı oluşturur</li>
-                  <li>İlanı &quot;satıldı&quot; durumuna geçirir</li>
-                  <li>Aynı ilandaki diğer bekleyen teklifleri kapatır</li>
-                  <li>Müşterinin görüşme geçmişine satın alma kaydı düşer</li>
+                  <li>{t("actions.confirmSale")}</li>
+                  <li>{t("actions.confirmListing")}</li>
+                  <li>{t("actions.confirmOthers")}</li>
+                  <li>{t("actions.confirmTimeline")}</li>
                 </ul>
                 <p className="font-medium text-warning">
-                  Kabul edilen bir teklif geri alınamaz.
+                  {t("actions.confirmWarning")}
                 </p>
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isBusy}>Vazgeç</AlertDialogCancel>
+            <AlertDialogCancel disabled={isBusy}>
+              {tCommon("cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={(event) => {
                 event.preventDefault();
@@ -156,10 +168,10 @@ export function OfferActions({
               {isBusy ? (
                 <>
                   <Loader2 className="size-4 animate-spin" />
-                  İşleniyor…
+                  {t("actions.processing")}
                 </>
               ) : (
-                "Kabul et ve satışı kapat"
+                t("actions.confirmSubmit")
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

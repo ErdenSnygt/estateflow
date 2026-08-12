@@ -2,10 +2,13 @@
 
 import * as React from "react";
 import { ImagePlus, Loader2, Trash2 } from "lucide-react";
+import { useFormatter, useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
-import { UploadError, uploadImage } from "@/lib/storage/upload";
+import { uploadImage } from "@/lib/storage/upload";
+import { useUploadErrorMessage } from "@/i18n/upload-error";
+import { formatPercent } from "@/i18n/numbers";
 import { ACCEPT_ATTRIBUTE } from "@/lib/storage/paths";
 import { Button } from "@/components/ui/button";
 
@@ -28,6 +31,9 @@ export function CoverUpload({
   value: string;
   onChange: (url: string) => void;
 }) {
+  const t = useTranslations("upload");
+  const format = useFormatter();
+  const uploadMessage = useUploadErrorMessage();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [ratio, setRatio] = React.useState<number | null>(null);
 
@@ -41,11 +47,8 @@ export function CoverUpload({
       const url = await uploadImage(file, "avatars", setRatio);
       onChange(url);
     } catch (error) {
-      toast.error("Kapak yüklenemedi", {
-        description:
-          error instanceof UploadError
-            ? error.message
-            : "Beklenmeyen bir hata oluştu.",
+      toast.error(t("cover.error"), {
+        description: uploadMessage(error, t("errors.unexpected")),
       });
     } finally {
       setRatio(null);
@@ -68,14 +71,15 @@ export function CoverUpload({
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={value}
-            alt="Kapak önizlemesi"
+            alt={t("cover.alt")}
             className="size-full object-cover"
           />
         )}
 
         {isUploading && (
           <div className="absolute inset-0 flex items-center justify-center gap-2 bg-canvas/70 text-[12.5px] text-foreground">
-            <Loader2 className="size-4 animate-spin" />%{Math.round(ratio * 100)}
+            <Loader2 className="size-4 animate-spin" />
+            {formatPercent(format, ratio)}
           </div>
         )}
       </div>
@@ -88,13 +92,13 @@ export function CoverUpload({
           disabled={isUploading}
         >
           <ImagePlus className="size-4" />
-          {value ? "Değiştir" : "Kapak seç"}
+          {t(value ? "change" : "cover.select")}
         </Button>
 
         {value && !isUploading && (
           <Button type="button" variant="ghost" onClick={() => onChange("")}>
             <Trash2 className="size-4" />
-            Kaldır
+            {t("remove")}
           </Button>
         )}
       </div>

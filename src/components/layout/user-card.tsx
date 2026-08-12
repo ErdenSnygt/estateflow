@@ -3,8 +3,9 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronsUpDown } from "lucide-react";
 
+import { useTranslations } from "next-intl";
+
 import { cn } from "@/lib/utils";
-import { AGENT_ROLE_LABELS } from "@/lib/agents";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { AgentRoleBadge } from "@/components/agents/agent-role-badge";
 import {
@@ -24,6 +25,7 @@ import { useSessionUser } from "@/components/layout/session-provider";
  */
 export function UserCard({ isCollapsed }: { isCollapsed: boolean }) {
   const user = useSessionUser();
+  const tRole = useTranslations("agents.role");
 
   const card = (
     <button
@@ -90,7 +92,7 @@ export function UserCard({ isCollapsed }: { isCollapsed: boolean }) {
         <span className="block font-medium">{user.name}</span>
         <span className="block text-[11px] text-secondary-foreground">
           {user.title}
-          {user.agentRole && ` · ${AGENT_ROLE_LABELS[user.agentRole]}`}
+          {user.agentRole && ` · ${tRole(user.agentRole)}`}
         </span>
       </TooltipContent>
     </Tooltip>

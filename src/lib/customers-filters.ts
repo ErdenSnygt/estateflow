@@ -1,8 +1,8 @@
 import type { CustomerStatus } from "@/types/database";
 import type { CustomerFilters } from "@/lib/data/customers";
 import {
-  CUSTOMER_SORT_OPTIONS,
-  CUSTOMER_STATUS_LABELS,
+  CUSTOMER_SORT_KEYS,
+  CUSTOMER_STATUSES,
   type CustomerSortKey,
 } from "@/lib/customers";
 
@@ -40,7 +40,7 @@ export function parseCustomerFilters(
     status: oneOf<CustomerStatus>(
       params,
       "status",
-      Object.keys(CUSTOMER_STATUS_LABELS) as CustomerStatus[],
+      [...CUSTOMER_STATUSES],
     ),
     /* Danışman kimliği artık bir listeye karşı doğrulanmıyor: liste
        veritabanında ve bu fonksiyon senkron. Geçersiz bir kimlik hata
@@ -52,7 +52,7 @@ export function parseCustomerFilters(
     sort: oneOf<CustomerSortKey>(
       params,
       "sort",
-      CUSTOMER_SORT_OPTIONS.map((option) => option.value),
+      [...CUSTOMER_SORT_KEYS],
     ),
   };
 }

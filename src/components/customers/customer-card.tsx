@@ -1,14 +1,25 @@
 import Link from "next/link";
+import { getFormatter, getTranslations } from "next-intl/server";
 import { Building2, CalendarClock, Phone, Wallet } from "lucide-react";
 
 import type { CustomerListItem } from "@/lib/data/customers";
-import { formatCurrencyCompact, formatShortDate } from "@/lib/format";
+import { formatCurrencyCompact } from "@/lib/format";
+import { formatDate } from "@/i18n/dates";
 import { Card } from "@/components/ui/card";
 import { CustomerAvatar } from "@/components/customers/customer-avatar";
 import { CustomerStatusBadge } from "@/components/customers/customer-status-badge";
 
 /** Izgara görünümündeki müşteri kartı — `ListingCard` ile aynı iskelet. */
-export function CustomerCard({ customer }: { customer: CustomerListItem }) {
+export async function CustomerCard({
+  customer,
+}: {
+  customer: CustomerListItem;
+}) {
+  const [t, format] = await Promise.all([
+    getTranslations("customers.card"),
+    getFormatter(),
+  ]);
+
   return (
     <Link
       href={`/musteriler/${customer.id}`}
@@ -20,7 +31,6 @@ export function CustomerCard({ customer }: { customer: CustomerListItem }) {
           <div className="flex items-start gap-3">
             <CustomerAvatar
               name={customer.full_name}
-              src={customer.avatar_url}
               size={44}
             />
 
@@ -41,7 +51,7 @@ export function CustomerCard({ customer }: { customer: CustomerListItem }) {
           <div className="rounded-lg bg-surface-inset px-3 py-2">
             <p className="flex items-center gap-1.5 text-[11.5px] text-muted-foreground">
               <Wallet className="size-3.5" />
-              Bütçe aralığı
+              {t("budgetRange")}
             </p>
             <p className="mt-0.5 text-[13.5px] font-medium tabular-nums text-foreground">
               {formatCurrencyCompact(customer.budget_min)} –{" "}
@@ -53,13 +63,13 @@ export function CustomerCard({ customer }: { customer: CustomerListItem }) {
           <div className="mt-auto flex items-center justify-between gap-2 border-t border-hairline pt-3 text-[12px] text-muted-foreground">
             <span className="flex items-center gap-1.5">
               <Building2 className="size-3.5" />
-              {customer.interest_count} ilan
+              {t("listings", { count: customer.interest_count })}
             </span>
             <span className="flex items-center gap-1.5">
               <CalendarClock className="size-3.5" />
               {customer.last_contact_at
-                ? formatShortDate(customer.last_contact_at)
-                : "Görüşülmedi"}
+                ? formatDate(format, customer.last_contact_at, "short")
+                : t("notContacted")}
             </span>
           </div>
         </div>

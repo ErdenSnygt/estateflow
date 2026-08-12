@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { createFormatter } from "use-intl";
 
 import {
   MINUTES_PER_DAY,
@@ -14,6 +15,7 @@ import {
   formatMonthLong,
   formatTimeRange,
   formatViewLabel,
+  formatWeekdayShort,
   isSameMonth,
   layoutOverlaps,
   minutesOfDay,
@@ -38,7 +40,40 @@ import {
  * başlangıcı takvimi bir gün kaydırır, saat dilimi hatası randevuyu komşu
  * güne yazar, çakışma yerleşimindeki hata randevuları üst üste bindirir.
  * Hiçbiri veritabanı gerektirmiyor.
+ *
+ * -----------------------------------------------------------------------------
+ * FAZ 21: GÜN/AY ADLARI ARTIK `Intl`DEN
+ * -----------------------------------------------------------------------------
+ * Etiket fonksiyonları bir `Formatter` alıyor (gerekçe `lib/calendar.ts`
+ * içinde). Test onu GERÇEKTEN kuruyor — sahte bir nesne, `Intl`in gün kaydırıp
+ * kaydırmadığını söylemezdi ve asıl risk tam olarak o.
+ *
+ * Biçimler `i18n/request.ts` ile birebir aynı; oradan sapması ekranda görünen
+ * ama testte görünmeyen bir fark üretirdi.
  */
+
+const FORMATS = {
+  dateTime: {
+    short: { day: "numeric", month: "short", year: "numeric" },
+    long: { day: "numeric", month: "long", year: "numeric" },
+    dayShort: { day: "numeric", month: "short" },
+    monthLong: { month: "long", year: "numeric" },
+    weekdayLong: { weekday: "long" },
+    weekdayShort: { weekday: "short" },
+    time: { hour: "2-digit", minute: "2-digit" },
+  },
+} as const;
+
+function formatterFor(locale: "tr" | "en") {
+  return createFormatter({
+    locale,
+    timeZone: "Europe/Istanbul",
+    formats: FORMATS as never,
+  });
+}
+
+const tr = formatterFor("tr");
+const en = formatterFor("en");
 
 describe("saat dilimi (sabit UTC+3)", () => {
   it("UTC gecesini ofis takviminde ertesi güne yazar", () => {
@@ -226,22 +261,58 @@ describe("biçimlendirme", () => {
     expect(formatDuration(90)).toBe("1s 30dk");
   });
 
-  it("gün ve ay etiketleri", () => {
-    expect(formatDayLong("2026-07-28")).toBe("28 Temmuz 2026");
-    expect(formatDayShort("2026-07-28")).toBe("28 Tem");
-    expect(formatMonthLong("2026-07-28")).toBe("Temmuz 2026");
+  it("gün ve ay etiketleri — Türkçe", () => {
+    expect(formatDayLong(tr, "2026-07-28")).toBe("28 Temmuz 2026");
+    expect(formatDayShort(tr, "2026-07-28")).toBe("28 Tem");
+    expect(formatMonthLong(tr, "2026-07-28")).toBe("Temmuz 2026");
     expect(dayNumber("2026-07-08")).toBe(8);
   });
 
+  it("gün ve ay etiketleri — İngilizce", () => {
+    /* Aynı gün anahtarı, farklı dil: hem ay adı hem GÜN/AY SIRASI değişiyor
+       ve ikisini de `Intl` çözüyor, biz değil. */
+    expect(formatDayLong(en, "2026-07-28")).toBe("July 28, 2026");
+    expect(formatDayShort(en, "2026-07-28")).toBe("Jul 28");
+    expect(formatMonthLong(en, "2026-07-28")).toBe("July 2026");
+  });
+
+  it("gün anahtarı hiçbir dilde komşu güne kaymıyor", () => {
+    /* ASIL RİSK BU. Gün anahtarı UTC gece yarısı olarak okunuyor, biçimlendirme
+       Europe/Istanbul'da yapılıyor. Türkiye UTC'nin daima ilerisinde olduğu
+       için gün aynı kalmalı — ayın ilk ve son günü sınır durumları. */
+    expect(formatDayShort(tr, "2026-01-01")).toBe("1 Oca");
+    expect(formatDayShort(en, "2026-01-01")).toBe("Jan 1");
+    expect(formatDayShort(tr, "2026-12-31")).toBe("31 Ara");
+    expect(formatDayShort(en, "2026-12-31")).toBe("Dec 31");
+  });
+
+  it("hafta günü adı doğru güne denk geliyor", () => {
+    expect(formatWeekdayShort(tr, "2026-07-27")).toBe("Pzt");
+    expect(formatWeekdayShort(en, "2026-07-27")).toBe("Mon");
+    expect(formatWeekdayShort(en, "2026-08-02")).toBe("Sun");
+  });
+
   it("görünüm başlığı", () => {
-    expect(formatViewLabel("gun", "2026-07-28")).toBe("28 Temmuz 2026, Salı");
-    expect(formatViewLabel("hafta", "2026-07-28")).toBe("27 Tem – 2 Ağu 2026");
-    expect(formatViewLabel("ay", "2026-07-28")).toBe("Temmuz 2026");
+    expect(formatViewLabel(tr, "gun", "2026-07-28")).toBe(
+      "28 Temmuz 2026, Salı",
+    );
+    expect(formatViewLabel(tr, "hafta", "2026-07-28")).toBe(
+      "27 Tem – 2 Ağu 2026",
+    );
+    expect(formatViewLabel(tr, "ay", "2026-07-28")).toBe("Temmuz 2026");
+
+    expect(formatViewLabel(en, "gun", "2026-07-28")).toBe(
+      "July 28, 2026, Tuesday",
+    );
+    expect(formatViewLabel(en, "ay", "2026-07-28")).toBe("July 2026");
   });
 
   it("yıl atlayan haftada iki yılı da yazar", () => {
-    expect(formatViewLabel("hafta", "2026-12-31")).toBe(
+    expect(formatViewLabel(tr, "hafta", "2026-12-31")).toBe(
       "28 Ara 2026 – 3 Oca 2027",
+    );
+    expect(formatViewLabel(en, "hafta", "2026-12-31")).toBe(
+      "Dec 28 2026 – Jan 3 2027",
     );
   });
 });

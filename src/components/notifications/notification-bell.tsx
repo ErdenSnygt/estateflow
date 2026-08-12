@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Bell, CheckCheck } from "lucide-react";
 import { toast } from "sonner";
 
@@ -46,6 +47,8 @@ export function NotificationBell({
   reference: number;
 }) {
   const router = useRouter();
+  const t = useTranslations("notifications.bell");
+  const tList = useTranslations("notifications.list");
   const [isOpen, setIsOpen] = React.useState(false);
   const [items, setItems] = React.useState(initialNotifications);
   const [unread, setUnread] = React.useState(initialUnread);
@@ -86,16 +89,16 @@ export function NotificationBell({
     setIsBusy(false);
 
     if (!result.ok) {
-      toast.error("İşlem tamamlanamadı", { description: result.error });
+      toast.error(tList("markAllError"), { description: result.error });
       return;
     }
 
     if (result.data.count === 0) {
-      toast("Okunmamış bildirim yok");
+      toast(t("noUnread"));
       return;
     }
 
-    toast.success(`${result.data.count} bildirim okundu olarak işaretlendi`);
+    toast.success(tList("markAllSuccess", { count: result.data.count }));
     router.refresh();
   }
 
@@ -105,7 +108,7 @@ export function NotificationBell({
         <button
           type="button"
           aria-label={
-            unread > 0 ? `Bildirimler (${unread} okunmamış)` : "Bildirimler"
+            unread > 0 ? t("ariaUnread", { count: unread }) : t("aria")
           }
           className={cn(
             "relative flex size-9 items-center justify-center rounded-lg text-muted-foreground",
@@ -128,10 +131,10 @@ export function NotificationBell({
       <PopoverContent align="end" className="w-[min(22rem,calc(100vw-2rem))] p-0">
         <div className="flex items-center justify-between gap-2 border-b border-hairline px-3 py-2.5">
           <p className="text-[13px] font-semibold text-foreground">
-            Bildirimler
+            {t("title")}
             {unread > 0 && (
               <span className="ml-1.5 text-[12px] font-normal text-muted-foreground">
-                {unread} yeni
+                {t("newCount", { count: unread })}
               </span>
             )}
           </p>
@@ -144,7 +147,7 @@ export function NotificationBell({
               className="flex items-center gap-1.5 rounded-md px-2 py-1 text-[12px] text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground disabled:opacity-50"
             >
               <CheckCheck className="size-3.5" />
-              Tümünü okundu yap
+              {t("markAll")}
             </button>
           )}
         </div>
@@ -152,7 +155,7 @@ export function NotificationBell({
         <div className="max-h-[min(26rem,60vh)] overflow-y-auto p-1.5">
           {items.length === 0 ? (
             <p className="px-3 py-8 text-center text-[13px] text-muted-foreground">
-              Henüz bildiriminiz yok.
+              {t("empty")}
             </p>
           ) : (
             <div className="space-y-0.5">
@@ -175,7 +178,7 @@ export function NotificationBell({
             onClick={() => setIsOpen(false)}
             className="block rounded-lg px-3 py-2 text-center text-[12.5px] font-medium text-brand transition-colors hover:bg-surface-hover"
           >
-            Tümünü gör
+            {t("seeAll")}
           </Link>
         </div>
       </PopoverContent>

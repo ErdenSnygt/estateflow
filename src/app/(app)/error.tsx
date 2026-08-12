@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { RotateCcw, TriangleAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -42,6 +43,8 @@ export default function AppError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useTranslations();
+
   React.useEffect(() => {
     /* Sunucu günlüğüne zaten düştü; bu, tarayıcı konsolunda da izlenebilsin
        diye. Üretimde bir hata izleme servisine gönderilecek nokta burası. */
@@ -56,17 +59,18 @@ export default function AppError({
         </span>
 
         <h2 className="mt-5 text-[20px] font-semibold tracking-[-0.02em] text-foreground">
-          Bu ekran yüklenemedi
+          {t("errors.screenTitle")}
         </h2>
 
         <p className="mt-2 text-[13.5px] leading-relaxed text-secondary-foreground">
-          Veriler alınırken bir sorun oluştu. Bağlantınızı kontrol edip tekrar
-          deneyin; sorun sürerse ofis yöneticinize bildirin.
+          {t("errors.screenBody")}
         </p>
 
         {(error.digest || error.message) && (
           <p className="mt-4 max-w-full break-words rounded-lg border border-hairline bg-surface-inset px-3 py-2 font-mono text-[11.5px] text-muted-foreground">
-            {error.digest ? `Hata kodu: ${error.digest}` : error.message}
+            {error.digest
+              ? t("errors.code", { digest: error.digest })
+              : error.message}
           </p>
         )}
 
@@ -76,10 +80,10 @@ export default function AppError({
               oturum ve gezinme durumu korunarak düzeliyor. */}
           <Button onClick={reset}>
             <RotateCcw className="size-4" />
-            Tekrar dene
+            {t("common.retry")}
           </Button>
           <Button variant="secondary" asChild>
-            <a href="/dashboard">Dashboard&apos;a dön</a>
+            <a href="/dashboard">{t("common.backToDashboard")}</a>
           </Button>
         </div>
       </div>

@@ -1,15 +1,17 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { Search, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { useFilterParams } from "@/hooks/use-filter-params";
 import { CUSTOMER_FILTER_KEYS } from "@/lib/customers-filters";
 import {
-  BUDGET_OPTIONS,
-  CUSTOMER_SORT_OPTIONS,
-  CUSTOMER_STATUS_OPTIONS,
+  BUDGET_BANDS,
+  CUSTOMER_SORT_KEYS,
+  CUSTOMER_SORT_MESSAGE_KEY,
+  CUSTOMER_STATUSES,
 } from "@/lib/customers";
 import type { AgentOption } from "@/lib/data/agents";
 import { Input } from "@/components/ui/input";
@@ -44,6 +46,11 @@ export function CustomersFilterBar({
 }: {
   agentOptions: AgentOption[];
 }) {
+  const t = useTranslations("customers.list");
+  const tStatus = useTranslations("customers.status");
+  const tSort = useTranslations("customers.sort");
+  const tBudget = useTranslations("customers.budget");
+
   const { get, set, setMany, clear, activeCount } = useFilterParams([
     ...CUSTOMER_FILTER_KEYS,
   ]);
@@ -75,15 +82,15 @@ export function CustomersFilterBar({
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Ad, telefon veya e-posta ile ara…"
+            placeholder={t("searchPlaceholder")}
             className="pl-10"
-            aria-label="Müşterilerde ara"
+            aria-label={t("searchAria")}
           />
           {search && (
             <button
               type="button"
               onClick={() => setSearch("")}
-              aria-label="Aramayı temizle"
+              aria-label={t("clearSearch")}
               className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
             >
               <X className="size-3.5" />
@@ -95,13 +102,13 @@ export function CustomersFilterBar({
           value={get("sort") ?? "recent"}
           onValueChange={(value) => set("sort", value)}
         >
-          <SelectTrigger className="sm:w-[210px]" aria-label="Sıralama">
+          <SelectTrigger className="sm:w-[210px]" aria-label={tSort("label")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {CUSTOMER_SORT_OPTIONS.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
+            {CUSTOMER_SORT_KEYS.map((value) => (
+              <SelectItem key={value} value={value}>
+                {tSort(CUSTOMER_SORT_MESSAGE_KEY[value])}
               </SelectItem>
             ))}
           </SelectContent>
@@ -111,24 +118,27 @@ export function CustomersFilterBar({
       {/* Mobilde çekmeceye giriyor — `components/filters/filter-row.tsx`. */}
       <FilterRow activeCount={activeCount} onClear={clear}>
         <FilterSelect
-          label="Durum"
+          label={t("statusLabel")}
           value={fromParam(get("status"))}
           onChange={(value) => set("status", toParam(value))}
-          options={[...CUSTOMER_STATUS_OPTIONS]}
-          allLabel="Tüm durumlar"
+          options={CUSTOMER_STATUSES.map((value) => ({
+            value,
+            label: tStatus(value),
+          }))}
+          allLabel={t("allStatuses")}
         />
 
         <FilterSelect
-          label="Temsilci"
+          label={t("agentLabel")}
           value={fromParam(get("agent"))}
           onChange={(value) => set("agent", toParam(value))}
           options={agentOptions}
-          allLabel="Tüm temsilciler"
+          allLabel={t("allAgents")}
           width="w-[186px]"
         />
 
         <FilterSelect
-          label="Bütçe"
+          label={t("budgetLabel")}
           value={budgetValue}
           onChange={(value) => {
             if (value === ALL) {
@@ -141,8 +151,11 @@ export function CustomersFilterBar({
               maxBudget: max === "0" ? undefined : max,
             });
           }}
-          options={[...BUDGET_OPTIONS]}
-          allLabel="Tüm bütçeler"
+          options={BUDGET_BANDS.map((band) => ({
+            value: band.value,
+            label: tBudget(band.key),
+          }))}
+          allLabel={t("allBudgets")}
           width="w-[172px]"
         />
 

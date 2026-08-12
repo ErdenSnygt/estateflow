@@ -21,7 +21,10 @@ import { AgentNotice } from "@/components/layout/agent-notice";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import type { Session } from "@/lib/auth/session";
 
-const COLLAPSE_STORAGE_KEY = "emlak-crm:sidebar-collapsed";
+/* Anahtar marka adını taşıyor; Faz 19 yeniden adlandırmasında güncellendi.
+   Eski anahtarı okuyan bir geçiş kodu YAZILMADI: bedeli, kullanıcının bir
+   kez daha sidebar'ı daraltması. */
+const COLLAPSE_STORAGE_KEY = "estateflow:sidebar-collapsed";
 
 /**
  * ============================================================================

@@ -1,6 +1,8 @@
+import { getFormatter, getTranslations } from "next-intl/server";
 import { Building2, Coins, TrendingUp, Users } from "lucide-react";
 
 import type { AgentPerformance } from "@/lib/data/agents";
+import { formatRate } from "@/i18n/numbers";
 import { AnimatedNumber } from "@/components/animated-number";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -12,7 +14,7 @@ import { Card, CardContent } from "@/components/ui/card";
  * YAZILMADI: sayılar zaten Faz 6/8'de hesaplanıyordu, profil sayfası onları
  * yeniden kullanıyor.
  */
-export function AgentStats({
+export async function AgentStats({
   performance,
   commissionRate,
 }: {
@@ -20,40 +22,49 @@ export function AgentStats({
   /** Prim kutusunu göstermek için; verilmezse o kutu çizilmiyor. */
   commissionRate?: number;
 }) {
+  const [t, format] = await Promise.all([
+    getTranslations("profile.stats"),
+    getFormatter(),
+  ]);
+
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       <StatTile
         icon={<TrendingUp className="size-4" />}
-        label="Toplam satış"
+        label={t("totalSales")}
         value={<AnimatedNumber value={performance.totalRevenue} format="compact" />}
-        hint={`${performance.totalSales} kapanan işlem`}
+        hint={t("totalSalesHint", { count: performance.totalSales })}
       />
       <StatTile
         icon={<Users className="size-4" />}
-        label="Müşteri"
+        label={t("customers")}
         value={<AnimatedNumber value={performance.totalCustomers} />}
-        hint={`${performance.activeCustomers} aktif`}
+        hint={t("customersHint", { count: performance.activeCustomers })}
       />
       <StatTile
         icon={<Building2 className="size-4" />}
-        label="İlan"
+        label={t("listings")}
         value={<AnimatedNumber value={performance.totalListings} />}
-        hint={`${performance.activeListings} aktif`}
+        hint={t("listingsHint", { count: performance.activeListings })}
       />
       {commissionRate !== undefined ? (
         <StatTile
           icon={<Coins className="size-4" />}
-          label={`Bu ayki prim · %${(commissionRate * 100).toFixed(1)}`}
+          label={t("monthlyCommission", {
+            rate: formatRate(format, commissionRate),
+          })}
           value={<AnimatedNumber value={performance.monthlyCommission} format="currency" />}
-          hint={`${performance.monthlySales} işlem bu ay`}
+          hint={t("monthlyCommissionHint", {
+            count: performance.monthlySales,
+          })}
           emphasis
         />
       ) : (
         <StatTile
           icon={<Coins className="size-4" />}
-          label="Bu ay"
+          label={t("month")}
           value={<AnimatedNumber value={performance.monthlyRevenue} format="compact" />}
-          hint={`${performance.monthlySales} işlem`}
+          hint={t("monthHint", { count: performance.monthlySales })}
         />
       )}
     </div>

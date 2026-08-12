@@ -1,12 +1,19 @@
 "use server";
 
+import { getTranslations } from "next-intl/server";
 import { revalidatePath } from "next/cache";
 
 import type { OfferStatus } from "@/types/database";
 import { createClient } from "@/lib/supabase/server";
 import { canTransition, closesSale } from "@/lib/offers";
 import { formatCurrency } from "@/lib/format";
-import { fail, ok, toMessage, type ActionResult } from "@/lib/actions/result";
+import {
+  fail,
+  ok,
+  resolveActionError,
+  toMessage,
+  type ActionResult,
+} from "@/lib/actions/result";
 import { getCurrentAgent } from "@/lib/auth/server";
 import { notify } from "@/lib/actions/notify";
 
@@ -57,7 +64,7 @@ export async function createOffer(input: {
   const supabase = await createClient();
 
   if (!Number.isFinite(input.amount) || input.amount <= 0) {
-    return fail("Teklif tutarı 0'dan büyük olmalıdır.");
+    return fail("offerAmountPositive");
   }
 
   /* İlan okunuyor çünkü `agent_id` oradan geliyor — istemciden gelen bir
@@ -70,9 +77,9 @@ export async function createOffer(input: {
     .maybeSingle();
 
   if (listingError) return fail(toMessage(listingError));
-  if (!listing) return fail("İlan bulunamadı.");
+  if (!listing) return fail("listingNotFound");
   if (listing.status === "satildi") {
-    return fail("Bu ilan satılmış; yeni teklif alınamaz.");
+    return fail("offerListingSold");
   }
 
   /* AYNI ÇİFTE İKİNCİ BEKLEYEN TEKLİF YOK.
@@ -92,9 +99,9 @@ export async function createOffer(input: {
     .maybeSingle();
 
   if (existing) {
-    return fail(
-      `Bu müşterinin bu ilana ${formatCurrency(existing.amount)} tutarında bekleyen bir teklifi zaten var. Yeni teklif için önce Teklifler sayfasından eskisini yanıtlayın ya da "süresi doldu" olarak işaretleyin.`,
-    );
+    return fail("offerPendingExists", {
+      amount: formatCurrency(existing.amount),
+    });
   }
 
   const amount = Math.round(input.amount);
@@ -117,7 +124,7 @@ export async function createOffer(input: {
        Genel "benzersiz alan çakışması" mesajı yerine gerçek nedeni söylüyoruz. */
     if (error.code === "23505") {
       return fail(
-        "Bu müşterinin bu ilana bekleyen bir teklifi zaten var. Sayfayı yenileyin.",
+        "offerPendingRace",
       );
     }
     return fail(toMessage(error));
@@ -191,12 +198,23 @@ export async function updateOfferStatus(
     .maybeSingle();
 
   if (readError) return fail(toMessage(readError));
-  if (!offer) return fail("Teklif bulunamadı.");
+  if (!offer) return fail("offerNotFound");
 
   /* Geçiş kuralı saf bir fonksiyonda (`lib/offers.ts`) ve arayüz de aynı
      kaynağa bakıyor — düğmeler ile sunucu aynı şeyi söylesin. */
   const check = canTransition(offer.status, next);
-  if (!check.ok) return fail(check.reason);
+  if (!check.ok) {
+    const tStatus = await getTranslations("offers.status");
+    return fail(
+      check.error,
+      Object.fromEntries(
+        Object.entries(check.params).map(([name, status]) => [
+          name,
+          tStatus(status),
+        ]),
+      ),
+    );
+  }
 
   /* İLK YAZMA VE KAPI: koşula `status = 'pending'` ekli. Aynı teklif iki
      sekmede birden kabul edilirse ikincisi hiçbir satır güncelleyemez ve
@@ -210,7 +228,7 @@ export async function updateOfferStatus(
 
   if (updateError) return fail(toMessage(updateError));
   if (!updated || updated.length === 0) {
-    return fail("Teklifin durumu bu sırada değişmiş; sayfayı yenileyin.");
+    return fail("offerStatusChanged");
   }
 
   if (!closesSale(next)) {
@@ -238,9 +256,9 @@ export async function updateOfferStatus(
   });
 
   if (saleError) {
-    return fail(
-      `Teklif kabul edildi ama satış kaydı oluşturulamadı: ${toMessage(saleError)}`,
-    );
+    return fail("offerSaleFailed", {
+      reason: await resolveActionError(toMessage(saleError)),
+    });
   }
 
   await supabase

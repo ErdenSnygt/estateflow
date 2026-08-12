@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { UserRound } from "lucide-react";
 
 import { getAgentPerformances, getAgents } from "@/lib/data/agents";
@@ -9,9 +10,10 @@ import { AgentCard } from "@/components/agents/agent-card";
 import { StaffGuard } from "@/components/agents/staff-guard";
 import { InviteAgentDialog } from "@/components/agents/invite-agent-dialog";
 
-export const metadata: Metadata = {
-  title: "Personeller",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("agents.page");
+  return { title: t("title") };
+}
 
 /**
  * Ekip listesi.
@@ -26,7 +28,11 @@ export default async function PersonellerPage() {
   /* Yetki kontrolü ile ekip listesi paralel: yetkisiz kullanıcıda liste zaten
      RLS tarafından tek satıra iniyor, boşuna beklemeye değmez. Performans
      toplamları `agents`e bağlı olduğu için ancak ondan sonra başlayabiliyor. */
-  const [manager, agents] = await Promise.all([getManagerAgent(), getAgents()]);
+  const [manager, agents, t] = await Promise.all([
+    getManagerAgent(),
+    getAgents(),
+    getTranslations("agents.page"),
+  ]);
 
   if (!manager) return <StaffGuard />;
 
@@ -35,8 +41,8 @@ export default async function PersonellerPage() {
   return (
     <div className="space-y-6 pb-4">
       <PageHeader
-        title="Personeller"
-        description={`Ekipteki ${agents.length} kişi, bu ayki satış performansları ve prim tutarlarıyla birlikte.`}
+        title={t("title")}
+        description={t("description", { count: agents.length })}
         actions={
           <InviteAgentDialog canAssignPatron={manager.role === "patron"} />
         }
@@ -45,9 +51,9 @@ export default async function PersonellerPage() {
       {agents.length === 0 ? (
         <EmptyState
           icon={UserRound}
-          badge="Boş"
-          title="Ekipte henüz kimse yok"
-          description="Personel kayıtları şu an doğrudan veritabanından yönetiliyor; davet akışı ayrı bir fazda gelecek."
+          badge={t("emptyBadge")}
+          title={t("emptyTitle")}
+          description={t("emptyBody")}
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">

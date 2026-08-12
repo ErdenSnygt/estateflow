@@ -37,11 +37,12 @@
  *   offers.status       agents.role       agent_audit_log.action
  *   appointments.appointment_type         appointments.status
  *   sales.commission_status
- *   messages.sender_type                  messages.attachment_type
+ *   work_notes.note_type                  work_notes.status
+ *   work_notes.attachment_type
  *   documents.document_type               notifications.type
  *   notifications.related_entity_type
  *
- * Üreticiyi çalıştırdıktan sonra bu on sekiz daraltma yeniden uygulanmalı; aksi
+ * Üreticiyi çalıştırdıktan sonra bu on dokuz daraltma yeniden uygulanmalı; aksi
  * halde `types/database.ts` üzerinden tüm arayüz `string` görmeye başlar ve
  * rozet/etiket sözlükleri sessizce derlenir.
  */
@@ -107,30 +108,50 @@ export type AppointmentType =
 
 export type AppointmentStatus = "planlandi" | "tamamlandi" | "iptal";
 
-/* --- Faz 12: mesajlar, evraklar, bildirimler ------------------------------ */
-
-/** Mesajın YÖNÜ — kimlik değil. Balonun sağda mı solda mı çizileceği. */
-export type MessageSender = "agent" | "customer";
-
-/** Ek türü: arayüz görseli önizliyor, dosyayı satır olarak çiziyor. */
-export type MessageAttachmentType = "image" | "file";
+/* --- Faz 12: evraklar, bildirimler ---------------------------------------- */
 
 export type DocumentType = "pdf" | "tapu" | "kimlik" | "sozlesme";
+
+/* --- Faz 18: iş notları --------------------------------------------------- */
+
+/**
+ * Notun ne olduğu.
+ *
+ *   question   → cevap bekleyen bir soru ("evraklar ne zaman gelecek")
+ *   assignment → devir bildirimi; kaydın sorumlusunu GERÇEKTEN değiştirir
+ *   note       → bilgi notu, takip edilecek bir durumu yok
+ */
+export type WorkNoteType = "question" | "assignment" | "note";
+
+/**
+ * Takip durumu — `note` türünde NULL.
+ *
+ * Şemada nullable ve gerekçesi `0012_work_notes.sql` içinde: genel bir notun
+ * açık/çözülmüş hâli yok. Tip bunu yansıtsın diye `null` birliğe dahil
+ * EDİLMEDİ; kolon tanımı `WorkNoteStatus | null` yazıyor.
+ */
+export type WorkNoteStatus = "open" | "resolved";
+
+/** Ek türü: arayüz görseli önizliyor, dosyayı satır olarak çiziyor. */
+export type WorkNoteAttachmentType = "image" | "file";
 
 export type NotificationType =
   | "customer_added"
   | "listing_created"
   | "sale_closed"
-  | "message_received"
-  | "appointment_scheduled";
+  | "appointment_scheduled"
+  /* Faz 18 — `message_received` bunların yerini aldı; mesaj kavramı kalktı. */
+  | "work_note_mention"
+  | "work_note_assigned"
+  | "work_note_resolved";
 
 /** Bildirimin işaret ettiği kaydın türü — polimorfik bağ, FK yok. */
 export type NotificationEntity =
   | "customer"
   | "listing"
   | "sale"
-  | "conversation"
-  | "appointment";
+  | "appointment"
+  | "work_note";
 
 /** `agent_audit_log.action` — rol ve prim değişikliğinin izi. */
 export type AgentAuditAction =
@@ -708,82 +729,96 @@ export type Database = {
           },
         ];
       };
-      conversations: {
+      work_notes: {
         Row: {
           id: string;
-          customer_id: string;
-          agent_id: string;
-          last_message_at: string;
+          customer_id: string | null;
+          listing_id: string | null;
+          author_agent_id: string;
+          note_type: WorkNoteType;
+          content: string;
+          mentioned_agent_id: string | null;
+          status: WorkNoteStatus | null;
+          resolved_by_agent_id: string | null;
+          resolved_at: string | null;
+          parent_note_id: string | null;
+          attachment_url: string | null;
+          attachment_type: WorkNoteAttachmentType | null;
           created_at: string;
         };
         Insert: {
           id?: string;
-          customer_id: string;
-          agent_id: string;
-          last_message_at?: string;
+          customer_id?: string | null;
+          listing_id?: string | null;
+          author_agent_id: string;
+          note_type: WorkNoteType;
+          content?: string;
+          mentioned_agent_id?: string | null;
+          status?: WorkNoteStatus | null;
+          resolved_by_agent_id?: string | null;
+          resolved_at?: string | null;
+          parent_note_id?: string | null;
+          attachment_url?: string | null;
+          attachment_type?: WorkNoteAttachmentType | null;
           created_at?: string;
         };
         Update: {
           id?: string;
-          customer_id?: string;
-          agent_id?: string;
-          last_message_at?: string;
+          customer_id?: string | null;
+          listing_id?: string | null;
+          author_agent_id?: string;
+          note_type?: WorkNoteType;
+          content?: string;
+          mentioned_agent_id?: string | null;
+          status?: WorkNoteStatus | null;
+          resolved_by_agent_id?: string | null;
+          resolved_at?: string | null;
+          parent_note_id?: string | null;
+          attachment_url?: string | null;
+          attachment_type?: WorkNoteAttachmentType | null;
           created_at?: string;
         };
         Relationships: [
           {
-            foreignKeyName: "conversations_agent_id_fkey";
-            columns: ["agent_id"];
+            foreignKeyName: "work_notes_author_agent_id_fkey";
+            columns: ["author_agent_id"];
             isOneToOne: false;
             referencedRelation: "agents";
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "conversations_customer_id_fkey";
+            foreignKeyName: "work_notes_customer_id_fkey";
             columns: ["customer_id"];
-            isOneToOne: true;
+            isOneToOne: false;
             referencedRelation: "customers";
             referencedColumns: ["id"];
           },
-        ];
-      };
-      messages: {
-        Row: {
-          id: string;
-          conversation_id: string;
-          sender_type: MessageSender;
-          content: string;
-          attachment_url: string | null;
-          attachment_type: MessageAttachmentType | null;
-          created_at: string;
-          read_at: string | null;
-        };
-        Insert: {
-          id?: string;
-          conversation_id: string;
-          sender_type: MessageSender;
-          content?: string;
-          attachment_url?: string | null;
-          attachment_type?: MessageAttachmentType | null;
-          created_at?: string;
-          read_at?: string | null;
-        };
-        Update: {
-          id?: string;
-          conversation_id?: string;
-          sender_type?: MessageSender;
-          content?: string;
-          attachment_url?: string | null;
-          attachment_type?: MessageAttachmentType | null;
-          created_at?: string;
-          read_at?: string | null;
-        };
-        Relationships: [
           {
-            foreignKeyName: "messages_conversation_id_fkey";
-            columns: ["conversation_id"];
+            foreignKeyName: "work_notes_listing_id_fkey";
+            columns: ["listing_id"];
             isOneToOne: false;
-            referencedRelation: "conversations";
+            referencedRelation: "listings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "work_notes_mentioned_agent_id_fkey";
+            columns: ["mentioned_agent_id"];
+            isOneToOne: false;
+            referencedRelation: "agents";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "work_notes_parent_note_id_fkey";
+            columns: ["parent_note_id"];
+            isOneToOne: false;
+            referencedRelation: "work_notes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "work_notes_resolved_by_agent_id_fkey";
+            columns: ["resolved_by_agent_id"];
+            isOneToOne: false;
+            referencedRelation: "agents";
             referencedColumns: ["id"];
           },
         ];

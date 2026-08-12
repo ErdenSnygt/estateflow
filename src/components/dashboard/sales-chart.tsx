@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useFormatter, useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 
 import type { SalesPoint } from "@/lib/data/sales";
@@ -19,6 +20,20 @@ const BASELINE = H - PAD.bottom;
 
 export function SalesChart({ data }: { data: SalesPoint[] }) {
   const [active, setActive] = useState<number | null>(null);
+  const t = useTranslations("dashboard.sales");
+
+  /* AY ADLARI BURADA ÜRETİLİYOR, veri katmanında değil (Faz 20).
+     `useFormatter()` aktif dili ve `i18n/request.ts` içindeki adlandırılmış
+     biçimleri kullanıyor — "Nis" / "Apr" ayrımını `Intl` çözüyor, elle
+     yazılmış on iki isimlik iki dizi tutmaya gerek kalmıyor. */
+  const format = useFormatter();
+  const axisLabel = (point: SalesPoint) =>
+    format.dateTime(new Date(point.monthStart), { month: "short" });
+  const fullLabel = (point: SalesPoint) =>
+    format.dateTime(new Date(point.monthStart), {
+      month: "long",
+      year: "numeric",
+    });
 
   const revenues = data.map((point) => point.revenue);
   const max = niceMax(Math.max(...revenues));
@@ -47,7 +62,7 @@ export function SalesChart({ data }: { data: SalesPoint[] }) {
         viewBox={`0 0 ${W} ${H}`}
         className="w-full"
         role="img"
-        aria-label="Son 12 ayın satış cirosu"
+        aria-label={t("chartLabel")}
         onMouseLeave={() => setActive(null)}
       >
         <defs>
@@ -116,7 +131,7 @@ export function SalesChart({ data }: { data: SalesPoint[] }) {
                 : "fill-[var(--text-muted)]",
             )}
           >
-            {point.label}
+            {axisLabel(point)}
           </text>
         ))}
 
@@ -163,7 +178,7 @@ export function SalesChart({ data }: { data: SalesPoint[] }) {
             onFocus={() => setActive(index)}
             tabIndex={0}
             role="button"
-            aria-label={`${point.fullLabel}: ${formatCurrency(point.revenue)}`}
+            aria-label={`${fullLabel(point)}: ${formatCurrency(point.revenue)}`}
             className="cursor-default outline-none"
           />
         ))}
@@ -180,13 +195,13 @@ export function SalesChart({ data }: { data: SalesPoint[] }) {
         >
           <div className="glass min-w-[148px] rounded-lg px-3 py-2 shadow-md">
             <p className="text-[11.5px] font-medium text-muted-foreground">
-              {activeData.fullLabel}
+              {fullLabel(activeData)}
             </p>
             <p className="mt-0.5 text-[14px] font-semibold tabular-nums text-foreground">
               {formatCurrency(activeData.revenue)}
             </p>
             <p className="text-[11.5px] text-secondary-foreground">
-              {activeData.sales} satış kapandı
+              {t("closedDeals", { count: activeData.sales })}
             </p>
           </div>
         </div>

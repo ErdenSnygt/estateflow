@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getFormatter, getTranslations } from "next-intl/server";
 import {
   Building2,
   CalendarClock,
@@ -19,18 +20,19 @@ import { getInterestedCustomers } from "@/lib/data/customers";
 import { getAppointmentsForListing } from "@/lib/data/appointments";
 import { getDocumentsForListing } from "@/lib/data/documents";
 import {
-  CATEGORY_LABELS,
+  getWorkNoteFormOptions,
+  getWorkNotesForListing,
+} from "@/lib/data/work-notes";
+import { RelatedWorkNotes } from "@/components/work-notes/related-work-notes";
+import {
   formatListingPrice,
   formatRooms,
   isResidential,
 } from "@/lib/listings";
-import {
-  formatArea,
-  formatCurrency,
-  formatDate,
-  formatNumber,
-  formatShortDate,
-} from "@/lib/format";
+import { formatArea, formatCurrency, formatNumber } from "@/lib/format";
+/* Tarihler `lib/format.ts`ten DEĞİL buradan: o dosyanın biçimlendiricileri
+   sabit `tr-TR`, bu ise aktif dili biliyor. Gerekçe `i18n/dates.ts` başlığında. */
+import { formatDate } from "@/i18n/dates";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -52,7 +54,7 @@ import { DeleteListingDialog } from "@/components/listings/delete-listing-dialog
 import { OfferDialog } from "@/components/offers/offer-dialog";
 import { ListingCard } from "@/components/listings/listing-card";
 import { AppointmentRow } from "@/components/appointments/appointment-row";
-import { RelatedDocuments } from "@/components/documents/related-documents";
+import { DocumentSection } from "@/components/documents/document-section";
 
 type PageProps = { params: Promise<{ id: string }> };
 
@@ -60,8 +62,11 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const listing = await getListingById(id);
-  return { title: listing?.title ?? "İlan bulunamadı" };
+  const [listing, t] = await Promise.all([
+    getListingById(id),
+    getTranslations("listings"),
+  ]);
+  return { title: listing?.title ?? t("notFound.title") };
 }
 
 export default async function ListingDetailPage({ params }: PageProps) {
@@ -70,22 +75,41 @@ export default async function ListingDetailPage({ params }: PageProps) {
 
   if (!listing) notFound();
 
-  const [agent, related, interested, appointments, documents] =
-    await Promise.all([
+  const [
+    agent,
+    related,
+    interested,
+    appointments,
+    documents,
+    notes,
+    noteOptions,
+    t,
+    tCommon,
+    format,
+  ] = await Promise.all([
       getAgentById(listing.agent_id),
       getRelatedListings(listing),
       getInterestedCustomers(listing.id),
       getAppointmentsForListing(listing.id),
       getDocumentsForListing(listing.id),
+      getWorkNotesForListing(listing.id),
+      getWorkNoteFormOptions(),
+      getTranslations("listings"),
+      getTranslations("common"),
+      getFormatter(),
     ]);
 
   const pricePerSqm = Math.round(listing.price / listing.area_sqm);
+
+  /* Göreli zamanlar TEK BİR ANDAN ölçülüyor ve o an sunucuda belirleniyor —
+     gerekçe `lib/format.ts` içinde. */
+  const reference = Date.now();
 
   return (
     <div className="space-y-6 pb-4">
       <PageHeader
         backHref="/ilanlar"
-        backLabel="İlanlara dön"
+        backLabel={t("detail.back")}
         title={listing.title}
         description={`${listing.address} · ${listing.district}, ${listing.city}`}
         actions={
@@ -105,7 +129,7 @@ export default async function ListingDetailPage({ params }: PageProps) {
             <Button variant="secondary" asChild>
               <Link href={`/ilanlar/${listing.id}/duzenle`}>
                 <Pencil className="size-4" />
-                Düzenle
+                {tCommon("edit")}
               </Link>
             </Button>
             <DeleteListingDialog
@@ -125,7 +149,7 @@ export default async function ListingDetailPage({ params }: PageProps) {
 
           <Card>
             <CardHeader>
-              <CardTitle>Açıklama</CardTitle>
+              <CardTitle>{t("detail.descriptionTitle")}</CardTitle>
             </CardHeader>
             <CardContent className="pt-2">
               <p className="text-[14px] leading-[1.75] text-secondary-foreground">
@@ -136,38 +160,59 @@ export default async function ListingDetailPage({ params }: PageProps) {
 
           <Card>
             <CardHeader>
-              <CardTitle>Özellikler</CardTitle>
+              <CardTitle>{t("detail.features")}</CardTitle>
             </CardHeader>
             <CardContent className="pt-2">
               <dl className="grid grid-cols-1 gap-x-8 gap-y-0 sm:grid-cols-2">
-                <DetailRow label="İlan no" value={listing.id.toUpperCase()} />
                 <DetailRow
-                  label="Kategori"
-                  value={CATEGORY_LABELS[listing.category]}
+                  label={t("detail.listingNo")}
+                  value={listing.id.toUpperCase()}
                 />
-                <DetailRow label="Alan" value={formatArea(listing.area_sqm)} />
+                <DetailRow
+                  label={t("detail.category")}
+                  value={t(`category.${listing.category}`)}
+                />
+                <DetailRow
+                  label={t("detail.area")}
+                  value={formatArea(listing.area_sqm)}
+                />
                 {isResidential(listing.category) && listing.room_count > 0 && (
                   <DetailRow
-                    label="Oda sayısı"
+                    label={t("detail.roomCount")}
                     value={formatRooms(listing.room_count)}
                   />
                 )}
                 <DetailRow
-                  label="m² birim fiyat"
+                  label={t("detail.pricePerSqm")}
                   value={formatCurrency(pricePerSqm, listing.currency)}
                 />
-                <DetailRow label="Şehir / İlçe" value={`${listing.city} / ${listing.district}`} />
                 <DetailRow
-                  label="Yayın tarihi"
-                  value={formatDate(listing.published_at)}
+                  label={t("detail.cityDistrict")}
+                  value={`${listing.city} / ${listing.district}`}
                 />
                 <DetailRow
-                  label="Son güncelleme"
-                  value={formatDate(listing.updated_at)}
+                  label={t("detail.publishedAt")}
+                  value={formatDate(format, listing.published_at)}
+                />
+                <DetailRow
+                  label={t("detail.updatedAt")}
+                  value={formatDate(format, listing.updated_at)}
                 />
               </dl>
             </CardContent>
           </Card>
+
+          {/* İŞ NOTLARI VE EVRAKLAR SOL SÜTUNDA — Faz 18. Müşteri detayındaki
+              kardeşleriyle aynı gerekçe: ikisi de yazılan/yüklenen yüzeyler,
+              sağ sütun ise okunacak üstveri. */}
+          <RelatedWorkNotes
+            notes={notes}
+            options={noteOptions}
+            reference={reference}
+            listingId={listing.id}
+          />
+
+          <DocumentSection documents={documents} listingId={listing.id} />
         </div>
 
         {/* --- Sağ sütun --- */}
@@ -177,13 +222,13 @@ export default async function ListingDetailPage({ params }: PageProps) {
               <div className="flex items-center gap-2">
                 <ListingStatusBadge status={listing.status} />
                 <Badge variant="outline">
-                  {CATEGORY_LABELS[listing.category]}
+                  {t(`category.${listing.category}`)}
                 </Badge>
               </div>
 
               <div>
                 <p className="text-[28px] font-semibold tracking-[-0.03em] text-foreground">
-                  {formatListingPrice(listing)}
+                  {formatListingPrice(listing, t("perMonth"))}
                 </p>
                 <p className="mt-1 text-[12.5px] text-muted-foreground">
                   {formatCurrency(pricePerSqm, listing.currency)} / m²
@@ -195,22 +240,22 @@ export default async function ListingDetailPage({ params }: PageProps) {
               <div className="grid grid-cols-2 gap-4">
                 <Metric
                   icon={<Maximize2 className="size-3.5" />}
-                  label="Alan"
+                  label={t("detail.area")}
                   value={formatArea(listing.area_sqm)}
                 />
                 <Metric
                   icon={<Building2 className="size-3.5" />}
-                  label="Oda"
+                  label={t("detail.rooms")}
                   value={formatRooms(listing.room_count)}
                 />
                 <Metric
                   icon={<Eye className="size-3.5" />}
-                  label="Görüntülenme"
+                  label={t("detail.views")}
                   value={formatNumber(listing.views_count)}
                 />
                 <Metric
                   icon={<Heart className="size-3.5" />}
-                  label="Favori"
+                  label={t("detail.favorites")}
                   value={formatNumber(listing.favorites_count)}
                 />
               </div>
@@ -219,7 +264,9 @@ export default async function ListingDetailPage({ params }: PageProps) {
 
               <p className="flex items-center gap-1.5 text-[12.5px] text-muted-foreground">
                 <CalendarClock className="size-3.5" />
-                {formatDate(listing.created_at)} tarihinde eklendi
+                {t("detail.addedOn", {
+                  date: formatDate(format, listing.created_at),
+                })}
               </p>
             </CardContent>
           </Card>
@@ -227,7 +274,7 @@ export default async function ListingDetailPage({ params }: PageProps) {
           {agent && (
             <Card>
               <CardHeader>
-                <CardTitle>Portföy danışmanı</CardTitle>
+                <CardTitle>{t("detail.agent")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4 pt-2">
                 <div className="flex items-center gap-3">
@@ -269,9 +316,9 @@ export default async function ListingDetailPage({ params }: PageProps) {
           {interested.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>İlgilenen Müşteriler</CardTitle>
+                <CardTitle>{t("detail.interested")}</CardTitle>
                 <CardDescription>
-                  {interested.length} kayıt bu ilanla eşleşiyor
+                  {t("detail.interestedCount", { count: interested.length })}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-1 px-2 pt-2">
@@ -283,7 +330,6 @@ export default async function ListingDetailPage({ params }: PageProps) {
                   >
                     <CustomerAvatar
                       name={customer.full_name}
-                      src={customer.avatar_url}
                       size={36}
                     />
                     <div className="min-w-0 flex-1">
@@ -292,8 +338,14 @@ export default async function ListingDetailPage({ params }: PageProps) {
                       </p>
                       <p className="truncate text-[11.5px] text-muted-foreground">
                         {customer.last_contact_at
-                          ? `Son görüşme: ${formatShortDate(customer.last_contact_at)}`
-                          : "Henüz görüşülmedi"}
+                          ? t("detail.lastContact", {
+                              date: formatDate(
+                                format,
+                                customer.last_contact_at,
+                                "short",
+                              ),
+                            })
+                          : t("detail.neverContacted")}
                       </p>
                     </div>
                     <CustomerStatusBadge status={customer.status} />
@@ -309,9 +361,9 @@ export default async function ListingDetailPage({ params }: PageProps) {
           {appointments.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Randevular</CardTitle>
+                <CardTitle>{t("detail.appointments")}</CardTitle>
                 <CardDescription>
-                  {appointments.length} kayıt bu ilana bağlı
+                  {t("detail.appointmentsCount", { count: appointments.length })}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-2 pt-3">
@@ -325,17 +377,9 @@ export default async function ListingDetailPage({ params }: PageProps) {
             </Card>
           )}
 
-          {/* İlana bağlı belgeler — tapu ve sözleşme genelde ilanla ilişkili.
-              Randevu kartının aksine boşken de duruyor: gerekçe müşteri
-              detayındaki kardeşiyle aynı. */}
-          <RelatedDocuments
-            documents={documents}
-            filterHref={`/evraklar?listing=${listing.id}`}
-          />
-
           <Card>
             <CardHeader>
-              <CardTitle>Konum</CardTitle>
+              <CardTitle>{t("detail.location")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 pt-2">
               <p className="flex items-start gap-2 text-[13px] text-secondary-foreground">
@@ -359,7 +403,7 @@ export default async function ListingDetailPage({ params }: PageProps) {
       {related.length > 0 && (
         <section className="space-y-4 pt-2">
           <h3 className="text-[16px] font-semibold tracking-[-0.02em] text-foreground">
-            {listing.district} bölgesindeki diğer ilanlar
+            {t("detail.related", { district: listing.district })}
           </h3>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {related.map((item) => (

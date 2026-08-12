@@ -43,12 +43,12 @@ export async function createDocument(
   input: CreateDocumentInput,
 ): Promise<ActionResult<{ id: string }>> {
   const title = input.title.trim();
-  if (!title) return fail("Belge başlığı boş olamaz.");
-  if (!input.path) return fail("Dosya yüklenemedi; tekrar deneyin.");
+  if (!title) return fail("documentTitleRequired");
+  if (!input.path) return fail("documentUploadFailed");
 
   const agent = await getCurrentAgent();
   if (!agent?.is_active) {
-    return fail("Personel kaydınız bulunamadı; belge kaydedilemiyor.");
+    return fail("documentAgentNotFound");
   }
 
   const supabase = await createClient();
@@ -101,11 +101,11 @@ export async function updateDocument(
     .maybeSingle();
 
   if (readError) return fail(toMessage(readError));
-  if (!current) return fail("Belge bulunamadı.");
+  if (!current) return fail("documentNotFound");
 
   const title = input.title?.trim();
   if (input.title !== undefined && !title) {
-    return fail("Belge başlığı boş olamaz.");
+    return fail("documentTitleRequired");
   }
 
   const { error } = await supabase
@@ -190,7 +190,7 @@ export async function getDocumentDownloadUrl(
     .maybeSingle();
 
   if (error) return fail(toMessage(error));
-  if (!document) return fail("Belge bulunamadı ya da erişim yetkiniz yok.");
+  if (!document) return fail("documentNotFoundOrForbidden");
 
   /* İndirilen dosyanın adı uuid değil, belgenin başlığı olsun: kullanıcı
      "Tapu — Kadıköy.pdf" bekliyor, "9f3a…-b1.pdf" değil. */
@@ -199,7 +199,7 @@ export async function getDocumentDownloadUrl(
   const fileName = extension ? `${safeTitle}.${extension}` : safeTitle;
 
   const url = await signedUrlFor(document.file_url, { download: fileName });
-  if (!url) return fail("İndirme bağlantısı üretilemedi. Tekrar deneyin.");
+  if (!url) return fail("documentDownloadLinkFailed");
 
   return ok({ url });
 }
@@ -223,10 +223,10 @@ export async function getDocumentPreviewUrl(
     .maybeSingle();
 
   if (error) return fail(toMessage(error));
-  if (!document) return fail("Belge bulunamadı ya da erişim yetkiniz yok.");
+  if (!document) return fail("documentNotFoundOrForbidden");
 
   const url = await signedUrlFor(document.file_url);
-  if (!url) return fail("Önizleme bağlantısı üretilemedi.");
+  if (!url) return fail("documentPreviewLinkFailed");
 
   return ok({ url, mimeType: document.mime_type });
 }

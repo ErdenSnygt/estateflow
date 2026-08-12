@@ -31,47 +31,57 @@ describe("computeBadges", () => {
     const badges = computeBadges(performance());
     expect(badges).toHaveLength(5);
     expect(earnedCount(badges)).toBe(0);
-    /* Kazanılmayanlar gizlenmiyor: neyin mümkün olduğu görünsün. */
-    expect(badges.every((badge) => badge.progress !== undefined)).toBe(true);
+    /* Kazanılmayanlar gizlenmiyor: neyin mümkün olduğu görünsün. İki ilerleme
+       biçimi var — eşik rozetlerinde "3 / 20", ciro rozetinde yüzde
+       (gerekçe `lib/badges.ts` içinde). */
+    expect(
+      badges.every(
+        (badge) =>
+          badge.progress !== undefined || badge.progressRatio !== undefined,
+      ),
+    ).toBe(true);
   });
 
-  it("tek satış 'İlk Satış' rozetini açar, '5 Satış'ı açmaz", () => {
+  it("tek satış 'firstSale' rozetini açar, 'fiveSales'ı açmaz", () => {
     const badges = computeBadges(performance({ totalSales: 1 }));
-    expect(badges.find((badge) => badge.id === "ilk-satis")?.earned).toBe(true);
-    expect(badges.find((badge) => badge.id === "bes-satis")?.earned).toBe(false);
+    expect(badges.find((badge) => badge.id === "firstSale")?.earned).toBe(true);
+    expect(badges.find((badge) => badge.id === "fiveSales")?.earned).toBe(false);
   });
 
   it("eşiğe tam ulaşmak yeterli (>=, > değil)", () => {
     const badges = computeBadges(performance({ totalListings: 10 }));
-    expect(badges.find((badge) => badge.id === "on-ilan")?.earned).toBe(true);
+    expect(badges.find((badge) => badge.id === "tenListings")?.earned).toBe(true);
   });
 
   it("kazanılan rozette ilerleme metni gösterilmiyor", () => {
     const badges = computeBadges(performance({ totalSales: 9 }));
-    const first = badges.find((badge) => badge.id === "ilk-satis");
+    const first = badges.find((badge) => badge.id === "firstSale");
     expect(first?.earned).toBe(true);
     expect(first?.progress).toBeUndefined();
   });
 
   it("ilerleme metni mevcut/hedef biçiminde", () => {
     const badges = computeBadges(performance({ totalCustomers: 7 }));
-    expect(badges.find((badge) => badge.id === "yirmi-musteri")?.progress).toBe(
+    expect(badges.find((badge) => badge.id === "twentyCustomers")?.progress).toBe(
       "7 / 20",
     );
   });
 
   it("ciro rozeti yüzdeyle ilerliyor ve 100'e yuvarlanmıyor", () => {
-    /* %99'da kalması önemli: hedefe ulaşmadan "%100" göstermek yalan olurdu. */
+    /* 0.99'da kalması önemli: hedefe ulaşmadan "%100" göstermek yalan olurdu.
+       Faz 25: değer artık ORAN — `Intl`in yüzde biçimi oran bekliyor ve hem
+       ondalık ayracını hem işaretin yerini kendisi çözüyor
+       ("%99" · "99%"). Biçimlendirme `i18n/numbers.ts` içinde. */
     const badges = computeBadges(performance({ totalRevenue: 9_999_999 }));
-    const revenue = badges.find((badge) => badge.id === "on-milyon-ciro");
+    const revenue = badges.find((badge) => badge.id === "tenMillionRevenue");
     expect(revenue?.earned).toBe(false);
-    expect(revenue?.progress).toBe("%99");
+    expect(revenue?.progressRatio).toBe(0.99);
   });
 
   it("ciro eşiği aşılınca rozet açılıyor", () => {
     const badges = computeBadges(performance({ totalRevenue: 10_000_000 }));
     expect(
-      badges.find((badge) => badge.id === "on-milyon-ciro")?.earned,
+      badges.find((badge) => badge.id === "tenMillionRevenue")?.earned,
     ).toBe(true);
   });
 
@@ -109,10 +119,10 @@ describe("parseNotificationPreferences", () => {
   it("yalnızca açık `false` kapatıyor", () => {
     const parsed = parseNotificationPreferences({
       sale_closed: false,
-      message_received: true,
+      work_note_mention: true,
     });
     expect(parsed.sale_closed).toBe(false);
-    expect(parsed.message_received).toBe(true);
+    expect(parsed.work_note_mention).toBe(true);
     /* Hiç bahsedilmeyen tür açık kalıyor. */
     expect(parsed.customer_added).toBe(true);
   });
@@ -157,7 +167,7 @@ describe("serializeNotificationPreferences", () => {
   });
 
   it("çözümleme ve serileştirme birbirinin tersi", () => {
-    const original = { ...DEFAULT_NOTIFICATION_PREFERENCES, message_received: false };
+    const original = { ...DEFAULT_NOTIFICATION_PREFERENCES, work_note_mention: false };
     expect(
       parseNotificationPreferences(serializeNotificationPreferences(original)),
     ).toEqual(original);
@@ -172,6 +182,6 @@ describe("isNotificationEnabled", () => {
     expect(isNotificationEnabled({ sale_closed: false }, "customer_added")).toBe(
       true,
     );
-    expect(isNotificationEnabled(null, "message_received")).toBe(true);
+    expect(isNotificationEnabled(null, "work_note_mention")).toBe(true);
   });
 });

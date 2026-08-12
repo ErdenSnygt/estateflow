@@ -1,6 +1,6 @@
 import type { ListingCategory, ListingStatus } from "@/types/database";
 import type { ListingFilters } from "@/lib/data/listings";
-import { CATEGORY_LABELS, SORT_OPTIONS, STATUS_LABELS } from "@/lib/listings";
+import { LISTING_CATEGORIES, LISTING_STATUSES, SORT_KEYS } from "@/lib/listings";
 import type { SortKey } from "@/lib/listings";
 
 /**
@@ -50,12 +50,12 @@ export function parseListingFilters(params: SearchParamsInput): ListingFilters {
     category: oneOf<ListingCategory>(
       params,
       "category",
-      Object.keys(CATEGORY_LABELS) as ListingCategory[],
+      LISTING_CATEGORIES,
     ),
     status: oneOf<ListingStatus>(
       params,
       "status",
-      Object.keys(STATUS_LABELS) as ListingStatus[],
+      LISTING_STATUSES,
     ),
     // Kullanıcı aralığı ters girerse sessizce düzeltiyoruz.
     minPrice: swapIfInverted(minPrice, maxPrice)[0],
@@ -63,11 +63,7 @@ export function parseListingFilters(params: SearchParamsInput): ListingFilters {
     minArea: swapIfInverted(minArea, maxArea)[0],
     maxArea: swapIfInverted(minArea, maxArea)[1],
     rooms: positiveNumber(params, "rooms"),
-    sort: oneOf<SortKey>(
-      params,
-      "sort",
-      SORT_OPTIONS.map((option) => option.value),
-    ),
+    sort: oneOf<SortKey>(params, "sort", SORT_KEYS),
   };
 }
 

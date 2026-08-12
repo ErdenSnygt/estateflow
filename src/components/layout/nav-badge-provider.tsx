@@ -29,21 +29,21 @@ import { useSessionUser } from "@/components/layout/session-provider";
  * -----------------------------------------------------------------------------
  * Sayı iki farklı olayla değişiyor ve ikisi farklı yoldan geliyor:
  *
- *   AZALMA → kullanıcının kendi eylemi (mesajı okudu, bildirimi temizledi).
+ *   AZALMA → kullanıcının kendi eylemi (notu kapattı, bildirimi temizledi).
  *            İlgili action `revalidatePath("/", "layout")` çağırıyor, sunucu
  *            yeni sayıyı veriyor, aşağıdaki efekt yerel durumu ona teslim
  *            ediyor.
  *
- *   ARTMA  → DIŞARIDAN gelen bir olay (müşteri yazdı, yönetici teklifi kabul
- *            etti). Sunucu tazelemesini beklemek, kullanıcının rozeti ancak
- *            bir sonraki gezinmede görmesi demekti.
+ *   ARTMA  → DIŞARIDAN gelen bir olay (biri sana soru sordu, yönetici teklifi
+ *            kabul etti). Sunucu tazelemesini beklemek, kullanıcının rozeti
+ *            ancak bir sonraki gezinmede görmesi demekti.
  *
  * Realtime bu yüzden yalnızca ARTIRIYOR; azaltma hep sunucudan. İki yön de
  * yerel durumdan hesaplansaydı iki ayrı doğruluk kaynağı doğardı ve biri
  * diğerinden sapardı.
  *
- * Bu, uygulamada Realtime'ın kullanıldığı ÜÇÜNCÜ yer — mesaj akışı ve bildirim
- * zilinden sonra. Ölçüt değişmedi: veriyi başkası değiştiriyor ve kullanıcının
+ * Bu, uygulamada Realtime'ın kullanıldığı İKİNCİ yer — bildirim zilinden
+ * sonra. Ölçüt değişmedi: veriyi başkası değiştiriyor ve kullanıcının
  * beklemeden öğrenmesi gerekiyor (gerekçe `hooks/use-realtime-insert.ts`).
  */
 
@@ -69,17 +69,18 @@ export function NavBadgeProvider({
     setLive(counts);
   }, [counts]);
 
-  /* --- Müşteriden gelen yeni mesaj ---
-     Filtre `sender_type=eq.customer`: danışmanın kendi gönderdiği mesaj
-     okunmamış sayılmıyor (`data/messages.ts` ile aynı kural). Hangi
-     konuşmaların görülebildiğini RLS belirliyor — Realtime kanalı da
-     politikalara tabi, yani başkasının yazışması hiç ulaşmıyor. */
+  /* --- Bana yönelik yeni iş notu (Faz 18) ---
+     Filtre SUNUCUDA ve tam olarak rozetin saydığı şeyi süzüyor: beni anan
+     notlar (`data/work-notes.ts` → `getOpenWorkNoteCount`). Yeni bir not her
+     zaman açık doğuyor, o yüzden durum filtresine gerek yok.
+
+     Önceki sürüm `messages` tablosunu `sender_type=eq.customer` ile
+     dinliyordu; o tablo da o kavram da kalktı. */
   useRealtimeInsert<{ id: string }>(
     {
-      table: "messages",
-      channel: "nav-badge-messages",
-      filter: "sender_type=eq.customer",
-      enabled: Boolean(user.agentId),
+      table: "work_notes",
+      channel: "nav-badge-work-notes",
+      filter: user.agentId ? `mentioned_agent_id=eq.${user.agentId}` : undefined,
     },
     React.useCallback(() => {
       setLive((current) => ({ ...current, messages: current.messages + 1 }));

@@ -37,14 +37,14 @@ export async function updateCompanySettings(
 ): Promise<ActionResult<{ ok: true }>> {
   const agent = await getCurrentAgent();
 
-  if (!agent) return fail("Personel kaydınız bulunamadı.");
-  if (!agent.is_active) return fail("Hesabınız pasif durumda.");
+  if (!agent) return fail("agentNotFound");
+  if (!agent.is_active) return fail("accountInactive");
   if (!isManagerRole(agent.role)) {
-    return fail("Şirket bilgilerini yalnızca yöneticiler düzenleyebilir.");
+    return fail("companyManagerRequired");
   }
 
   const name = input.name.trim();
-  if (!name) return fail("Şirket adı boş olamaz.");
+  if (!name) return fail("companyNameRequired");
 
   const supabase = await createClient();
 

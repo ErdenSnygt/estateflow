@@ -1,3 +1,5 @@
+import { getTranslations } from "next-intl/server";
+
 import type { Agent } from "@/types/database";
 import { cn } from "@/lib/utils";
 import { AgentAvatar } from "@/components/agents/agent-avatar";
@@ -15,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
  * marka renklerinden bir gradyan hem dolu görünüyor hem kapak yüklenince
  * fark ediliyor.
  */
-export function AgentCover({
+export async function AgentCover({
   agent,
   actions,
   className,
@@ -25,6 +27,8 @@ export function AgentCover({
   actions?: React.ReactNode;
   className?: string;
 }) {
+  const t = await getTranslations("agents");
+
   return (
     <div className={cn("overflow-hidden rounded-xl border border-hairline bg-surface", className)}>
       {/* --- Kapak --- */}
@@ -71,7 +75,9 @@ export function AgentCover({
               {agent.full_name}
             </h2>
             <AgentRoleBadge role={agent.role} />
-            {!agent.is_active && <Badge variant="outline">Pasif</Badge>}
+            {!agent.is_active && (
+              <Badge variant="outline">{t("inactive")}</Badge>
+            )}
           </div>
           <p className="mt-0.5 text-[13px] text-muted-foreground">
             {agent.title}

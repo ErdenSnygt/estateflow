@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Building2, CalendarPlus, SearchX, UserPlus } from "lucide-react";
 
 import { navigation } from "@/config/navigation";
@@ -18,12 +19,13 @@ import {
   CommandShortcut,
 } from "@/components/ui/command";
 
-/** Faz 2'de gerçek formlara bağlanacak hızlı eylemler. */
+/** Faz 2'de gerçek formlara bağlanacak hızlı eylemler.
+    Etiket ARTIK ANAHTAR (Faz 19); metin sözlükten geliyor. */
 const quickActions = [
-  { label: "Yeni ilan ekle", icon: Building2, shortcut: "N" },
-  { label: "Yeni müşteri ekle", icon: UserPlus, shortcut: "M" },
-  { label: "Randevu oluştur", icon: CalendarPlus, shortcut: "R" },
-];
+  { key: "newListing", icon: Building2, shortcut: "N" },
+  { key: "newCustomer", icon: UserPlus, shortcut: "M" },
+  { key: "newAppointment", icon: CalendarPlus, shortcut: "R" },
+] as const;
 
 type CommandPaletteProps = {
   open: boolean;
@@ -33,6 +35,7 @@ type CommandPaletteProps = {
 export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const router = useRouter();
   const metaKey = useMetaKey();
+  const t = useTranslations();
 
   // Cmd/Ctrl + K global kısayolu
   React.useEffect(() => {
@@ -56,8 +59,13 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   );
 
   return (
-    <CommandDialog open={open} onOpenChange={onOpenChange}>
-      <CommandInput placeholder="Sayfa, müşteri veya ilan ara…" />
+    <CommandDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={t("commandPalette.dialogTitle")}
+      description={t("commandPalette.description")}
+    >
+      <CommandInput placeholder={t("commandPalette.placeholder")} />
 
       <CommandList>
         <CommandEmpty>
@@ -67,24 +75,27 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             </div>
             <div className="space-y-1">
               <p className="text-[13.5px] font-medium text-secondary-foreground">
-                Sonuç bulunamadı
+                {t("commandPalette.emptyTitle")}
               </p>
               <p className="text-[12px] text-muted-foreground">
-                Farklı bir anahtar kelime deneyin.
+                {t("commandPalette.emptyHint")}
               </p>
             </div>
           </div>
         </CommandEmpty>
 
-        <CommandGroup heading="Hızlı eylemler">
+        <CommandGroup heading={t("commandPalette.quickActions")}>
           {quickActions.map((action) => (
             <CommandItem
-              key={action.label}
-              value={action.label}
+              key={action.key}
+              /* `value` ARAMA ANAHTARI: cmdk kullanıcının yazdığını buna göre
+                 eşliyor. Çevrilmiş metin verilmezse İngilizce arayüzde
+                 "listing" yazan kullanıcı hiçbir şey bulamazdı. */
+              value={t(`commandPalette.${action.key}`)}
               onSelect={() => runCommand(() => {})}
             >
               <action.icon className="text-brand" />
-              <span>{action.label}</span>
+              <span>{t(`commandPalette.${action.key}`)}</span>
               <CommandShortcut>
                 {metaKey} {action.shortcut}
               </CommandShortcut>
@@ -95,17 +106,22 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         <CommandSeparator />
 
         {navigation.map((group) => (
-          <CommandGroup key={group.paletteTitle} heading={group.paletteTitle}>
+          <CommandGroup
+            key={group.key}
+            heading={t(`nav.groups.${group.key}`)}
+          >
             {group.items.map((item) => (
               <CommandItem
                 key={item.href}
-                value={`${item.label} ${item.description}`}
+                /* Açıklama da aramaya dahil: kullanıcı "prim" yazınca
+                   Gelirler çıksın diye. İkisi de çevrilmiş metinden. */
+                value={`${t(`nav.${item.key}.label`)} ${t(`nav.${item.key}.description`)}`}
                 onSelect={() => runCommand(() => router.push(item.href))}
               >
                 <item.icon className="text-muted-foreground" />
-                <span>{item.label}</span>
+                <span>{t(`nav.${item.key}.label`)}</span>
                 <span className="ml-auto text-[11px] text-muted-foreground">
-                  Sayfaya git
+                  {t("commandPalette.goToPage")}
                 </span>
               </CommandItem>
             ))}
@@ -118,15 +134,15 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
           <Kbd>↑</Kbd>
           <Kbd>↓</Kbd>
-          gezin
+          {t("commandPalette.hintNavigate")}
         </span>
         <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
           <Kbd>↵</Kbd>
-          seç
+          {t("commandPalette.hintSelect")}
         </span>
         <span className="ml-auto flex items-center gap-1.5 text-[11px] text-muted-foreground">
           <Kbd>esc</Kbd>
-          kapat
+          {t("commandPalette.hintClose")}
         </span>
       </div>
     </CommandDialog>

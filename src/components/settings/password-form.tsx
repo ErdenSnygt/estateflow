@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -26,6 +27,8 @@ const MIN_LENGTH = 8;
  * o madde bu formla kapanıyor.
  */
 export function PasswordForm() {
+  const t = useTranslations("settings.password");
+  const tAuth = useTranslations("auth");
   const [currentPassword, setCurrentPassword] = React.useState("");
   const [newPassword, setNewPassword] = React.useState("");
   const [repeat, setRepeat] = React.useState("");
@@ -50,13 +53,11 @@ export function PasswordForm() {
     setIsSaving(false);
 
     if (!result.ok) {
-      toast.error("Şifre değiştirilemedi", { description: result.error });
+      toast.error(t("error"), { description: result.error });
       return;
     }
 
-    toast.success("Şifreniz güncellendi", {
-      description: "Bir sonraki girişte yeni şifrenizi kullanın.",
-    });
+    toast.success(t("saved"), { description: t("savedHint") });
     /* Alanlar temizleniyor: şifre bir formda gereksiz yere durmamalı. */
     setCurrentPassword("");
     setNewPassword("");
@@ -68,7 +69,7 @@ export function PasswordForm() {
     <form onSubmit={submit} className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="current-password">Mevcut şifre</Label>
+          <Label htmlFor="current-password">{t("currentLabel")}</Label>
           <Input
             id="current-password"
             type="password"
@@ -80,7 +81,7 @@ export function PasswordForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="new-password">Yeni şifre</Label>
+          <Label htmlFor="new-password">{t("newLabel")}</Label>
           <div className="relative">
             <Input
               id="new-password"
@@ -94,7 +95,7 @@ export function PasswordForm() {
             <button
               type="button"
               onClick={() => setIsVisible((visible) => !visible)}
-              aria-label={isVisible ? "Şifreyi gizle" : "Şifreyi göster"}
+              aria-label={tAuth(isVisible ? "hidePassword" : "showPassword")}
               className="absolute right-1 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground"
             >
               {isVisible ? (
@@ -111,12 +112,12 @@ export function PasswordForm() {
                 : "text-[11.5px] text-muted-foreground"
             }
           >
-            En az {MIN_LENGTH} karakter.
+            {t("minHint", { count: MIN_LENGTH })}
           </p>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="repeat-password">Yeni şifre (tekrar)</Label>
+          <Label htmlFor="repeat-password">{t("repeatLabel")}</Label>
           <Input
             id="repeat-password"
             type={isVisible ? "text" : "password"}
@@ -126,7 +127,7 @@ export function PasswordForm() {
             aria-invalid={mismatch}
           />
           {mismatch && (
-            <p className="text-[11.5px] text-danger">Şifreler eşleşmiyor.</p>
+            <p className="text-[11.5px] text-danger">{t("mismatch")}</p>
           )}
         </div>
       </div>
@@ -136,10 +137,10 @@ export function PasswordForm() {
           {isSaving ? (
             <>
               <Loader2 className="size-4 animate-spin" />
-              Güncelleniyor…
+              {t("submitting")}
             </>
           ) : (
-            "Şifreyi değiştir"
+            t("submit")
           )}
         </Button>
       </div>

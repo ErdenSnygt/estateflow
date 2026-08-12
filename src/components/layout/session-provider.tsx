@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 
 import type { Session } from "@/lib/auth/session";
 
@@ -39,20 +40,27 @@ export function SessionProvider({
  * Uygulama kabuğu yalnızca middleware'in geçirdiği isteklerde çizilir, yani
  * oturum pratikte hep dolu. Yine de null gelebilir (çerez tam o anda düşerse)
  * ve arayüz boş isim basmaktansa nötr bir yedek göstersin.
+ *
+ * FAZ 19: yedek ad ve unvan artık çeviriden geliyor, bu yüzden sabit bir nesne
+ * değil bir kanca içinde kuruluyor — `useTranslations()` modül düzeyinde
+ * çağrılamaz.
  */
-const FALLBACK: Session = {
-  userId: "",
-  email: "",
-  name: "Kullanıcı",
-  title: "Ekip üyesi",
-  initials: "?",
-  /* Yedek oturum hiçbir yetki taşımaz: rol okunamıyorsa en dar varsayım
-     doğru olanıdır — arayüz yönetici düğmelerini göstermez. */
-  agentId: null,
-  agentRole: null,
-  isActive: true,
-};
-
 export function useSessionUser(): Session {
-  return React.useContext(SessionContext) ?? FALLBACK;
+  const t = useTranslations("common");
+  const session = React.useContext(SessionContext);
+
+  if (session) return session;
+
+  return {
+    userId: "",
+    email: "",
+    name: t("fallbackUserName"),
+    title: t("fallbackUserTitle"),
+    initials: "?",
+    /* Yedek oturum hiçbir yetki taşımaz: rol okunamıyorsa en dar varsayım
+       doğru olanıdır — arayüz yönetici düğmelerini göstermez. */
+    agentId: null,
+    agentRole: null,
+    isActive: true,
+  };
 }

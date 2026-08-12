@@ -3,11 +3,12 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Loader2, Lock, Save } from "lucide-react";
 import { toast } from "sonner";
 
 import type { Agent, AgentRole } from "@/types/database";
-import { AGENT_ROLE_LABELS, AGENT_ROLE_OPTIONS } from "@/lib/agents";
+import { AGENT_ROLES } from "@/lib/agents";
 import { updateAgent } from "@/lib/auth/admin-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,6 +48,9 @@ export function AgentForm({
   actorRole: AgentRole;
 }) {
   const router = useRouter();
+  const t = useTranslations("agents");
+  const tCommon = useTranslations("common");
+  const tUpload = useTranslations("upload");
   const [isSaving, setIsSaving] = React.useState(false);
 
   const [fullName, setFullName] = React.useState(agent.full_name);
@@ -69,13 +73,13 @@ export function AgentForm({
 
     const rate = Number(commission) / 100;
     if (!Number.isFinite(rate) || rate < 0 || rate > 1) {
-      toast.error("Geçersiz prim oranı", {
-        description: "0 ile 100 arasında bir yüzde girin.",
+      toast.error(t("form.invalidRate"), {
+        description: t("form.invalidRateHint"),
       });
       return;
     }
     if (fullName.trim().length < 3) {
-      toast.error("Ad soyad çok kısa");
+      toast.error(t("form.nameTooShort"));
       return;
     }
 
@@ -93,11 +97,11 @@ export function AgentForm({
     setIsSaving(false);
 
     if (!result.ok) {
-      toast.error("Kaydedilemedi", { description: result.error });
+      toast.error(t("form.saveError"), { description: result.error });
       return;
     }
 
-    toast.success("Personel güncellendi", { description: fullName });
+    toast.success(t("form.saved"), { description: fullName });
     router.push(`/personeller/${agent.id}`);
     router.refresh();
   }
@@ -108,17 +112,16 @@ export function AgentForm({
         <CardContent className="grid gap-6 p-5 lg:grid-cols-[240px_minmax(0,1fr)]">
           <div className="space-y-1">
             <h3 className="text-[14.5px] font-semibold text-foreground">
-              Kimlik
+              {t("form.identityTitle")}
             </h3>
             <p className="text-[12.5px] leading-relaxed text-muted-foreground">
-              Kartlarda ve ilan/müşteri detaylarındaki danışman kartında
-              görünür.
+              {t("form.identityHint")}
             </p>
           </div>
 
           <div className="space-y-5">
             <div className="space-y-2">
-              <Label>Profil fotoğrafı</Label>
+              <Label>{tUpload("avatar.label")}</Label>
               <AvatarUpload
                 value={avatarUrl}
                 onChange={setAvatarUrl}
@@ -128,7 +131,7 @@ export function AgentForm({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="agent-name">Ad soyad</Label>
+              <Label htmlFor="agent-name">{t("form.nameLabel")}</Label>
               <Input
                 id="agent-name"
                 value={fullName}
@@ -139,32 +142,32 @@ export function AgentForm({
 
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="agent-title">Unvan</Label>
+                <Label htmlFor="agent-title">{t("form.titleLabel")}</Label>
                 <Input
                   id="agent-title"
                   value={title}
                   onChange={(event) => setTitle(event.target.value)}
-                  placeholder="Gayrimenkul Danışmanı"
+                  placeholder={t("invite.defaultTitle")}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="agent-phone">Telefon</Label>
+                <Label htmlFor="agent-phone">{t("form.phoneLabel")}</Label>
                 <Input
                   id="agent-phone"
                   type="tel"
                   value={phone}
                   onChange={(event) => setPhone(event.target.value)}
-                  placeholder="+90 5xx xxx xx xx"
+                  placeholder={t("form.phonePlaceholder")}
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label>E-posta</Label>
+              <Label>{t("form.emailLabel")}</Label>
               <Input value={agent.email} disabled />
               <p className="text-[12px] text-muted-foreground">
-                Giriş hesabına bağlı; değiştirmek için yeni bir davet gerekir.
+                {t("form.emailHint")}
               </p>
             </div>
           </div>
@@ -175,10 +178,10 @@ export function AgentForm({
         <CardContent className="grid gap-6 p-5 lg:grid-cols-[240px_minmax(0,1fr)]">
           <div className="space-y-1">
             <h3 className="text-[14.5px] font-semibold text-foreground">
-              Yetki & Prim
+              {t("form.authorityTitle")}
             </h3>
             <p className="text-[12.5px] leading-relaxed text-muted-foreground">
-              Rol neyi görebileceğini, prim oranı hakedişini belirler.
+              {t("form.authorityHint")}
             </p>
           </div>
 
@@ -187,16 +190,14 @@ export function AgentForm({
               <div className="flex items-start gap-2.5 rounded-lg border border-hairline bg-surface-inset px-3.5 py-3">
                 <Lock className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                 <p className="text-[12.5px] leading-relaxed text-secondary-foreground">
-                  {isSelf
-                    ? "Kendi rolünüzü ve prim oranınızı değiştiremezsiniz; bunu başka bir yönetici yapmalı."
-                    : "Patron rolüyle ilgili değişiklikleri yalnızca bir patron yapabilir."}
+                  {t(isSelf ? "form.lockedSelf" : "form.lockedPatron")}
                 </p>
               </div>
             )}
 
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>Yetki rolü</Label>
+                <Label>{t("form.roleLabel")}</Label>
                 {authorityLocked ? (
                   <div className="flex h-10 items-center rounded-lg border border-hairline bg-surface-inset px-3">
                     <AgentRoleBadge role={agent.role} />
@@ -210,12 +211,11 @@ export function AgentForm({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {AGENT_ROLE_OPTIONS.filter(
-                        (option) =>
-                          actorRole === "patron" || option.value !== "patron",
-                      ).map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
+                      {AGENT_ROLES.filter(
+                        (value) => actorRole === "patron" || value !== "patron",
+                      ).map((value) => (
+                        <SelectItem key={value} value={value}>
+                          {t(`role.${value}`)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -223,13 +223,18 @@ export function AgentForm({
                 )}
                 {!authorityLocked && role !== agent.role && (
                   <p className="text-[12px] text-warning">
-                    {AGENT_ROLE_LABELS[agent.role]} → {AGENT_ROLE_LABELS[role]}
+                    {t("form.roleChange", {
+                      from: t(`role.${agent.role}`),
+                      to: t(`role.${role}`),
+                    })}
                   </p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="agent-commission">Prim oranı (%)</Label>
+                <Label htmlFor="agent-commission">
+                  {t("form.commissionLabel")}
+                </Label>
                 <Input
                   id="agent-commission"
                   type="number"
@@ -248,18 +253,18 @@ export function AgentForm({
 
       <div className="flex items-center justify-end gap-2 border-t border-hairline pt-5">
         <Button variant="ghost" asChild>
-          <Link href={`/personeller/${agent.id}`}>Vazgeç</Link>
+          <Link href={`/personeller/${agent.id}`}>{tCommon("cancel")}</Link>
         </Button>
         <Button type="submit" disabled={isSaving}>
           {isSaving ? (
             <>
               <Loader2 className="size-4 animate-spin" />
-              Kaydediliyor…
+              {tCommon("saving")}
             </>
           ) : (
             <>
               <Save className="size-4" />
-              Değişiklikleri kaydet
+              {t("form.submit")}
             </>
           )}
         </Button>

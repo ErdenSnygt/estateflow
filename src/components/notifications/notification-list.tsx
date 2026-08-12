@@ -2,11 +2,12 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { CheckCheck } from "lucide-react";
 import { toast } from "sonner";
 
 import type { Notification } from "@/types/database";
-import { NOTIFICATION_TYPE_LABELS } from "@/lib/messaging";
+import { NOTIFICATION_TYPES } from "@/lib/notifications";
 import { markAllNotificationsRead } from "@/lib/actions/notifications";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,7 @@ export function NotificationList({
   reference: number;
 }) {
   const router = useRouter();
+  const t = useTranslations("notifications");
   const [filter, setFilter] = React.useState<Filter>("all");
   const [isBusy, setIsBusy] = React.useState(false);
 
@@ -51,10 +53,10 @@ export function NotificationList({
     setIsBusy(false);
 
     if (!result.ok) {
-      toast.error("İşlem tamamlanamadı", { description: result.error });
+      toast.error(t("list.markAllError"), { description: result.error });
       return;
     }
-    toast.success(`${result.data.count} bildirim okundu olarak işaretlendi`);
+    toast.success(t("list.markAllSuccess", { count: result.data.count }));
     router.refresh();
   }
 
@@ -63,19 +65,19 @@ export function NotificationList({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div
           role="tablist"
-          aria-label="Bildirim filtresi"
+          aria-label={t("list.filterAria")}
           className="flex items-center gap-1 rounded-lg border border-hairline bg-surface-inset p-1"
         >
           <FilterTab
             active={filter === "all"}
             onClick={() => setFilter("all")}
-            label="Tümü"
+            label={t("list.all")}
             count={notifications.length}
           />
           <FilterTab
             active={filter === "unread"}
             onClick={() => setFilter("unread")}
-            label="Okunmamış"
+            label={t("list.unread")}
             count={unreadCount}
           />
         </div>
@@ -83,7 +85,7 @@ export function NotificationList({
         {unreadCount > 0 && (
           <Button variant="secondary" onClick={handleMarkAll} disabled={isBusy}>
             <CheckCheck className="size-4" />
-            Tümünü okundu yap
+            {t("list.markAll")}
           </Button>
         )}
       </div>
@@ -91,9 +93,7 @@ export function NotificationList({
       {visible.length === 0 ? (
         <Card>
           <CardContent className="p-8 text-center text-[13px] text-muted-foreground">
-            {filter === "unread"
-              ? "Okunmamış bildiriminiz yok."
-              : "Henüz bildiriminiz yok. Size müşteri atandığında, ilanınız satıldığında ya da müşteriden mesaj geldiğinde burada görünecek."}
+            {t(filter === "unread" ? "list.emptyUnread" : "list.empty")}
           </CardContent>
         </Card>
       ) : (
@@ -113,11 +113,15 @@ export function NotificationList({
       {/* Tür açıklaması: kullanıcı ilk kez baktığında hangi olayların bildirim
           ürettiğini bilmiyor. Boş durumda özellikle işe yarıyor. */}
       <p className="px-1 text-[12px] leading-relaxed text-muted-foreground">
-        Bildirim türleri:{" "}
-        {Object.values(NOTIFICATION_TYPE_LABELS).join(" · ")}. Bunlar size özel;
-        ofisin genel hareket akışı için dashboard&apos;daki{" "}
-        <span className="text-secondary-foreground">Son Aktiviteler</span>{" "}
-        listesine bakın.
+        {/* Tür listesi cümlenin İÇİNDE bir değişken: Türkçede iki yan cümle
+            arasında, İngilizcede başka bir yerde durabilir. Vurgulu kısım da
+            metnin içinde `<b>` olarak — `t.rich` onu elemana çeviriyor. */}
+        {t.rich("list.legend", {
+          types: NOTIFICATION_TYPES.map((type) => t(`type.${type}`)).join(" · "),
+          b: (chunks) => (
+            <span className="text-secondary-foreground">{chunks}</span>
+          ),
+        })}
       </p>
     </div>
   );

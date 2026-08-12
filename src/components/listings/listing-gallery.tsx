@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -18,6 +19,7 @@ export function ListingGallery({
   images: string[];
   title: string;
 }) {
+  const t = useTranslations("listings.gallery");
   const [index, setIndex] = React.useState(0);
   // Kaydırma yönü: animasyonun hangi taraftan geleceğini belirler.
   const [direction, setDirection] = React.useState(0);
@@ -46,7 +48,7 @@ export function ListingGallery({
     <div className="space-y-3">
       <div
         role="group"
-        aria-label={`${title} görselleri`}
+        aria-label={t("aria", { title })}
         tabIndex={0}
         onKeyDown={handleKeyDown}
         className={cn(
@@ -66,7 +68,7 @@ export function ListingGallery({
           >
             <Image
               src={images[index]}
-              alt={`${title} — görsel ${index + 1}`}
+              alt={t("imageAlt", { title, index: index + 1 })}
               fill
               priority={index === 0}
               sizes="(max-width: 1280px) 100vw, 860px"
@@ -77,8 +79,16 @@ export function ListingGallery({
 
         {images.length > 1 && (
           <>
-            <GalleryArrow side="left" onClick={() => go(index - 1)} />
-            <GalleryArrow side="right" onClick={() => go(index + 1)} />
+            <GalleryArrow
+              side="left"
+              onClick={() => go(index - 1)}
+              label={t("previous")}
+            />
+            <GalleryArrow
+              side="right"
+              onClick={() => go(index + 1)}
+              label={t("next")}
+            />
 
             <span className="absolute bottom-3 right-3 rounded-md bg-[#05070C]/70 px-2 py-1 text-[11.5px] font-medium text-white backdrop-blur-sm">
               {index + 1} / {images.length}
@@ -94,7 +104,7 @@ export function ListingGallery({
               key={image}
               type="button"
               onClick={() => go(imageIndex)}
-              aria-label={`Görsel ${imageIndex + 1}`}
+              aria-label={t("goTo", { index: imageIndex + 1 })}
               aria-current={imageIndex === index}
               className={cn(
                 "relative aspect-[4/3] h-[68px] shrink-0 overflow-hidden rounded-lg border transition-all duration-200",
@@ -122,9 +132,14 @@ export function ListingGallery({
 function GalleryArrow({
   side,
   onClick,
+  label,
 }: {
   side: "left" | "right";
   onClick: () => void;
+  /* Etiket DIŞARIDAN: bu yardımcı bileşen `useTranslations` çağırmıyor,
+     çünkü aynı dosyadaki galeri zaten çağırıyor ve iki ayrı abonelik
+     gereksiz. */
+  label: string;
 }) {
   const Icon = side === "left" ? ChevronLeft : ChevronRight;
 
@@ -132,7 +147,7 @@ function GalleryArrow({
     <button
       type="button"
       onClick={onClick}
-      aria-label={side === "left" ? "Önceki görsel" : "Sonraki görsel"}
+      aria-label={label}
       className={cn(
         "absolute top-1/2 z-10 -translate-y-1/2 rounded-full p-2",
         "bg-[#05070C]/60 text-white backdrop-blur-sm",

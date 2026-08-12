@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { cn } from "@/lib/utils";
@@ -27,6 +28,9 @@ export function SidebarNavLink({
   /* Sayı canlı: okunmamış mesaj / bildirim sayacı. Sıfırsa rozet hiç
      çizilmiyor — "Mesajlar 0" bilgi vermeyen görsel gürültü. */
   const badge = useNavBadge(item.badgeKey);
+  /* Etiket `navigation.ts`ten DEĞİL sözlükten: config yalnızca yapıyı
+     taşıyor (Faz 19). */
+  const label = useTranslations("nav")(`${item.key}.label`);
 
   const link = (
     <Link
@@ -73,7 +77,7 @@ export function SidebarNavLink({
             transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
             className="relative z-10 flex min-w-0 flex-1 items-center gap-2"
           >
-            <span className="truncate">{item.label}</span>
+            <span className="truncate">{label}</span>
             {badge > 0 ? (
               <span
                 className={cn(
@@ -103,7 +107,7 @@ export function SidebarNavLink({
   return (
     <Tooltip>
       <TooltipTrigger asChild>{link}</TooltipTrigger>
-      <TooltipContent side="right">{item.label}</TooltipContent>
+      <TooltipContent side="right">{label}</TooltipContent>
     </Tooltip>
   );
 }

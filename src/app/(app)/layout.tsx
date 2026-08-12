@@ -1,6 +1,6 @@
 import { getSession } from "@/lib/auth/server";
-import { getUnreadMessageCount } from "@/lib/data/messages";
-import { getUnreadNotificationCount } from "@/lib/data/notifications";
+import { getOpenWorkNoteCount } from "@/lib/data/work-notes";
+import { getNotificationBellData } from "@/lib/data/notifications";
 import { AppShell } from "@/components/layout/app-shell";
 import { DeactivatedNotice } from "@/components/auth/deactivated-notice";
 import { NotificationBellServer } from "@/components/notifications/notification-bell-server";
@@ -18,10 +18,20 @@ export default async function AppLayout({
      mesaj okunduğunda ya da bildirim temizlendiğinde değişmiyorlardı.
      Sayımlar burada, layout'ta yapılıyor — okuma işlemleri zaten
      `revalidatePath("/", "layout")` çağırdığı için rozet ilk çizimde
-     düşüyor. İkisi paralel; oturumsuz kullanıcıda ikisi de 0 dönüyor. */
-  const [unreadMessages, unreadNotifications] = await Promise.all([
-    getUnreadMessageCount(),
-    getUnreadNotificationCount(),
+     düşüyor. İkisi paralel; oturumsuz kullanıcıda ikisi de 0 dönüyor.
+
+     FAZ 18'DE İLK SAYAÇ ANLAM DEĞİŞTİRDİ: "okunmamış mesaj" yerine "bana
+     yönelik açık soru/atama". Mesaj kavramı kalktı; rozet artık bir gelen
+     kutusunu değil BEKLEYEN İŞİ sayıyor. Gerekçe `data/work-notes.ts`
+     içinde — kısaca, notu okumak işi bitirmiyor, kapatmak bitiriyor. */
+  const [openWorkNotes, bell] = await Promise.all([
+    getOpenWorkNoteCount(),
+    /* `getNotificationBellData` ÖNBELLEKLİ ve zil bileşeni de aynı çağrıyı
+       yapıyor — yani rozet sayacı için ayrı bir sorgu açılmıyor. Önceki
+       sürüm burada `getUnreadNotificationCount()` çağırıyordu; o da ayrı bir
+       `head: true` sayımıydı ve UYGULAMADAKİ HER SAYFA bir fazladan ağ turu
+       ödüyordu (bu bileşen layout'ta). */
+    getNotificationBellData(),
   ]);
 
   /* PASİF HESAP KABUĞU HİÇ GÖRMEZ. Veritabanı ona zaten hiçbir satır
@@ -40,8 +50,8 @@ export default async function AppLayout({
       session={session}
       notificationBell={<NotificationBellServer />}
       navBadges={{
-        messages: unreadMessages,
-        notifications: unreadNotifications,
+        messages: openWorkNotes,
+        notifications: bell.unread,
       }}
     >
       {children}

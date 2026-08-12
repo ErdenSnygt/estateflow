@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 import { cn } from "@/lib/utils";
 
@@ -16,18 +17,20 @@ import { cn } from "@/lib/utils";
  * Sidebar'a ikinci bir menü öğesi eklenmedi — teklifler satışların bir alt
  * görünümü, ayrı bir modül değil.
  */
+/* Etiketler sözlükte (`sales.tabs.*`); burada yalnızca adres ve anahtar. */
 const TABS = [
-  { href: "/satislar", label: "Satışlar" },
-  { href: "/satislar/teklifler", label: "Teklifler" },
+  { href: "/satislar", key: "sales" },
+  { href: "/satislar/teklifler", key: "offers" },
 ] as const;
 
 export function SalesTabs() {
   const pathname = usePathname();
+  const t = useTranslations("sales.tabs");
 
   return (
     <div
       role="tablist"
-      aria-label="Satışlar görünümü"
+      aria-label={t("aria")}
       className="flex items-center gap-1 rounded-lg border border-hairline bg-surface-inset p-1"
     >
       {TABS.map((tab) => {
@@ -47,7 +50,7 @@ export function SalesTabs() {
                 : "text-muted-foreground hover:text-foreground",
             )}
           >
-            {tab.label}
+            {t(tab.key)}
           </Link>
         );
       })}

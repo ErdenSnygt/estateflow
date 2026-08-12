@@ -2,16 +2,14 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import type { AppointmentType } from "@/types/database";
 import type { AppointmentItem, CustomerOption } from "@/lib/data/appointments";
 import type { AgentOption } from "@/lib/data/agents";
-import {
-  APPOINTMENT_TYPE_LABELS,
-  APPOINTMENT_TYPE_OPTIONS,
-} from "@/lib/appointments";
+import { APPOINTMENT_TYPES } from "@/lib/appointments";
 import {
   createAppointment,
   updateAppointment,
@@ -94,6 +92,8 @@ export function AppointmentDialog({
   currentAgentId: string | null;
 }) {
   const router = useRouter();
+  const t = useTranslations("appointments");
+  const tCommon = useTranslations("common");
   const [isSaving, setIsSaving] = React.useState(false);
 
   const initial = React.useMemo(() => toFormState(mode, currentAgentId), [
@@ -120,19 +120,21 @@ export function AppointmentDialog({
     const endMinutes = parseTime(form.endTime);
 
     if (startMinutes === null || endMinutes === null) {
-      toast.error("Geçersiz saat", {
-        description: "Başlangıç ve bitiş saatlerini kontrol edin.",
+      toast.error(t("dialog.invalidTimeTitle"), {
+        description: t("dialog.invalidTimeBody"),
       });
       return;
     }
     if (endMinutes <= startMinutes) {
-      toast.error("Geçersiz aralık", {
-        description: "Bitiş saati başlangıçtan sonra olmalıdır.",
+      toast.error(t("dialog.invalidRangeTitle"), {
+        description: t("dialog.invalidRangeBody"),
       });
       return;
     }
     if (!form.customerId) {
-      toast.error("Eksik bilgi", { description: "Müşteri seçin." });
+      toast.error(t("dialog.missingTitle"), {
+        description: t("dialog.missingCustomer"),
+      });
       return;
     }
 
@@ -165,13 +167,13 @@ export function AppointmentDialog({
     setIsSaving(false);
 
     if (!result.ok) {
-      toast.error(isEdit ? "Randevu güncellenemedi" : "Randevu kaydedilemedi", {
+      toast.error(t(isEdit ? "dialog.updateError" : "dialog.createError"), {
         description: result.error,
       });
       return;
     }
 
-    toast.success(isEdit ? "Randevu güncellendi" : "Randevu oluşturuldu", {
+    toast.success(t(isEdit ? "dialog.updateSuccess" : "dialog.createSuccess"), {
       description: `${formatMinutes(startMinutes)} – ${formatMinutes(endMinutes)}`,
     });
     onOpenChange(false);
@@ -184,19 +186,17 @@ export function AppointmentDialog({
         <form onSubmit={submit}>
           <DialogHeader>
             <DialogTitle>
-              {isEdit ? "Randevuyu düzenle" : "Yeni randevu"}
+              {t(isEdit ? "dialog.editTitle" : "dialog.createTitle")}
             </DialogTitle>
             <DialogDescription>
-              {isEdit
-                ? "Saat, katılımcı ve not bilgilerini güncelleyin."
-                : "Müşteri ve saat zorunlu; ilan bağlamak isteğe bağlı."}
+              {t(isEdit ? "dialog.editDescription" : "dialog.createDescription")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             {/* --- Tür --- */}
             <div className="space-y-2">
-              <Label htmlFor="appointment-type">Randevu türü</Label>
+              <Label htmlFor="appointment-type">{t("dialog.typeLabel")}</Label>
               <Select
                 value={form.type}
                 onValueChange={(value) => update("type", value as AppointmentType)}
@@ -205,9 +205,9 @@ export function AppointmentDialog({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {APPOINTMENT_TYPE_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
+                  {APPOINTMENT_TYPES.map((value) => (
+                    <SelectItem key={value} value={value}>
+                      {t(`type.${value}`)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -218,19 +218,23 @@ export function AppointmentDialog({
                 Boş bırakılırsa tür adı başlık oluyor (`appointmentTitle`);
                 zorunlu tutmak, kullanıcıyı "Ev gezme" yazmaya zorlamaktı. */}
             <div className="space-y-2">
-              <Label htmlFor="appointment-title">Başlık</Label>
+              <Label htmlFor="appointment-title">{t("dialog.titleLabel")}</Label>
               <Input
                 id="appointment-title"
                 value={form.title}
                 onChange={(event) => update("title", event.target.value)}
-                placeholder={APPOINTMENT_TYPE_LABELS[form.type]}
+                /* Boş başlığın yerini tür adı alıyor; sunucu da öyle
+                   kaydediyor (`appointmentTitle`). Oradaki metin Türkçe ve
+                   kalıcı, buradaki ekrana ait — gerekçe `lib/appointments.ts`
+                   başlığında. */
+                placeholder={t(`type.${form.type}`)}
               />
             </div>
 
             {/* --- Tarih ve saat --- */}
             <div className="grid gap-3 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)]">
               <div className="space-y-2">
-                <Label htmlFor="appointment-date">Tarih</Label>
+                <Label htmlFor="appointment-date">{t("dialog.dateLabel")}</Label>
                 <Input
                   id="appointment-date"
                   type="date"
@@ -239,7 +243,7 @@ export function AppointmentDialog({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="appointment-start">Başlangıç</Label>
+                <Label htmlFor="appointment-start">{t("dialog.startLabel")}</Label>
                 <Input
                   id="appointment-start"
                   type="time"
@@ -269,7 +273,7 @@ export function AppointmentDialog({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="appointment-end">Bitiş</Label>
+                <Label htmlFor="appointment-end">{t("dialog.endLabel")}</Label>
                 <Input
                   id="appointment-end"
                   type="time"
@@ -282,14 +286,14 @@ export function AppointmentDialog({
 
             {/* --- Müşteri --- */}
             <div className="space-y-2">
-              <Label htmlFor="appointment-customer">Müşteri</Label>
+              <Label htmlFor="appointment-customer">{t("dialog.customerLabel")}</Label>
               {customerOptions.length > 0 ? (
                 <Select
                   value={form.customerId}
                   onValueChange={(value) => update("customerId", value)}
                 >
                   <SelectTrigger id="appointment-customer">
-                    <SelectValue placeholder="Müşteri seçin" />
+                    <SelectValue placeholder={t("dialog.customerPlaceholder")} />
                   </SelectTrigger>
                   <SelectContent>
                     {customerOptions.map((option) => (
@@ -302,8 +306,7 @@ export function AppointmentDialog({
                 </Select>
               ) : (
                 <p className="rounded-lg border border-dashed border-hairline-strong px-3 py-2.5 text-[12.5px] text-muted-foreground">
-                  Kayıtlı müşteri yok. Önce Müşteriler sayfasından bir kayıt
-                  açın.
+                  {t("dialog.noCustomers")}
                 </p>
               )}
             </div>
@@ -311,9 +314,9 @@ export function AppointmentDialog({
             {/* --- İlan (opsiyonel) --- */}
             <div className="space-y-2">
               <Label htmlFor="appointment-listing">
-                İlan{" "}
+                {t("dialog.listingLabel")}{" "}
                 <span className="font-normal text-muted-foreground">
-                  (isteğe bağlı)
+                  {tCommon("optional")}
                 </span>
               </Label>
               <Select
@@ -328,7 +331,7 @@ export function AppointmentDialog({
                 <SelectContent>
                   {/* Radix `SelectItem` boş değere izin vermiyor; "yok"
                       seçeneği için ayrı bir işaret değeri kullanılıyor. */}
-                  <SelectItem value={NO_LISTING}>İlana bağlı değil</SelectItem>
+                  <SelectItem value={NO_LISTING}>{t("dialog.noListing")}</SelectItem>
                   {listingOptions.map((option) => (
                     <SelectItem key={option.id} value={option.id}>
                       {option.label}
@@ -344,13 +347,13 @@ export function AppointmentDialog({
                 (`resolveAgentId`). Düzenlemede sahiplik hiç değişmiyor. */}
             {!isEdit && agentOptions.length > 0 && (
               <div className="space-y-2">
-                <Label htmlFor="appointment-agent">Danışman</Label>
+                <Label htmlFor="appointment-agent">{t("dialog.agentLabel")}</Label>
                 <Select
                   value={form.agentId}
                   onValueChange={(value) => update("agentId", value)}
                 >
                   <SelectTrigger id="appointment-agent">
-                    <SelectValue placeholder="Danışman seçin" />
+                    <SelectValue placeholder={t("dialog.agentPlaceholder")} />
                   </SelectTrigger>
                   <SelectContent>
                     {agentOptions.map((option) => (
@@ -365,24 +368,24 @@ export function AppointmentDialog({
 
             {/* --- Konum --- */}
             <div className="space-y-2">
-              <Label htmlFor="appointment-location">Konum</Label>
+              <Label htmlFor="appointment-location">{t("dialog.locationLabel")}</Label>
               <Input
                 id="appointment-location"
                 value={form.location}
                 onChange={(event) => update("location", event.target.value)}
-                placeholder="Ofis, ilan adresi, telefon…"
+                placeholder={t("dialog.locationPlaceholder")}
               />
             </div>
 
             {/* --- Not --- */}
             <div className="space-y-2">
-              <Label htmlFor="appointment-notes">Not</Label>
+              <Label htmlFor="appointment-notes">{t("dialog.notesLabel")}</Label>
               <Textarea
                 id="appointment-notes"
                 rows={3}
                 value={form.notes}
                 onChange={(event) => update("notes", event.target.value)}
-                placeholder="Görüşmede konuşulacaklar, hatırlatmalar…"
+                placeholder={t("dialog.notesPlaceholder")}
               />
             </div>
           </div>
@@ -393,7 +396,7 @@ export function AppointmentDialog({
               variant="ghost"
               onClick={() => onOpenChange(false)}
             >
-              Vazgeç
+              {tCommon("cancel")}
             </Button>
             <Button
               type="submit"
@@ -402,12 +405,10 @@ export function AppointmentDialog({
               {isSaving ? (
                 <>
                   <Loader2 className="size-4 animate-spin" />
-                  Kaydediliyor…
+                  {tCommon("saving")}
                 </>
-              ) : isEdit ? (
-                "Değişiklikleri kaydet"
               ) : (
-                "Randevuyu oluştur"
+                t(isEdit ? "dialog.submitEdit" : "dialog.submitCreate")
               )}
             </Button>
           </DialogFooter>

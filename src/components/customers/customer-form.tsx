@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Save } from "lucide-react";
@@ -12,12 +13,12 @@ import type { Agent, Customer } from "@/types/database";
 import { createCustomer, updateCustomer } from "@/lib/actions/customers";
 import {
   EMPTY_CUSTOMER_VALUES,
-  customerFormSchema,
+  createCustomerFormSchema,
   toCustomerFormValues,
   toCustomerInput,
   type CustomerFormValues,
 } from "@/lib/customers-schema";
-import { CUSTOMER_STATUS_OPTIONS } from "@/lib/customers";
+import { CUSTOMER_STATUSES } from "@/lib/customers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -39,18 +40,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AgentField } from "@/components/agents/agent-field";
-import { AvatarUpload } from "@/components/storage/avatar-upload";
-
-/** "Zeynep Arslan" → "ZA". Yalnızca yükleme alanının yedeği için. */
-function initialsOf(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  return parts
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("")
-    .toLocaleUpperCase("tr-TR");
-}
 
 /**
  * Müşteri formu.
@@ -78,10 +67,32 @@ export function CustomerForm({
   canReassign: boolean;
 }) {
   const router = useRouter();
+  const t = useTranslations("customers.form");
+  const tValidation = useTranslations("customers.validation");
+  const tStatus = useTranslations("customers.status");
+  const tCommon = useTranslations("common");
   const isEdit = Boolean(customer);
 
+  /**
+   * Şema DİLE BAĞLI, o yüzden render sırasında kuruluyor — gerekçe
+   * `lib/customers-schema.ts` başlığında.
+   *
+   * Alan adları form etiketinden DEĞİL, doğrulama sözlüğünden geliyor
+   * (`budgetMinName`). Sebebi etiketlerin birim taşıması: "Alt bütçe (₺)"
+   * bir başlık olarak doğru ama "Alt bütçe (₺) zorunludur." cümlesi değil.
+   * İki kopya doğuyor ama ikisi de aynı sözlük dosyasında, yan yana.
+   */
+  const schema = React.useMemo(
+    () =>
+      createCustomerFormSchema((key, values) => tValidation(key, values), {
+        budgetMin: tValidation("budgetMinName"),
+        budgetMax: tValidation("budgetMaxName"),
+      }),
+    [tValidation],
+  );
+
   const form = useForm<CustomerFormValues>({
-    resolver: zodResolver(customerFormSchema),
+    resolver: zodResolver(schema),
     defaultValues: customer
       ? toCustomerFormValues(customer)
       : {
@@ -105,13 +116,13 @@ export function CustomerForm({
     }
 
     if (!result.ok) {
-      toast.error(isEdit ? "Müşteri güncellenemedi" : "Müşteri kaydedilemedi", {
+      toast.error(t(isEdit ? "updateError" : "createError"), {
         description: result.error,
       });
       return;
     }
 
-    toast.success(isEdit ? "Müşteri güncellendi" : "Müşteri oluşturuldu", {
+    toast.success(t(isEdit ? "updateSuccess" : "createSuccess"), {
       description: `${result.data.id.toUpperCase()} · ${values.full_name}`,
     });
 
@@ -126,17 +137,17 @@ export function CustomerForm({
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {/* --- Kimlik --- */}
         <FormSection
-          title="Kimlik Bilgileri"
-          description="Müşteri kartında ve arama sonuçlarında gösterilecek temel bilgiler."
+          title={t("identityTitle")}
+          description={t("identityDescription")}
         >
           <FormField
             control={form.control}
             name="full_name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Ad soyad</FormLabel>
+                <FormLabel>{t("fullNameLabel")}</FormLabel>
                 <FormControl>
-                  <Input placeholder="Örn. Zeynep Arslan" {...field} />
+                  <Input placeholder={t("fullNamePlaceholder")} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -149,12 +160,12 @@ export function CustomerForm({
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Telefon</FormLabel>
+                  <FormLabel>{t("phoneLabel")}</FormLabel>
                   <FormControl>
                     <Input
                       type="tel"
                       inputMode="tel"
-                      placeholder="+90 532 000 00 00"
+                      placeholder={t("phonePlaceholder")}
                       {...field}
                     />
                   </FormControl>
@@ -168,12 +179,12 @@ export function CustomerForm({
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>E-posta</FormLabel>
+                  <FormLabel>{t("emailLabel")}</FormLabel>
                   <FormControl>
                     <Input
                       type="email"
                       autoComplete="email"
-                      placeholder="ornek@eposta.com"
+                      placeholder={t("emailPlaceholder")}
                       {...field}
                     />
                   </FormControl>
@@ -183,30 +194,15 @@ export function CustomerForm({
             />
           </div>
 
-          <FormField
-            control={form.control}
-            name="avatar_url"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Profil fotoğrafı</FormLabel>
-                {/* Faz 7'ye kadar burada bir URL metin kutusu vardı — kullanıcıdan
-                    elle adres yapıştırması bekleniyordu. Artık gerçek yükleme. */}
-                <AvatarUpload
-                  value={field.value}
-                  onChange={field.onChange}
-                  name={form.watch("full_name") || "Müşteri"}
-                  initials={initialsOf(form.watch("full_name"))}
-                />
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* PROFİL FOTOĞRAFI ALANI YOK — Faz 19'da kaldırıldı. Müşteri
+              avatarı artık her yerde baş harf; gerekçe
+              `components/customers/customer-avatar.tsx` başlığında. */}
         </FormSection>
 
         {/* --- Bütçe ve durum --- */}
         <FormSection
-          title="Bütçe & Durum"
-          description="Bütçe aralığı, ilan eşleştirmesinde ve müşteri filtrelerinde kullanılır."
+          title={t("budgetTitle")}
+          description={t("budgetDescription")}
         >
           <div className="grid gap-5 sm:grid-cols-2">
             <FormField
@@ -214,7 +210,7 @@ export function CustomerForm({
               name="budget_min"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Alt bütçe (₺)</FormLabel>
+                  <FormLabel>{t("budgetMinLabel")}</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -235,7 +231,7 @@ export function CustomerForm({
               name="budget_max"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Üst bütçe (₺)</FormLabel>
+                  <FormLabel>{t("budgetMaxLabel")}</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -258,7 +254,7 @@ export function CustomerForm({
               name="status"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>İlgi durumu</FormLabel>
+                  <FormLabel>{t("statusLabel")}</FormLabel>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <FormControl>
                       <SelectTrigger>
@@ -266,16 +262,14 @@ export function CustomerForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {CUSTOMER_STATUS_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
+                      {CUSTOMER_STATUSES.map((value) => (
+                        <SelectItem key={value} value={value}>
+                          {tStatus(value)}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormDescription>
-                    Sıcak müşteriler listede öne çıkar.
-                  </FormDescription>
+                  <FormDescription>{t("statusHint")}</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -283,12 +277,10 @@ export function CustomerForm({
 
             <AgentField
               name="assigned_agent_id"
-              label="Sorumlu danışman"
-              description={
-                canReassign
-                  ? "Varsayılan olarak siz atandınız."
-                  : "Müşteri kendi portföyünüze kaydedilir."
-              }
+              label={t("agentLabel")}
+              description={t(
+                canReassign ? "agentHintReassign" : "agentHintFixed",
+              )}
               agents={agents}
               currentAgent={currentAgent}
               canReassign={canReassign}
@@ -298,24 +290,24 @@ export function CustomerForm({
 
         {/* --- Notlar --- */}
         <FormSection
-          title="Notlar"
-          description="Ne aradığı, hangi koşullarda karar verdiği — ekibin geri kalanı bu notu okuyacak."
+          title={t("notesTitle")}
+          description={t("notesDescription")}
         >
           <FormField
             control={form.control}
             name="notes"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Görüşme notu</FormLabel>
+                <FormLabel>{t("notesLabel")}</FormLabel>
                 <FormControl>
                   <Textarea
                     rows={6}
-                    placeholder="Örn. Kadıköy tarafında, metroya yürüme mesafesinde 3+1 arıyor. Kredi ön onayı alındı."
+                    placeholder={t("notesPlaceholder")}
                     {...field}
                   />
                 </FormControl>
                 <FormDescription>
-                  {field.value?.length ?? 0} / 1000 karakter
+                  {t("notesCounter", { count: field.value?.length ?? 0 })}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -327,19 +319,19 @@ export function CustomerForm({
         <div className="flex items-center justify-end gap-2 border-t border-hairline pt-5">
           <Button variant="ghost" asChild>
             <Link href={isEdit ? `/musteriler/${customer?.id}` : "/musteriler"}>
-              Vazgeç
+              {tCommon("cancel")}
             </Link>
           </Button>
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? (
               <>
                 <Loader2 className="size-4 animate-spin" />
-                Kaydediliyor…
+                {tCommon("saving")}
               </>
             ) : (
               <>
                 <Save className="size-4" />
-                {isEdit ? "Değişiklikleri kaydet" : "Müşteriyi kaydet"}
+                {t(isEdit ? "submitEdit" : "submitNew")}
               </>
             )}
           </Button>

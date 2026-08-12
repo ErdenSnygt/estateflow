@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useFormatter, useTranslations } from "next-intl";
 
 import type { RevenuePoint } from "@/lib/data/revenue";
 import { areaPath, buildTicks, niceMax, smoothPath, toPoints } from "@/lib/chart";
 import { formatCurrency, formatCurrencyCompact } from "@/lib/format";
+import { formatMonthKey } from "@/i18n/dates";
 import { cn } from "@/lib/utils";
 
 /**
@@ -29,6 +31,8 @@ const INNER_H = H - PAD.top - PAD.bottom;
 const BASELINE = H - PAD.bottom;
 
 export function TrendChart({ data }: { data: RevenuePoint[] }) {
+  const t = useTranslations("reports");
+  const format = useFormatter();
   const [active, setActive] = useState<number | null>(null);
 
   const volumes = data.map((point) => point.volume);
@@ -55,7 +59,7 @@ export function TrendChart({ data }: { data: RevenuePoint[] }) {
           viewBox={`0 0 ${W} ${H}`}
           className="w-full"
           role="img"
-          aria-label="Dönem içindeki satış hacmi"
+          aria-label={t("sales.trendAria")}
           onMouseLeave={() => setActive(null)}
         >
           <defs>
@@ -142,7 +146,7 @@ export function TrendChart({ data }: { data: RevenuePoint[] }) {
                     : "fill-[var(--text-muted)]",
                 )}
               >
-                {point.label}
+                {formatMonthKey(format, point.month)}
               </text>
             </g>
           ))}
@@ -154,13 +158,13 @@ export function TrendChart({ data }: { data: RevenuePoint[] }) {
             role="status"
           >
             <p className="text-[11.5px] text-muted-foreground">
-              {activeData.label}
+              {formatMonthKey(format, activeData.month)}
             </p>
             <p className="mt-0.5 text-[13px] font-medium tabular-nums text-foreground">
               {formatCurrency(activeData.volume)}
             </p>
             <p className="text-[12px] tabular-nums text-muted-foreground">
-              {activeData.count} kapanan işlem
+              {t("sales.trendCount", { count: activeData.count })}
             </p>
           </div>
         )}

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
 import {
   getAppointmentFormOptions,
@@ -19,9 +20,10 @@ import type { SearchParamsInput } from "@/lib/search-params";
 import { PageHeader } from "@/components/page-header";
 import { CalendarWorkspace } from "@/components/appointments/calendar-workspace";
 
-export const metadata: Metadata = {
-  title: "Randevular",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("appointments.page");
+  return { title: t("title") };
+}
 
 type PageProps = { searchParams: Promise<SearchParamsInput> };
 
@@ -47,12 +49,14 @@ export default async function RandevularPage({ searchParams }: PageProps) {
 
   /* Dördü de paralel — `SatislarPage` ile aynı gerekçe: rolü öğrenmek takvimi
      beklettirmemeli. Danışman için RLS listeyi zaten daraltıyor. */
-  const [currentAgent, appointments, formOptions, agents] = await Promise.all([
-    getCurrentAgent(),
-    getAppointments(viewRange("ay", date), filters),
-    getAppointmentFormOptions(),
-    getAgentOptions(),
-  ]);
+  const [currentAgent, appointments, formOptions, agents, t] =
+    await Promise.all([
+      getCurrentAgent(),
+      getAppointments(viewRange("ay", date), filters),
+      getAppointmentFormOptions(),
+      getAgentOptions(),
+      getTranslations("appointments.page"),
+    ]);
 
   /* Danışman filtresi yalnızca yöneticiye; danışman zaten yalnızca kendi
      takvimini görüyor ve tek seçenekli bir açılır işe yaramazdı. */
@@ -61,8 +65,8 @@ export default async function RandevularPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-6 pb-4">
       <PageHeader
-        title="Randevular"
-        description="Yer gösterme ve görüşme takviminiz. Tamamlanan randevu, müşterinin görüşme geçmişine otomatik işlenir."
+        title={t("title")}
+        description={t("description")}
       />
 
       <CalendarWorkspace

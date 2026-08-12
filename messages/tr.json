@@ -1,0 +1,1499 @@
+{
+  "common": {
+    "tagline": "Gayrimenkul ekipleri için modern CRM",
+    "search": "Ara",
+    "searchEllipsis": "Ara…",
+    "save": "Kaydet",
+    "saving": "Kaydediliyor…",
+    "cancel": "Vazgeç",
+    "delete": "Sil",
+    "edit": "Düzenle",
+    "close": "Kapat",
+    "retry": "Tekrar dene",
+    "backToDashboard": "Dashboard'a dön",
+    "comingSoon": "yakında",
+    "soonBadge": "Yakında",
+    "profile": "Profilim",
+    "settings": "Ayarlar",
+    "support": "Destek",
+    "signOut": "Çıkış yap",
+    "fallbackUserName": "Kullanıcı",
+    "fallbackUserTitle": "Ekip üyesi",
+    "empty": "Boş",
+    "optional": "(opsiyonel)",
+    "awaitingRole": "Yetki bekliyor"
+  },
+  "language": {
+    "label": "Dil",
+    "trigger": "Dil seçimi",
+    "changed": "Arayüz dili değiştirildi"
+  },
+  "nav": {
+    "groups": {
+      "general": "Genel",
+      "portfolio": "Portföy",
+      "communication": "İletişim",
+      "finance": "Finans",
+      "management": "Yönetim",
+      "system": "Sistem"
+    },
+    "dashboard": {
+      "label": "Dashboard",
+      "description": "Portföyünüzün genel görünümü, güncel metrikler ve günlük özet tek ekranda toplanacak."
+    },
+    "listings": {
+      "label": "İlanlar",
+      "description": "Tüm gayrimenkul portföyünüzü listeleyin, fotoğraf ve detaylarıyla yönetin, portallara yayınlayın."
+    },
+    "customers": {
+      "label": "Müşteriler",
+      "description": "Alıcı ve satıcı kayıtları, talep eşleştirme ve müşteri geçmişi burada takip edilecek."
+    },
+    "appointments": {
+      "label": "Randevular",
+      "description": "Yer gösterme ve görüşme takviminizi günlük, haftalık ve aylık görünümde planlayın."
+    },
+    "messages": {
+      "label": "Mesajlar",
+      "description": "Bir müşteri ya da ilan kaydına ekip içi soru sorun, not bırakın veya sorumluluğu devredin."
+    },
+    "documents": {
+      "label": "Evraklar",
+      "description": "Sözleşme, tapu ve yetki belgelerini güvenle saklayın, sürüm geçmişiyle takip edin."
+    },
+    "sales": {
+      "label": "Satışlar",
+      "description": "Satış ve kiralama süreçlerini aşama aşama izleyin, kapanan işlemleri raporlayın."
+    },
+    "revenue": {
+      "label": "Gelirler",
+      "description": "Komisyon gelirlerinizi, tahsilat durumunu ve dönemsel kazancınızı görüntüleyin."
+    },
+    "agents": {
+      "label": "Personeller",
+      "description": "Ekip üyelerini davet edin, yetki seviyelerini ve performanslarını yönetin."
+    },
+    "reports": {
+      "label": "Raporlar",
+      "description": "Portföy, satış ve ekip performansına dair detaylı analizleri buradan alacaksınız."
+    },
+    "notifications": {
+      "label": "Bildirimler",
+      "description": "Sistem uyarıları, hatırlatmalar ve ekip bildirimleri tek akışta toplanacak."
+    },
+    "settings": {
+      "label": "Ayarlar",
+      "description": "Hesap, ofis, fatura ve entegrasyon ayarlarınızı buradan yöneteceksiniz."
+    }
+  },
+  "navbar": {
+    "themeTrigger": "Tema değiştir",
+    "themeTooltip": "Açık tema yakında",
+    "accountMenu": "Hesap menüsü"
+  },
+  "sidebar": {
+    "mainNav": "Ana gezinme",
+    "collapse": "Menüyü daralt",
+    "expand": "Menüyü genişlet",
+    "planTitle": "Pro Plan",
+    "planQuota": "Aktif ilan kotanız"
+  },
+  "mobileNav": {
+    "nav": "Mobil gezinme",
+    "more": "Daha Fazla",
+    "drawerTitle": "Menü",
+    "drawerDescription": "Tüm bölümler ve hesap ayarları",
+    "lightTheme": "Açık tema"
+  },
+  "commandPalette": {
+    "placeholder": "Sayfa, müşteri veya ilan ara…",
+    "emptyTitle": "Sonuç bulunamadı",
+    "emptyHint": "Farklı bir anahtar kelime deneyin.",
+    "quickActions": "Hızlı eylemler",
+    "newListing": "Yeni ilan ekle",
+    "newCustomer": "Yeni müşteri ekle",
+    "newAppointment": "Randevu oluştur",
+    "goToPage": "Sayfaya git",
+    "hintNavigate": "gezin",
+    "hintSelect": "seç",
+    "hintClose": "kapat",
+    "description": "Sayfa ve komut arayın",
+    "dialogTitle": "Komut paleti"
+  },
+  "notices": {
+    "noAgentTitle": "Hesabınız henüz bir personel kaydına bağlı değil",
+    "noAgentBody": "Bu yüzden ilan, müşteri ve rapor listeleri boş görünüyor — veriler silinmedi, yetkiniz bulunmuyor. Ofis yöneticinizin sizi Personeller modülünden ekibe eklemesi gerekiyor.",
+    "deactivatedTitle": "Hesabınız pasif durumda",
+    "deactivatedBody": "{name}, ofis yöneticiniz hesabınızı pasifleştirmiş. Geçmiş kayıtlarınız — ilanlarınız, müşterileriniz ve satışlarınız — silinmedi, olduğu gibi duruyor; ancak erişiminiz kapalı.",
+    "deactivatedHint": "Bunun bir hata olduğunu düşünüyorsanız ofis yöneticinizle görüşün."
+  },
+  "errors": {
+    "screenTitle": "Bu ekran yüklenemedi",
+    "screenBody": "Veriler alınırken bir sorun oluştu. Bağlantınızı kontrol edip tekrar deneyin; sorun sürerse ofis yöneticinize bildirin.",
+    "code": "Hata kodu: {digest}",
+    "actions": {
+      "agentNotFound": "Personel kaydınız bulunamadı.",
+      "accountInactive": "Hesabınız pasif durumda.",
+      "noPermission": "Bu işlem için yetkiniz yok.",
+      "managerRequired": "Bu işlem için patron veya ofis müdürü yetkisi gerekiyor.",
+      "sessionNotLinked": "Oturumunuz bir personel kaydına bağlı değil.",
+      "duplicate": "Bu kayıt zaten mevcut (benzersiz alan çakışması).",
+      "missingRelation": "İlişkili kayıt bulunamadı; seçilen danışman silinmiş olabilir.",
+      "checkViolation": "Girilen değerler veritabanı kurallarına uymuyor.",
+      "forbidden": "Bu işlem için yetkiniz yok. Oturumunuz düşmüş olabilir.",
+      "listingNotFound": "İlan bulunamadı.",
+      "listingDeletedMeanwhile": "İlan bulunamadı; başka biri silmiş olabilir.",
+      "customerNotFound": "Müşteri bulunamadı.",
+      "appointmentCustomerRequired": "Randevu için müşteri seçin.",
+      "appointmentNotFound": "Randevu bulunamadı.",
+      "appointmentStatusChanged": "Randevunun durumu bu sırada değişmiş; sayfayı yenileyin.",
+      "appointmentTimelineFailed": "Randevu tamamlandı olarak işaretlendi ama görüşme geçmişine yazılamadı: {reason}",
+      "appointmentDateUnreadable": "Randevu tarihi okunamadı.",
+      "appointmentEndBeforeStart": "Bitiş saati başlangıçtan sonra olmalıdır.",
+      "appointmentAgentNotFound": "Personel kaydınız bulunamadı; randevu oluşturulamıyor.",
+      "appointmentOtherAgent": "Başka bir danışmanın takvimine randevu ekleyemezsiniz.",
+      "appointmentAlreadyInStatus": "Randevu zaten “{status}” durumunda.",
+      "appointmentTransitionNotAllowed": "“{from}” durumundaki bir randevu “{to}” yapılamaz.",
+      "offerAmountPositive": "Teklif tutarı 0'dan büyük olmalıdır.",
+      "offerListingSold": "Bu ilan satılmış; yeni teklif alınamaz.",
+      "offerPendingExists": "Bu müşterinin bu ilana {amount} tutarında bekleyen bir teklifi zaten var. Yeni teklif için önce Teklifler sayfasından eskisini yanıtlayın ya da “süresi doldu” olarak işaretleyin.",
+      "offerPendingRace": "Bu müşterinin bu ilana bekleyen bir teklifi zaten var. Sayfayı yenileyin.",
+      "offerNotFound": "Teklif bulunamadı.",
+      "offerStatusChanged": "Teklifin durumu bu sırada değişmiş; sayfayı yenileyin.",
+      "offerSaleFailed": "Teklif kabul edildi ama satış kaydı oluşturulamadı: {reason}",
+      "offerAlreadyInStatus": "Teklif zaten “{status}” durumunda.",
+      "offerTerminal": "“{status}” durumundaki bir teklif değiştirilemez.",
+      "documentTitleRequired": "Belge başlığı boş olamaz.",
+      "documentUploadFailed": "Dosya yüklenemedi; tekrar deneyin.",
+      "documentAgentNotFound": "Personel kaydınız bulunamadı; belge kaydedilemiyor.",
+      "documentNotFound": "Belge bulunamadı.",
+      "documentNotFoundOrForbidden": "Belge bulunamadı ya da erişim yetkiniz yok.",
+      "documentDownloadLinkFailed": "İndirme bağlantısı üretilemedi. Tekrar deneyin.",
+      "documentPreviewLinkFailed": "Önizleme bağlantısı üretilemedi.",
+      "noteNotFoundOrForbidden": "Not bulunamadı ya da erişim yetkiniz yok.",
+      "noteAlreadyResolved": "Bu not zaten kapalı.",
+      "noteNoStatus": "Genel notların açık/çözüldü durumu yoktur.",
+      "saleNotFound": "Satış kaydı bulunamadı.",
+      "commissionManagerRequired": "Tahsilat durumunu yalnızca patron veya ofis müdürü değiştirebilir.",
+      "commissionStatusChanged": "Kaydın durumu bu sırada değişmiş; sayfayı yenileyin.",
+      "commissionAlreadyInStatus": "Komisyon zaten “{status}” durumunda.",
+      "commissionTransitionNotAllowed": "“{status}” durumundan bu geçiş yapılamaz.",
+      "profileNameMin2": "Ad soyad en az 2 karakter olmalıdır.",
+      "passwordMin8": "Yeni şifre en az 8 karakter olmalıdır.",
+      "passwordSameAsOld": "Yeni şifre mevcut şifreyle aynı olamaz.",
+      "sessionUnreadable": "Oturum bilgisi okunamadı. Sayfayı yenileyip tekrar deneyin.",
+      "passwordWrong": "Mevcut şifreniz doğru değil.",
+      "companyManagerRequired": "Şirket bilgilerini yalnızca yöneticiler düzenleyebilir.",
+      "companyNameRequired": "Şirket adı boş olamaz.",
+      "emailInvalid": "Geçerli bir e-posta adresi girin.",
+      "nameMin3": "Ad soyad en az 3 karakter olmalıdır.",
+      "commissionRateRange": "Prim oranı 0 ile 1 arasında olmalıdır.",
+      "patronRoleOnlyByPatron": "Patron rolünü yalnızca bir patron atayabilir.",
+      "agentEmailExists": "{email} adresiyle kayıtlı bir personel zaten var.",
+      "staffNotFound": "Personel bulunamadı.",
+      "cannotEditOwnRole": "Kendi rolünüzü ve prim oranınızı değiştiremezsiniz. Bunu başka bir yönetici yapmalı.",
+      "patronChangesOnlyByPatron": "Patron rolüyle ilgili değişiklikleri yalnızca patron yapabilir.",
+      "cannotDeactivateSelf": "Kendi hesabınızı pasifleştiremezsiniz.",
+      "patronDeactivateOnlyByPatron": "Patron hesabını yalnızca bir patron pasifleştirebilir.",
+      "lastPatron": "Son aktif patron pasifleştirilemez; önce başka bir patron atayın.",
+      "staffAlreadyActive": "Personel zaten aktif.",
+      "staffAlreadyInactive": "Personel zaten pasif durumda.",
+      "authAccountExists": "{email} adresiyle bir kullanıcı hesabı zaten var. Mevcut hesabı bir personel kaydına bağlamak için veritabanından eşleştirme yapın.",
+      "authAccountFailed": "Kullanıcı hesabı oluşturulamadı.",
+      "noteEmpty": "Boş not kaydedilemez.",
+      "noteAttachmentTypeUnknown": "Ek türü belirlenemedi.",
+      "noteAgentNotFound": "Personel kaydınız bulunamadı; not yazılamıyor.",
+      "noteParentNotFound": "Yanıtlanacak not bulunamadı.",
+      "noteReplyToReply": "Bir yanıta yanıt verilemez; asıl notu yanıtlayın.",
+      "noteContextRequired": "Not bir müşteri ya da ilan kaydına bağlanmalı.",
+      "noteTargetNotFound": "Seçilen personel bulunamadı.",
+      "noteTargetInactive": "{name} pasif bir hesap; not ona yönlendirilemez.",
+      "noteHandoffCustomerForbidden": "Bu müşteriyi devredemezsiniz; yalnızca sorumlusu olduğunuz kayıtları devredebilirsiniz.",
+      "noteHandoffListingForbidden": "Bu ilanı devredemezsiniz; yalnızca sorumlusu olduğunuz kayıtları devredebilirsiniz."
+    }
+  },
+  "auth": {
+    "subtitle": "Hesabınıza giriş yaparak devam edin",
+    "email": "E-posta",
+    "emailPlaceholder": "ornek@emlakofisi.com",
+    "password": "Şifre",
+    "showPassword": "Şifreyi göster",
+    "hidePassword": "Şifreyi gizle",
+    "forgotPassword": "Şifremi unuttum",
+    "rememberMe": "Beni hatırla",
+    "signIn": "Giriş yap",
+    "signingIn": "Giriş yapılıyor…",
+    "or": "VEYA",
+    "continueWithGoogle": "Google ile devam et",
+    "continueWithApple": "Apple ile devam et",
+    "noAccount": "Hesabınız yok mu?",
+    "missingCode": "Giriş kodu alınamadı.",
+    "requestDemo": "Demo talep edin",
+    "redirecting": "Yönlendiriliyor…",
+    "errors": {
+      "invalidCredentials": "E-posta veya şifre hatalı.",
+      "emailNotConfirmed": "E-posta adresiniz henüz doğrulanmamış.",
+      "rateLimit": "Çok fazla deneme yapıldı, biraz sonra tekrar deneyin.",
+      "providerDisabled": "Bu giriş yöntemi Supabase panelinde henüz etkinleştirilmemiş.",
+      "providerDisabledDetail": "{provider} girişi Supabase panelinde henüz etkinleştirilmemiş. Authentication > Providers altından Client ID ve Secret girip etkinleştirin."
+    }
+  },
+  "filters": {
+    "trigger": "Filtrele",
+    "clear": "Temizle",
+    "title": "Filtreler",
+    "activeCount": "{count} filtre etkin",
+    "hint": "Sonuçları daraltmak için seçim yapın",
+    "showResults": "Sonuçları göster",
+    "min": "En az",
+    "max": "En çok",
+    "apply": "Uygula",
+    "reset": "Sıfırla",
+    "rangeTitle": "{label} aralığı ({unit})"
+  },
+  "dashboard": {
+    "greeting": "Hoş geldin {name} 👋",
+    "description": "Portföyünüzün bugünkü durumu, satış performansı ve ekibin son hareketleri.",
+    "kpi": {
+      "totalListings": "Toplam İlan",
+      "totalCustomers": "Toplam Müşteri",
+      "monthlySales": "Bu Ay Satış",
+      "pendingOffers": "Bekleyen Teklif",
+      "hintPublished": "{count} ilan yayında",
+      "hintCustomers": "kayıtlı müşteri",
+      "hintDeals": "{count} işlem kapandı",
+      "hintOffers": "yanıt bekliyor"
+    },
+    "sales": {
+      "title": "Satış Performansı",
+      "description": "Son 12 ayda kapanan {count} işlemin aylık cirosu",
+      "yearTotal": "12 aylık toplam",
+      "chartLabel": "Son 12 ayın satış cirosu",
+      "closedDeals": "{count} satış kapandı"
+    },
+    "portfolio": {
+      "title": "Portföy Dağılımı",
+      "description": "Kategori, yayın durumu ve değer özeti",
+      "chartLabel": "İlan kategorisi dağılımı",
+      "totalListings": "toplam ilan",
+      "statusTitle": "Yayın durumu",
+      "statusShare": "{count} ilan · {percent}",
+      "salesValue": "Satılık portföy değeri",
+      "rentValue": "Aylık kira potansiyeli",
+      "averagePricePerSqm": "Ort. m² fiyatı (arsa hariç)",
+      "totalArea": "Toplam alan"
+    },
+    "activity": {
+      "title": "Son Aktiviteler",
+      "description": "Ekibin son hareketleri",
+      "new": "Yeni",
+      "listingCreated": "<b>{subject}</b> portföye eklendi",
+      "saleClosed": "<b>{subject}</b> satışı tamamlandı",
+      "offerReceived": "<b>{subject}</b> için teklif alındı",
+      "customerAdded": "<b>{subject}</b> müşteri olarak kaydedildi",
+      "appointmentScheduled": "<b>{subject}</b> ile randevu oluşturuldu"
+    },
+    "appointments": {
+      "title": "Bugünkü Randevular",
+      "description": "{date} · {count} randevu",
+      "calendar": "Takvim"
+    }
+  },
+  "listings": {
+    "title": "İlanlar",
+    "description": "Portföyünüzdeki tüm gayrimenkulleri filtreleyin, düzenleyin ve yayın durumlarını takip edin.",
+    "new": "Yeni ilan",
+    "newLong": "Yeni ilan ekle",
+    "count": "{count} ilan listeleniyor",
+    "perMonth": "/ay",
+    "category": {
+      "satilik": "Satılık",
+      "kiralik": "Kiralık",
+      "arsa": "Arsa",
+      "villa": "Villa",
+      "ofis": "Ofis"
+    },
+    "status": {
+      "aktif": "Aktif",
+      "pasif": "Pasif",
+      "taslak": "Taslak",
+      "satildi": "Satıldı"
+    },
+    "sort": {
+      "label": "Sıralama",
+      "newest": "En yeni",
+      "priceAsc": "Fiyat (artan)",
+      "priceDesc": "Fiyat (azalan)",
+      "areaDesc": "Alan (büyükten)",
+      "viewsDesc": "En çok görüntülenen"
+    },
+    "rooms": {
+      "andAbove": "{value} ve üzeri"
+    },
+    "filters": {
+      "searchPlaceholder": "Başlık, ilçe veya ilan no ile ara…",
+      "searchAria": "İlanlarda ara",
+      "clearSearch": "Aramayı temizle",
+      "gridView": "Izgara görünümü",
+      "listView": "Liste görünümü",
+      "category": "Kategori",
+      "allCategories": "Tüm kategoriler",
+      "status": "Durum",
+      "allStatuses": "Tüm durumlar",
+      "city": "Şehir",
+      "allCities": "Tüm şehirler",
+      "district": "İlçe",
+      "allDistricts": "Tüm ilçeler",
+      "rooms": "Oda",
+      "allRooms": "Tüm oda sayıları",
+      "price": "Fiyat",
+      "area": "Alan"
+    },
+    "empty": {
+      "filteredBadge": "Sonuç yok",
+      "filteredTitle": "Aramanızla eşleşen ilan yok",
+      "filteredDescription": "Filtreleri gevşetmeyi veya arama teriminizi kısaltmayı deneyin. Şehir ve ilçe seçimlerini kaldırmak genelde en hızlı sonucu verir.",
+      "clearFilters": "Filtreleri temizle",
+      "badge": "Boş portföy",
+      "emptyTitle": "Henüz ilan eklenmemiş",
+      "emptyDescription": "Portföyünüze ilk ilanı ekleyerek başlayın. Eklediğiniz ilanlar burada listelenecek ve portallara yayınlanabilecek."
+    },
+    "notFound": {
+      "badge": "Bulunamadı",
+      "title": "Bu ilan portföyde yok",
+      "description": "Aradığınız ilan silinmiş, arşivlenmiş veya bağlantı hatalı olabilir. Portföy listesinden arama yaparak devam edebilirsiniz.",
+      "back": "İlanlara dön"
+    },
+    "detail": {
+      "back": "İlanlara dön",
+      "descriptionTitle": "Açıklama",
+      "features": "Özellikler",
+      "listingNo": "İlan no",
+      "category": "Kategori",
+      "area": "Alan",
+      "roomCount": "Oda sayısı",
+      "rooms": "Oda",
+      "pricePerSqm": "m² birim fiyat",
+      "cityDistrict": "Şehir / İlçe",
+      "publishedAt": "Yayın tarihi",
+      "updatedAt": "Son güncelleme",
+      "views": "Görüntülenme",
+      "favorites": "Favori",
+      "addedOn": "{date} tarihinde eklendi",
+      "agent": "Portföy danışmanı",
+      "interested": "İlgilenen Müşteriler",
+      "interestedCount": "{count} müşteri bu ilanla ilgileniyor",
+      "lastContact": "Son görüşme: {date}",
+      "neverContacted": "Henüz görüşülmedi",
+      "appointments": "Randevular",
+      "appointmentsCount": "{count} randevu bu ilana bağlı",
+      "location": "Konum",
+      "related": "{district} bölgesindeki diğer ilanlar",
+      "noCoordinates": "Koordinat girilmemiş"
+    },
+    "gallery": {
+      "aria": "{title} görselleri",
+      "imageAlt": "{title} — görsel {index}",
+      "goTo": "Görsel {index}",
+      "previous": "Önceki görsel",
+      "next": "Sonraki görsel"
+    },
+    "delete": {
+      "trigger": "Sil",
+      "title": "İlanı silmek istiyor musunuz?",
+      "cancel": "Vazgeç",
+      "confirm": "Evet, sil",
+      "deleting": "Siliniyor…",
+      "successTitle": "İlan silindi",
+      "errorTitle": "İlan silinemedi",
+      "description": "<b>{title}</b> ({id}) portföyünüzden kaldırılacak. Bu işlem geri alınamaz ve ilan yayında olduğu portallardan da düşer.",
+      "successDescription": "{title} portföyden kaldırıldı."
+    },
+    "form": {
+      "newTitle": "Yeni ilan ekle",
+      "newDescription": "Portföyünüze eklenecek gayrimenkulün bilgilerini girin. Taslak olarak kaydedip sonra tamamlayabilirsiniz.",
+      "editTitle": "İlanı düzenle",
+      "editBack": "İlana dön",
+      "basicsTitle": "Temel Bilgiler",
+      "basicsDescription": "İlanın portallarda görünecek başlığı ve tanıtım metni.",
+      "titleLabel": "Başlık",
+      "titlePlaceholder": "Örn. Deniz Manzaralı 3+1 Daire",
+      "titleHint": "Konum ve öne çıkan özelliği içeren başlıklar daha çok görüntülenir.",
+      "categoryLabel": "Kategori",
+      "statusLabel": "Durum",
+      "descriptionLabel": "Açıklama",
+      "descriptionPlaceholder": "Konumu, yapı özelliklerini ve çevredeki olanakları anlatın…",
+      "descriptionCounter": "{count} / 2000 karakter",
+      "locationTitle": "Konum",
+      "locationDescription": "Adres bilgisi ilan detayında ve haritada gösterilir.",
+      "cityLabel": "Şehir",
+      "cityPlaceholder": "Şehir seçin",
+      "districtLabel": "İlçe",
+      "addressLabel": "Açık adres",
+      "addressPlaceholder": "Mahalle, sokak ve kapı numarası",
+      "addressHint": "Harita işareti şimdilik ilçe merkezine düşer; koordinat seçici ayrı bir fazda gelecek.",
+      "agentTitle": "Portföy Sorumlusu",
+      "agentDescription": "İlanı takip edecek danışman. İlan detayında iletişim kartı olarak gösterilir.",
+      "priceTitle": "Fiyat & Detaylar",
+      "priceDescription": "Kiralık ilanlarda fiyat aylık kira bedeli olarak gösterilir.",
+      "priceLabel": "Fiyat",
+      "currencyLabel": "Para birimi",
+      "areaLabel": "Alan (m²)",
+      "roomsLabel": "Oda sayısı",
+      "roomsPlaceholder": "Seçin",
+      "photosTitle": "Fotoğraflar",
+      "photosDescription": "İlk görsel kapak olarak kullanılır.",
+      "cancel": "Vazgeç",
+      "saving": "Kaydediliyor…",
+      "saveNew": "İlanı kaydet",
+      "saveEdit": "Değişiklikleri kaydet",
+      "createdTitle": "İlan oluşturuldu",
+      "updatedTitle": "İlan güncellendi",
+      "createErrorTitle": "İlan kaydedilemedi",
+      "updateErrorTitle": "İlan güncellenemedi",
+      "districtPlaceholder": "İlçe seçin",
+      "districtDisabled": "Önce şehir seçin",
+      "agentHintSelf": "İlanlar kendi portföyünüze kaydedilir."
+    },
+    "images": {
+      "dropTitle": "Fotoğrafları buraya sürükleyin",
+      "coverBadge": "Kapak",
+      "makeCover": "Kapak yap",
+      "remove": "Görseli kaldır",
+      "removeShort": "Kaldır",
+      "uploading": "{name} yükleniyor",
+      "uploadError": "Fotoğraf yüklenemedi",
+      "unexpectedError": "\"{name}\" yüklenirken beklenmeyen bir hata oluştu.",
+      "dropHint": "veya seçmek için tıklayın · JPG, PNG, WebP · en fazla {size}",
+      "imageAlt": "Görsel {index}",
+      "orderHint": "İlk görsel kapak olarak kullanılır. Sıralamayı değiştirmek için bir görselin üzerine gelip yıldız simgesine tıklayın."
+    },
+    "validation": {
+      "titleMin": "Başlık en az 10 karakter olmalıdır.",
+      "titleMax": "Başlık en fazla 120 karakter olabilir.",
+      "descriptionMin": "Açıklama en az 30 karakter olmalıdır.",
+      "descriptionMax": "Açıklama en fazla 2000 karakter olabilir.",
+      "cityRequired": "Şehir seçin.",
+      "districtRequired": "İlçe seçin.",
+      "addressRequired": "Açık adres girin.",
+      "agentRequired": "Portföy danışmanı seçin.",
+      "required": "{label} zorunludur.",
+      "numberOnly": "Yalnızca sayı girin.",
+      "positive": "{label} 0'dan büyük olmalıdır.",
+      "roomsRequired": "Konut ilanlarında oda sayısı zorunludur.",
+      "imagesRequired": "Aktif ilanlar için en az bir görsel gerekir. Görsel eklemeden kaydetmek isterseniz durumu Taslak seçin."
+    }
+  },
+  "offers": {
+    "triggerListing": "Teklif Al",
+    "triggerCustomer": "Teklif Ver",
+    "titleListing": "Bu ilana teklif al",
+    "titleCustomer": "Bu müşteri için teklif ver",
+    "descriptionListing": "{title} için gelen teklifi kaydedin.",
+    "descriptionCustomer": "{name} adına verilen teklifi kaydedin.",
+    "listingLabel": "İlan",
+    "customerLabel": "Müşteri",
+    "counterpartCustomer": "Teklifi veren müşteri",
+    "counterpartListing": "Teklif verilen ilan",
+    "selectCustomer": "Müşteri seçin",
+    "selectListing": "İlan seçin",
+    "noCustomers": "Bu ilanla ilgilenen kayıtlı müşteri yok. Önce müşteri detayından ilgi ekleyin.",
+    "noListings": "Bu müşterinin ilgilendiği ilan yok. Önce ilgilendiği ilanları ekleyin.",
+    "amountLabel": "Teklif tutarı (₺)",
+    "listPriceHint": "Liste fiyatı {amount}.",
+    "submit": "Teklifi kaydet",
+    "saving": "Kaydediliyor…",
+    "invalidAmountTitle": "Geçersiz tutar",
+    "invalidAmountBody": "Teklif tutarı 0'dan büyük bir sayı olmalıdır.",
+    "missingTitle": "Eksik bilgi",
+    "missingCustomer": "Müşteri seçin.",
+    "missingListing": "İlan seçin.",
+    "errorTitle": "Teklif kaydedilemedi",
+    "successTitle": "Teklif kaydedildi",
+    "successBody": "{amount} · yanıt bekliyor",
+    "status": {
+      "pending": "Bekliyor",
+      "accepted": "Kabul edildi",
+      "rejected": "Reddedildi",
+      "expired": "Süresi doldu"
+    },
+    "sort": {
+      "label": "Sıralama",
+      "recent": "En yeni",
+      "amountDesc": "Tutar (yüksekten)",
+      "amountAsc": "Tutar (düşükten)"
+    },
+    "page": {
+      "title": "Teklifler",
+      "description": "Gelen teklifleri buradan yanıtlayın. Kabul edilen teklif satışı tek adımda kapatır.",
+      "count": "{count} teklif",
+      "pending": "{count} tanesi yanıt bekliyor",
+      "listPrice": "liste {amount}",
+      "deletedListing": "İlan silinmiş",
+      "fallbackListing": "İlan",
+      "emptyBadge": "Boş",
+      "emptyTitle": "Henüz teklif yok",
+      "emptyBody": "Teklifler ilan detayındaki “Teklif Al” ya da müşteri detayındaki “Teklif Ver” düğmesiyle oluşturulur.",
+      "noResultBadge": "Sonuç yok",
+      "noResultTitle": "Bu filtrelerle eşleşen teklif yok",
+      "noResultBody": "Durum ya da danışman filtresini kaldırıp tekrar deneyin."
+    },
+    "filters": {
+      "statusLabel": "Durum",
+      "allStatuses": "Tüm durumlar",
+      "agentLabel": "Danışman",
+      "allAgents": "Tüm danışmanlar"
+    },
+    "actions": {
+      "accept": "Kabul et",
+      "reject": "Reddet",
+      "expire": "Süresi doldu",
+      "error": "Teklif güncellenemedi",
+      "saleClosed": "Satış kapandı",
+      "marked": "Teklif “{status}” olarak işaretlendi",
+      "confirmTitle": "Teklifi kabul et",
+      "confirmIntro": "<b>{title}</b> için {amount} tutarındaki teklif kabul edilecek.",
+      "confirmLead": "Bu işlem tek adımda şunları yapar:",
+      "confirmSale": "Kapanan satış kaydı oluşturur",
+      "confirmListing": "İlanı “satıldı” durumuna geçirir",
+      "confirmOthers": "Aynı ilandaki diğer bekleyen teklifleri kapatır",
+      "confirmTimeline": "Müşterinin görüşme geçmişine satın alma kaydı düşer",
+      "confirmWarning": "Kabul edilen bir teklif geri alınamaz.",
+      "confirmSubmit": "Kabul et ve satışı kapat",
+      "processing": "İşleniyor…"
+    }
+  },
+  "sales": {
+    "page": {
+      "title": "Satışlar",
+      "description": "Kapanan işlemler. Bir teklif kabul edildiğinde kayıt buraya otomatik düşer.",
+      "count": "{count} kapanan işlem",
+      "deletedListing": "İlan silinmiş",
+      "emptyBadge": "Boş",
+      "emptyTitle": "Henüz kapanan satış yok",
+      "emptyBody": "Satışlar teklif kabul edildiğinde otomatik oluşur. Teklifler sekmesinden bekleyen teklifleri görebilirsiniz.",
+      "noResultBadge": "Sonuç yok",
+      "noResultTitle": "Bu filtrelerle eşleşen satış yok",
+      "noResultBody": "Tarih aralığını genişletmeyi ya da danışman filtresini kaldırmayı deneyin."
+    },
+    "tabs": {
+      "aria": "Satışlar görünümü",
+      "sales": "Satışlar",
+      "offers": "Teklifler"
+    },
+    "filters": {
+      "from": "Başlangıç",
+      "to": "Bitiş",
+      "agentLabel": "Danışman",
+      "allAgents": "Tüm danışmanlar"
+    },
+    "sort": {
+      "label": "Sıralama",
+      "recent": "En yeni",
+      "amountDesc": "Tutar (yüksekten)",
+      "amountAsc": "Tutar (düşükten)"
+    }
+  },
+  "revenue": {
+    "commissionStatus": {
+      "pending": "Bekliyor",
+      "collected": "Tahsil edildi",
+      "overdue": "Gecikti"
+    },
+    "period": {
+      "30": "Son 30 gün",
+      "90": "Son 3 ay",
+      "180": "Son 6 ay",
+      "365": "Son 1 yıl",
+      "aria": "Dönem"
+    },
+    "periodPhrase": {
+      "30": "Son 30 gün",
+      "90": "Son 3 ay",
+      "180": "Son 6 ay",
+      "365": "Son 1 yıl"
+    },
+    "page": {
+      "title": "Gelirler",
+      "description": "Kapanan işlemlerden doğan komisyon ve tahsilat durumu. Satışlar sayfası işlemleri, burası parayı gösterir.",
+      "noAgentDescription": "Komisyon ve tahsilat takibi.",
+      "emptyBadge": "Boş",
+      "emptyTitle": "{period} içinde komisyon yok",
+      "emptyBody": "Komisyon, bir teklif kabul edilip satış kapandığında doğar. Daha geniş bir dönem seçmeyi ya da Teklifler sayfasından bekleyen teklifleri yanıtlamayı deneyin.",
+      "agentNote": "Tahsilat durumunu yalnızca ofis yöneticileri değiştirebilir. Komisyon tutarı, satış bedelinin prim oranınızla çarpımıdır."
+    },
+    "summary": {
+      "total": "Toplam komisyon",
+      "totalHint": "{count} işlem · {volume} hacim",
+      "collected": "Tahsil edilen",
+      "collectedHint": "Tahsilat oranı {rate}",
+      "pending": "Bekleyen",
+      "pendingHint": "Henüz tahsil edilmedi",
+      "overdue": "Geciken",
+      "overdueHint": "Takip gerekiyor",
+      "overdueNone": "Geciken tahsilat yok"
+    },
+    "chart": {
+      "title": "Aylık komisyon",
+      "aria": "Aylık komisyon geliri ve tahsilat",
+      "legendTotal": "Toplam komisyon",
+      "legendCollected": "Tahsil edilen",
+      "tooltipCollected": "{amount} tahsil edildi",
+      "tooltipTotal": "{amount} komisyon"
+    },
+    "byAgent": {
+      "titleManager": "Danışman bazlı döküm",
+      "titleSelf": "Komisyon dökümünüz",
+      "meta": "{count} işlem · {rate} oran · {volume} hacim",
+      "collectedShare": "{rate} tahsil"
+    },
+    "rows": {
+      "title": "Komisyon kayıtları",
+      "deletedListing": "İlan silinmiş",
+      "saleAmount": "{amount} satış"
+    },
+    "control": {
+      "menuLabel": "Tahsilat durumu",
+      "aria": "Tahsilat durumu: {status}. Değiştirmek için tıklayın.",
+      "error": "Durum değiştirilemedi",
+      "marked": "Komisyon “{status}” olarak işaretlendi"
+    }
+  },
+  "reports": {
+    "page": {
+      "title": "Raporlar",
+      "description": "Portföyün dağılımı, dönem içindeki satış trendi ve ekip performansı.",
+      "noAgentDescription": "Portföy, satış ve ekip performansı özeti.",
+      "footnote": "Raporlar mevcut kayıtlardan anlık hesaplanır; ayrı bir analitik veri deposu tutulmaz. Gördüğünüz sayılar yetkiniz kapsamındaki kayıtlarla sınırlıdır."
+    },
+    "portfolio": {
+      "title": "Portföy analizi",
+      "hint": "{count} ilan",
+      "byCategory": "Kategori dağılımı",
+      "byStatus": "Durum dağılımı",
+      "empty": "Portföyde ilan yok.",
+      "mostViewed": "En çok görüntülenen",
+      "mostFavorited": "En çok favorilenen",
+      "noListings": "Gösterilecek ilan yok."
+    },
+    "sales": {
+      "title": "Satış analizi",
+      "dealCount": "Kapanan işlem",
+      "volume": "Satış hacmi",
+      "average": "Ortalama işlem",
+      "trendTitle": "Satış hacmi trendi",
+      "trendAria": "Dönem içindeki satış hacmi",
+      "trendCount": "{count} kapanan işlem",
+      "empty": "{period} içinde kapanan işlem yok. Daha geniş bir dönem seçebilirsiniz."
+    },
+    "team": {
+      "title": "Ekip performansı",
+      "hint": "Tüm zamanlar",
+      "badge": "Yönetici",
+      "empty": "Henüz satış kaydı olan danışman yok.",
+      "meta": "{sales} işlem · {listings} aktif ilan · {customers} aktif müşteri"
+    }
+  },
+  "workNotes": {
+    "type": {
+      "question": "Soru",
+      "assignment": "Atama",
+      "note": "Not"
+    },
+    "typeHint": {
+      "question": "Cevap bekleyen bir soru. Açık kalır, cevaplandığında “çözüldü” işaretlenir.",
+      "assignment": "Kaydın sorumlusunu ÜZERİNE ALIRSIN. Müşteri/ilan gerçekten sana devredilir.",
+      "note": "Ekibin görmesi gereken bir bilgi. Takip edilecek bir durumu yoktur."
+    },
+    "status": {
+      "open": "Açık",
+      "resolved": "Çözüldü"
+    },
+    "section": {
+      "title": "İş Notları",
+      "openBadge": "{count} açık",
+      "all": "Tüm notlar",
+      "empty": "Bu kayıtla ilgili henüz not yok. Yukarıdan ekibe bir soru sorabilir, bilgi notu bırakabilir ya da sorumluluğu devredebilirsiniz."
+    },
+    "card": {
+      "resolvedBy": "{name} kapattı",
+      "unknownAuthor": "Bilinmeyen",
+      "reply": "Yanıtla",
+      "resolve": "Çözüldü",
+      "reopen": "Yeniden aç",
+      "openSr": "Bu not hâlâ açık.",
+      "attachmentFailed": "Ek açılamadı; sayfayı yenileyin.",
+      "attachmentAlt": "Not eki",
+      "openAttachment": "Eki aç",
+      "actionError": "İşlem tamamlanamadı",
+      "resolved": "Not kapatıldı",
+      "reopened": "Not yeniden açıldı",
+      "deleted": "Not silindi",
+      "previewImage": "📷 Görsel",
+      "previewFile": "📎 Dosya"
+    },
+    "composer": {
+      "typeLabel": "Not türü",
+      "customerLabel": "Müşteri",
+      "listingLabel": "İlan",
+      "notSelected": "Seçilmedi",
+      "mentionLabelAssignment": "Devralan",
+      "mentionLabelDefault": "Kime",
+      "everyone": "Tüm ekip",
+      "selfAssign": "Ben üstleniyorum",
+      "contentLabel": "İçerik",
+      "placeholderReply": "Yanıtınızı yazın…",
+      "placeholderQuestion": "Örn. Ahmet Bey'in evrakları ne zaman gelecek?",
+      "placeholderAssignment": "Örn. Ahmet Bey'i ben üstleniyorum, izin dönüşü devrediyorum.",
+      "placeholderNote": "Örn. Ahmet Bey fiyat konusunda esnek değil.",
+      "removeAttachment": "Eki kaldır",
+      "attach": "Dosya ekle",
+      "submitReply": "Yanıtla",
+      "submitAssignment": "Devret",
+      "submitNote": "Not ekle",
+      "tooLargeTitle": "Dosya çok büyük",
+      "tooLargeBody": "\"{name}\" {size}. En fazla {max} ekleyebilirsiniz.",
+      "emptyTitle": "Not boş",
+      "emptyBody": "Bir şeyler yazın ya da dosya ekleyin.",
+      "noContextTitle": "Bağlam seçilmedi",
+      "noContextBody": "Not bir müşteri ya da ilan kaydına bağlanmalı.",
+      "saveErrorTitle": "Not kaydedilemedi",
+      "successReply": "Yanıt gönderildi",
+      "successAssignment": "Kayıt devredildi",
+      "successNote": "Not eklendi",
+      "failedTitle": "Kaydedilemedi",
+      "unexpectedError": "Beklenmeyen bir hata oluştu."
+    },
+    "page": {
+      "title": "Mesajlar",
+      "description": "Ekip içi iş notları. Bir müşteri ya da ilan kaydına soru sorun, not bırakın veya sorumluluğu devredin."
+    },
+    "filter": {
+      "open": "Açık sorular",
+      "mine": "Bana yönelik",
+      "all": "Tüm ekip",
+      "resolved": "Çözülmüş"
+    },
+    "filterBar": {
+      "viewAria": "İş notu görünümü",
+      "searchPlaceholder": "Not, müşteri ya da ilan…",
+      "typeLabel": "Not türü",
+      "allTypes": "Tüm türler"
+    },
+    "empty": {
+      "narrowedTitle": "Bu filtreye uyan not yok",
+      "narrowedBody": "Arama kutusunu ya da tür filtresini temizleyip tekrar deneyin.",
+      "openTitle": "Açık iş yok",
+      "openBody": "Ekipte cevap bekleyen bir soru ya da kabul edilmemiş bir devir kalmadı.",
+      "mineTitle": "Sana yönelik bir şey yok",
+      "mineBody": "Kimse seni bir notta anmamış. Biri “@adın” ile soru sorduğunda burada görünür ve menüdeki rozet artar.",
+      "resolvedTitle": "Henüz kapatılmış not yok",
+      "resolvedBody": "Bir soru cevaplandığında ya da bir devir kabul edildiğinde buraya düşer.",
+      "allTitle": "Henüz iş notu yok",
+      "allBody": "Yukarıdaki formdan bir müşteri veya ilan seçip ilk notu bırakın. Notlar ilgili kaydın detay sayfasında da görünür."
+    }
+  },
+  "documents": {
+    "type": {
+      "pdf": "Genel belge",
+      "tapu": "Tapu",
+      "kimlik": "Kimlik",
+      "sozlesme": "Sözleşme"
+    },
+    "section": {
+      "title": "Evraklar",
+      "archive": "Arşivde aç",
+      "empty": "Henüz belge yüklenmemiş. Tapu, kimlik ya da sözleşmeyi yukarıdaki alana sürükleyin; dosyalar korumalı alanda saklanır ve indirme bağlantıları kısa sürede geçersiz olur."
+    },
+    "row": {
+      "preview": "Önizle",
+      "openInNewTab": "Yeni sekmede aç",
+      "download": "İndir",
+      "deleteAria": "Belgeyi sil",
+      "deleteTitle": "Belge silinsin mi?",
+      "deleteDescription": "<b>{title}</b> ve dosyanın kendisi kalıcı olarak silinecek. Bu işlem geri alınamaz.",
+      "deleting": "Siliniyor…",
+      "previewError": "Önizlenemedi",
+      "downloadError": "İndirilemedi",
+      "deleteError": "Belge silinemedi",
+      "deleted": "Belge silindi"
+    },
+    "dropzone": {
+      "dropTitle": "Belgeyi buraya sürükleyin",
+      "hint": "PDF, Word veya görsel · en fazla {max}",
+      "choose": "Dosya seç",
+      "privacy": "Belgeler herkese açık olmayan bir alanda saklanır; indirme bağlantıları kişiye özel üretilir ve kısa sürede geçersiz olur.",
+      "removeFile": "Dosyayı kaldır",
+      "uploading": "Yükleniyor… {percent}",
+      "titleLabel": "Başlık",
+      "titlePlaceholder": "Örn. Tapu — Kadıköy dairesi",
+      "typeLabel": "Belge türü",
+      "customerLabel": "İlgili müşteri",
+      "listingLabel": "İlgili ilan",
+      "notSelected": "Seçilmedi",
+      "submit": "Belgeyi yükle",
+      "tooLargeTitle": "Dosya çok büyük",
+      "tooLargeBody": "\"{name}\" {size}. En fazla {max} yükleyebilirsiniz.",
+      "titleRequiredTitle": "Başlık gerekli",
+      "titleRequiredBody": "Belgeyi listede tanıyabilmek için bir başlık yazın.",
+      "saveErrorTitle": "Belge kaydedilemedi",
+      "success": "Belge yüklendi",
+      "failedTitle": "Yükleme başarısız",
+      "unexpectedError": "Yükleme sırasında beklenmeyen bir hata oluştu."
+    },
+    "page": {
+      "title": "Evraklar",
+      "searchDescription": "Belgeler müşteri kaydı üzerinden bulunur. Aramaya bir ad ya da numara yazın; kayda ait tapu, kimlik ve sözleşmeler açılır.",
+      "allArchive": "Tüm arşiv",
+      "totalLabel": "Toplam belge",
+      "countUnit": "belge"
+    },
+    "search": {
+      "placeholder": "Müşteri adı ya da telefon…",
+      "aria": "Müşteri ara",
+      "noMatchTitle": "Eşleşen müşteri yok",
+      "noMatchBody": "Adın ya da numaranın bir bölümünü yazmayı deneyin.",
+      "emptyTitle": "Henüz müşteri yok",
+      "emptyBody": "Önce Müşteriler sayfasından bir kayıt açın.",
+      "lastDocument": "Son belge: {date}"
+    },
+    "customerView": {
+      "back": "Müşteri aramaya dön",
+      "title": "{name} — Evraklar",
+      "description": "{count} belge kayıtlı. Dosyalar korumalı alanda saklanır, indirme bağlantıları kişiye özel üretilir.",
+      "customerRecord": "Müşteri kaydı",
+      "call": "Ara",
+      "emptyTitle": "Bu müşteriye ait belge yok",
+      "emptyBody": "Yukarıdaki alana bir dosya sürükleyerek ilk belgeyi yükleyin. Belge, müşteri detay sayfasında da görünür.",
+      "notFoundBack": "Evraklara dön",
+      "notFoundTitle": "Müşteri bulunamadı",
+      "notFoundDescription": "Kayıt silinmiş ya da erişim yetkiniz yok olabilir.",
+      "notFoundBadge": "Bulunamadı",
+      "notFoundEmptyTitle": "Bu müşteriye ulaşılamadı",
+      "notFoundEmptyBody": "Arama ekranına dönüp başka bir kayıt seçin.",
+      "emptyBadge": "Boş"
+    },
+    "archive": {
+      "title": "Tüm arşiv",
+      "description": "Bir müşteriye ya da ilana bağlanmamış belgeler dahil, yüklenmiş her kayıt. Tarih sırasına dizili.",
+      "emptyTitle": "Henüz belge yok",
+      "emptyBody": "Yukarıdaki alana bir dosya sürükleyerek ilk belgenizi yükleyin. Belgeyi bir müşteri ya da ilanla ilişkilendirirseniz onların detay sayfasında da görünür.",
+      "noMatchTitle": "Bu filtreye uyan belge yok",
+      "noMatchBody": "Filtreleri temizleyip tekrar deneyin."
+    },
+    "filterBar": {
+      "searchPlaceholder": "Belge başlığı…",
+      "typeLabel": "Belge türü",
+      "allTypes": "Tüm türler",
+      "customerLabel": "Müşteri",
+      "allCustomers": "Tüm müşteriler",
+      "listingLabel": "İlan",
+      "allListings": "Tüm ilanlar"
+    }
+  },
+  "notifications": {
+    "type": {
+      "customer_added": "Yeni müşteri",
+      "listing_created": "Yeni ilan",
+      "sale_closed": "Satış kapandı",
+      "appointment_scheduled": "Randevu planlandı",
+      "work_note_mention": "Sana soruldu",
+      "work_note_assigned": "Kayıt devri",
+      "work_note_resolved": "Soru çözüldü"
+    },
+    "page": {
+      "title": "Bildirimler",
+      "description": "Size atanan müşteriler, portföyünüzdeki hareketler ve ekipten gelen iş notları."
+    },
+    "list": {
+      "filterAria": "Bildirim filtresi",
+      "all": "Tümü",
+      "unread": "Okunmamış",
+      "markAll": "Tümünü okundu yap",
+      "emptyUnread": "Okunmamış bildiriminiz yok.",
+      "empty": "Henüz bildiriminiz yok. Size müşteri atandığında, ilanınız satıldığında ya da ekipten bir not geldiğinde burada görünecek.",
+      "legend": "Bildirim türleri: {types}. Bunlar size özel; ofisin genel hareket akışı için dashboard'daki <b>Son Aktiviteler</b> listesine bakın.",
+      "markAllError": "İşlem tamamlanamadı",
+      "markAllSuccess": "{count} bildirim okundu olarak işaretlendi"
+    },
+    "row": {
+      "unreadAria": "Okunmadı",
+      "markRead": "Okundu işaretle",
+      "markUnread": "Okunmadı işaretle",
+      "deleteAria": "Bildirimi sil",
+      "actionError": "İşlem tamamlanamadı",
+      "deleteError": "Bildirim silinemedi"
+    },
+    "bell": {
+      "aria": "Bildirimler",
+      "ariaUnread": "Bildirimler ({count} okunmamış)",
+      "title": "Bildirimler",
+      "newCount": "{count} yeni",
+      "markAll": "Tümünü okundu yap",
+      "empty": "Henüz bildiriminiz yok.",
+      "seeAll": "Tümünü gör",
+      "noUnread": "Okunmamış bildirim yok"
+    }
+  },
+  "appointments": {
+    "type": {
+      "ev_gezme": "Ev gezme",
+      "telefon_gorusmesi": "Telefon görüşmesi",
+      "ofis_gorusmesi": "Ofis görüşmesi",
+      "sozlesme_imzalama": "Sözleşme imzalama",
+      "diger": "Diğer"
+    },
+    "status": {
+      "planlandi": "Planlandı",
+      "tamamlandi": "Tamamlandı",
+      "iptal": "İptal edildi"
+    },
+    "page": {
+      "title": "Randevular",
+      "description": "Yer gösterme ve görüşme takviminiz. Tamamlanan randevu, müşterinin görüşme geçmişine otomatik işlenir."
+    },
+    "view": {
+      "gun": "Gün",
+      "hafta": "Hafta",
+      "ay": "Ay"
+    },
+    "toolbar": {
+      "previous": "Önceki",
+      "next": "Sonraki",
+      "today": "Bugün",
+      "viewsAria": "Takvim görünümü"
+    },
+    "filters": {
+      "typeLabel": "Tür",
+      "allTypes": "Tüm türler",
+      "statusLabel": "Durum",
+      "allStatuses": "Tüm durumlar",
+      "agentLabel": "Danışman",
+      "allAgents": "Tüm danışmanlar"
+    },
+    "workspace": {
+      "add": "Randevu Ekle",
+      "empty": "Bu aralıkta randevu yok. Izgarada boş bir saate tıklayarak oluşturabilirsiniz.",
+      "emptyFiltered": "Bu filtrelerle eşleşen randevu yok. Filtreleri temizleyip tekrar bakın.",
+      "moveError": "Randevu taşınamadı",
+      "moved": "Randevu taşındı"
+    },
+    "dialog": {
+      "createTitle": "Yeni randevu",
+      "editTitle": "Randevuyu düzenle",
+      "createDescription": "Müşteri ve saat zorunlu; ilan bağlamak isteğe bağlı.",
+      "editDescription": "Saat, katılımcı ve not bilgilerini güncelleyin.",
+      "typeLabel": "Randevu türü",
+      "titleLabel": "Başlık",
+      "dateLabel": "Tarih",
+      "startLabel": "Başlangıç",
+      "endLabel": "Bitiş",
+      "customerLabel": "Müşteri",
+      "customerPlaceholder": "Müşteri seçin",
+      "noCustomers": "Kayıtlı müşteri yok. Önce Müşteriler sayfasından bir kayıt açın.",
+      "listingLabel": "İlan",
+      "noListing": "İlana bağlı değil",
+      "agentLabel": "Danışman",
+      "agentPlaceholder": "Danışman seçin",
+      "locationLabel": "Konum",
+      "locationPlaceholder": "Ofis, ilan adresi, telefon…",
+      "notesLabel": "Not",
+      "notesPlaceholder": "Görüşmede konuşulacaklar, hatırlatmalar…",
+      "submitCreate": "Randevuyu oluştur",
+      "submitEdit": "Değişiklikleri kaydet",
+      "invalidTimeTitle": "Geçersiz saat",
+      "invalidTimeBody": "Başlangıç ve bitiş saatlerini kontrol edin.",
+      "invalidRangeTitle": "Geçersiz aralık",
+      "invalidRangeBody": "Bitiş saati başlangıçtan sonra olmalıdır.",
+      "missingTitle": "Eksik bilgi",
+      "missingCustomer": "Müşteri seçin.",
+      "createError": "Randevu kaydedilemedi",
+      "updateError": "Randevu güncellenemedi",
+      "createSuccess": "Randevu oluşturuldu",
+      "updateSuccess": "Randevu güncellendi"
+    },
+    "popover": {
+      "complete": "Tamamlandı",
+      "cancel": "İptal et",
+      "replan": "Planlandıya al",
+      "confirmDelete": "Emin misiniz?",
+      "statusError": "Randevu güncellenemedi",
+      "timelineAdded": "Müşterinin görüşme geçmişine de işlendi.",
+      "deleteError": "Randevu silinemedi",
+      "deleted": "Randevu silindi"
+    }
+  },
+  "customers": {
+    "status": {
+      "sicak": "Sıcak",
+      "normal": "Normal",
+      "soguk": "Soğuk"
+    },
+    "event": {
+      "created": "Müşteri kaydı oluşturuldu",
+      "called": "Telefonla görüşüldü",
+      "viewed": "İlanı yerinde gezdi",
+      "offer_sent": "Teklif gönderildi",
+      "negotiation": "Pazarlık görüşmesi yapıldı",
+      "purchased": "Satın alma tamamlandı",
+      "lost": "Süreç olumsuz sonuçlandı"
+    },
+    "budget": {
+      "under5": "5 Mn ₺ altı",
+      "from5to10": "5 – 10 Mn ₺",
+      "from10to20": "10 – 20 Mn ₺",
+      "from20to40": "20 – 40 Mn ₺",
+      "over40": "40 Mn ₺ üstü"
+    },
+    "sort": {
+      "label": "Sıralama",
+      "recent": "Son görüşmeye göre",
+      "name": "İsme göre (A-Z)",
+      "budgetDesc": "Bütçe (yüksekten)",
+      "budgetAsc": "Bütçe (düşükten)",
+      "interestDesc": "İlgilendiği ilan sayısı"
+    },
+    "list": {
+      "title": "Müşteriler",
+      "description": "Portföyünüzle ilgilenen alıcıları takip edin; her kayıt ilgilendiği ilanlar ve görüşme geçmişiyle birlikte tutulur.",
+      "new": "Yeni müşteri",
+      "searchPlaceholder": "Ad, telefon veya e-posta ile ara…",
+      "searchAria": "Müşterilerde ara",
+      "clearSearch": "Aramayı temizle",
+      "statusLabel": "Durum",
+      "allStatuses": "Tüm durumlar",
+      "agentLabel": "Temsilci",
+      "allAgents": "Tüm temsilciler",
+      "budgetLabel": "Bütçe",
+      "allBudgets": "Tüm bütçeler",
+      "count": "<b>{count}</b> müşteri listeleniyor",
+      "emptyBadge": "Boş liste",
+      "emptyTitle": "Henüz müşteri eklenmemiş",
+      "emptyDescription": "Müşteri kayıtlarınız burada listelenecek; her kayıt ilgilendiği ilanlarla ve görüşme geçmişiyle birlikte tutulur.",
+      "noResultBadge": "Sonuç yok",
+      "noResultTitle": "Aramanızla eşleşen müşteri yok",
+      "noResultDescription": "Bütçe bandını genişletmeyi veya temsilci seçimini kaldırmayı deneyin. Arama kutusu ad, telefon ve e-postada birlikte arar.",
+      "clearFilters": "Filtreleri temizle"
+    },
+    "card": {
+      "budgetRange": "Bütçe aralığı",
+      "listings": "{count} ilan",
+      "notContacted": "Görüşülmedi"
+    },
+    "detail": {
+      "back": "Müşterilere dön",
+      "registered": "{id} · {date} tarihinde kaydedildi",
+      "call": "Ara",
+      "email": "E-posta gönder",
+      "budgetRange": "Bütçe aralığı",
+      "lastContact": "Son görüşme",
+      "neverContacted": "Henüz görüşülmedi",
+      "interestLabel": "İlgilendiği ilan",
+      "interestValue": "{count} kayıt",
+      "notes": "Notlar",
+      "interests": "İlgilendiği İlanlar",
+      "interestsEmpty": "Bu müşteriyle henüz bir ilan eşleştirilmemiş.",
+      "agent": "Sorumlu Danışman",
+      "upcoming": "Yaklaşan Randevular",
+      "history": "Görüşme Geçmişi"
+    },
+    "timeline": {
+      "empty": "Bu müşteri için henüz kayıtlı bir hareket yok.",
+      "viewListing": "İlgili ilanı gör"
+    },
+    "addEvent": {
+      "trigger": "Görüşme kaydı ekle",
+      "title": "Yeni görüşme kaydı",
+      "typeLabel": "Olay türü",
+      "noteLabel": "Not",
+      "notePlaceholder": "Örn. Kadıköy'deki 3+1 için ikinci kez görüşüldü, fiyatta 500 B indirim bekliyor.",
+      "counter": "{count} / 500 karakter",
+      "emptyTitle": "Not boş bırakılamaz",
+      "emptyBody": "Görüşmede ne konuşulduğunu kısaca yazın.",
+      "errorTitle": "Kayıt eklenemedi",
+      "successTitle": "Görüşme kaydedildi"
+    },
+    "form": {
+      "metaNew": "Yeni Müşteri",
+      "newTitle": "Yeni müşteri ekle",
+      "newDescription": "Kayıt oluşturduktan sonra ilgilendiği ilanları ve görüşme geçmişini müşteri detayından takip edebilirsiniz.",
+      "editTitle": "Müşteriyi düzenle",
+      "editBack": "Müşteriye dön",
+      "identityTitle": "Kimlik Bilgileri",
+      "identityDescription": "Müşteri kartında ve arama sonuçlarında gösterilecek temel bilgiler.",
+      "fullNameLabel": "Ad soyad",
+      "fullNamePlaceholder": "Örn. Zeynep Arslan",
+      "phoneLabel": "Telefon",
+      "phonePlaceholder": "+90 532 000 00 00",
+      "emailLabel": "E-posta",
+      "emailPlaceholder": "ornek@eposta.com",
+      "budgetTitle": "Bütçe & Durum",
+      "budgetDescription": "Bütçe aralığı, ilan eşleştirmesinde ve müşteri filtrelerinde kullanılır.",
+      "budgetMinLabel": "Alt bütçe (₺)",
+      "budgetMaxLabel": "Üst bütçe (₺)",
+      "statusLabel": "İlgi durumu",
+      "statusHint": "Sıcak müşteriler listede öne çıkar.",
+      "agentLabel": "Sorumlu danışman",
+      "agentHintReassign": "Varsayılan olarak siz atandınız.",
+      "agentHintFixed": "Müşteri kendi portföyünüze kaydedilir.",
+      "notesTitle": "Notlar",
+      "notesDescription": "Ne aradığı, hangi koşullarda karar verdiği — ekibin geri kalanı bu notu okuyacak.",
+      "notesLabel": "Görüşme notu",
+      "notesPlaceholder": "Örn. Kadıköy tarafında, metroya yürüme mesafesinde 3+1 arıyor. Kredi ön onayı alındı.",
+      "notesCounter": "{count} / 1000 karakter",
+      "submitNew": "Müşteriyi kaydet",
+      "submitEdit": "Değişiklikleri kaydet",
+      "createError": "Müşteri kaydedilemedi",
+      "updateError": "Müşteri güncellenemedi",
+      "createSuccess": "Müşteri oluşturuldu",
+      "updateSuccess": "Müşteri güncellendi"
+    },
+    "validation": {
+      "nameMin": "Ad soyad en az 3 karakter olmalıdır.",
+      "nameMax": "Ad soyad en fazla 80 karakter olabilir.",
+      "phoneMin": "Telefon numarası en az 10 karakter olmalıdır.",
+      "phoneMax": "Telefon numarası çok uzun.",
+      "emailInvalid": "Geçerli bir e-posta adresi girin.",
+      "required": "{label} zorunludur.",
+      "numberOnly": "Yalnızca sayı girin.",
+      "positive": "{label} 0'dan büyük olmalıdır.",
+      "agentRequired": "Sorumlu danışman seçin.",
+      "notesMax": "Not en fazla 1000 karakter olabilir.",
+      "budgetOrder": "Üst bütçe alt bütçeden küçük olamaz.",
+      "budgetMinName": "Alt bütçe",
+      "budgetMaxName": "Üst bütçe"
+    },
+    "notFound": {
+      "badge": "Bulunamadı",
+      "title": "Bu müşteri kayıtlı değil",
+      "description": "Aradığınız kayıt silinmiş veya bağlantı hatalı olabilir. Müşteri listesinden arama yaparak devam edebilirsiniz.",
+      "back": "Müşterilere dön"
+    }
+  },
+  "agents": {
+    "role": {
+      "patron": "Patron",
+      "ofis_muduru": "Ofis Müdürü",
+      "danisman": "Danışman"
+    },
+    "inactive": "Pasif",
+    "page": {
+      "title": "Personeller",
+      "description": "Ekipteki {count} kişi, bu ayki satış performansları ve prim tutarlarıyla birlikte.",
+      "emptyBadge": "Boş",
+      "emptyTitle": "Ekipte henüz kimse yok",
+      "emptyBody": "Sağ üstteki davet düğmesiyle ilk hesabı açın; hesap anında oluşur ve size tek seferlik bir geçici şifre verilir."
+    },
+    "card": {
+      "month": "Bu ay · {count} satış",
+      "commission": "Prim ({rate})",
+      "activeCustomers": "{count} aktif müşteri",
+      "activeListings": "{count} aktif ilan"
+    },
+    "detail": {
+      "notFound": "Personel bulunamadı",
+      "back": "Personellere dön",
+      "inactiveNotice": "Bu personel <b>pasif</b> durumda: giriş yapabilir ama hiçbir veriye erişemez. Aşağıdaki ilanlar, müşteriler ve satış geçmişi olduğu gibi korunuyor.",
+      "totalSales": "Toplam satış",
+      "totalSalesHint": "{count} kapanan işlem",
+      "activeListings": "Aktif ilan",
+      "activeListingsHint": "{count} ilan portföyde",
+      "activeCustomers": "Aktif müşteri",
+      "activeCustomersHint": "{count} müşteri atanmış",
+      "listingsTitle": "Portföyündeki ilanlar",
+      "listingsEmpty": "Bu personele atanmış ilan yok.",
+      "moreListings": "{count} ilan daha",
+      "customersTitle": "Atanmış müşteriler",
+      "customersEmpty": "Bu personele atanmış müşteri yok.",
+      "moreCustomers": "{count} müşteri daha",
+      "joinedAt": "{date} tarihinde eklendi",
+      "hasAccount": "Bu personelin bir giriş hesabı var.",
+      "noAccount": "Bu personel henüz bir giriş hesabına bağlanmamış.",
+      "monthTitle": "Bu ay",
+      "monthDeals": "{count} kapanan işlem",
+      "commissionLabel": "Prim · {rate}",
+      "commissionHint": "Prim, ay içinde kapanan işlemlerin toplamı ile personelin komisyon oranının çarpımıdır."
+    },
+    "badges": {
+      "title": "Rozetler",
+      "hint": "Rozetler ayrı bir yerde saklanmaz; ilan, müşteri ve satış kayıtlarınızdan anlık hesaplanır.",
+      "item": {
+        "firstSale": {
+          "label": "İlk Satış",
+          "description": "İlk kapanan işleminizi tamamladınız."
+        },
+        "tenListings": {
+          "label": "10 İlan",
+          "description": "Portföyünüze on ilan girdi."
+        },
+        "twentyCustomers": {
+          "label": "20 Müşteri",
+          "description": "Yirmi müşteri kaydı size atandı."
+        },
+        "fiveSales": {
+          "label": "5 Satış",
+          "description": "Beş işlem kapattınız."
+        },
+        "tenMillionRevenue": {
+          "label": "10 Mn ₺ Ciro",
+          "description": "Toplam satış hacminiz 10 milyon TL'yi aştı."
+        }
+      }
+    },
+    "form": {
+      "metaTitle": "{name} · Düzenle",
+      "back": "Personele dön",
+      "title": "Personeli düzenle",
+      "identityTitle": "Kimlik",
+      "identityHint": "Kartlarda ve ilan/müşteri detaylarındaki danışman kartında görünür.",
+      "nameLabel": "Ad soyad",
+      "titleLabel": "Unvan",
+      "phoneLabel": "Telefon",
+      "phonePlaceholder": "+90 5xx xxx xx xx",
+      "emailLabel": "E-posta",
+      "emailHint": "Giriş hesabına bağlı; değiştirmek için yeni bir davet gerekir.",
+      "authorityTitle": "Yetki & Prim",
+      "authorityHint": "Rol neyi görebileceğini, prim oranı hakedişini belirler.",
+      "lockedSelf": "Kendi rolünüzü ve prim oranınızı değiştiremezsiniz; bunu başka bir yönetici yapmalı.",
+      "lockedPatron": "Patron rolüyle ilgili değişiklikleri yalnızca bir patron yapabilir.",
+      "roleLabel": "Yetki rolü",
+      "roleChange": "{from} → {to}",
+      "commissionLabel": "Prim oranı (%)",
+      "invalidRate": "Geçersiz prim oranı",
+      "invalidRateHint": "0 ile 100 arasında bir yüzde girin.",
+      "nameTooShort": "Ad soyad çok kısa",
+      "saveError": "Kaydedilemedi",
+      "saved": "Personel güncellendi",
+      "submit": "Değişiklikleri kaydet"
+    },
+    "invite": {
+      "trigger": "Yeni Personel Davet Et",
+      "formTitle": "Yeni personel davet et",
+      "formDescription": "Hesap hemen oluşturulur ve size bir geçici şifre verilir.",
+      "namePlaceholder": "Örn. Ayşe Yılmaz",
+      "emailPlaceholder": "ornek@emlakofisi.com",
+      "defaultTitle": "Gayrimenkul Danışmanı",
+      "titleHint": "Kartlarda görünen serbest metin. Yetkiyi aşağıdaki rol belirler.",
+      "roleHintAgent": "Yalnızca kendi ilan ve müşterilerini görür.",
+      "roleHintManager": "{role} tüm portföyü görür ve düzenler.",
+      "submit": "Hesabı oluştur",
+      "submitting": "Oluşturuluyor…",
+      "error": "Personel davet edilemedi",
+      "resultTitle": "Personel oluşturuldu",
+      "resultDescription": "{email} adresiyle bir hesap açıldı.",
+      "warning": "Bu şifre <b>yalnızca bir kez</b> gösteriliyor ve hiçbir yere kaydedilmedi. Bu pencereyi kapattığınızda geri getirilemez — şimdi kopyalayıp personele iletin.",
+      "passwordLabel": "Geçici şifre",
+      "copyAria": "Şifreyi kopyala",
+      "copyError": "Panoya kopyalanamadı",
+      "copyErrorHint": "Şifreyi elle seçip kopyalayın.",
+      "passwordHint": "Personel bu şifreyle giriş yaptıktan sonra Ayarlar üzerinden değiştirmeli."
+    },
+    "status": {
+      "deactivate": "Pasifleştir",
+      "activate": "Yeniden etkinleştir",
+      "confirmDeactivate": "{name} pasifleştirilsin mi?",
+      "confirmActivate": "{name} yeniden etkinleştirilsin mi?",
+      "deactivateBody": "Bu personel giriş yapabilir ama hiçbir veriye erişemez.",
+      "keepsRecords": "İlanları, müşterileri ve satışları silinmez",
+      "keepsHistory": "Prim ve performans geçmişi korunur",
+      "showsBadge": "Listelerde “pasif” rozetiyle görünür",
+      "reversible": "İstediğiniz zaman geri alabilirsiniz.",
+      "activateBody": "Erişimi geri açılacak; rolü ve prim oranı eskisi gibi kalacak.",
+      "processing": "İşleniyor…",
+      "confirmDeactivateAction": "Pasifleştir",
+      "confirmActivateAction": "Etkinleştir",
+      "error": "İşlem tamamlanamadı",
+      "deactivated": "Personel pasifleştirildi",
+      "activated": "Personel yeniden etkinleştirildi"
+    },
+    "guard": {
+      "badge": "Yetki gerekiyor",
+      "title": "Bu sayfayı görüntüleme yetkiniz yok",
+      "description": "Personel listesi ve performans bilgileri yalnızca patron ve ofis müdürü rolündeki kullanıcılara açıktır. Erişim gerekiyorsa ofis yöneticinizle görüşün."
+    },
+    "notFound": {
+      "badge": "Bulunamadı",
+      "title": "Bu personel kayıtlı değil",
+      "description": "Aradığınız kayıt silinmiş veya bağlantı hatalı olabilir. Personel listesinden devam edebilirsiniz.",
+      "action": "Personellere dön"
+    }
+  },
+  "settings": {
+    "page": {
+      "title": "Ayarlar",
+      "description": "Profilinizi, bildirim tercihlerinizi ve hesap güvenliğinizi buradan yönetin.",
+      "fallbackDescription": "Profil, tercihler ve şirket bilgileri.",
+      "viewProfile": "Profilimi gör"
+    },
+    "profile": {
+      "title": "Profil",
+      "description": "Fotoğrafınız, adınız ve iletişim bilgileriniz. Bu bilgiler ekip listesinde ve müşteri kayıtlarında görünür.",
+      "coverHint": "Profil sayfanızın üst şeridinde görünür. Geniş bir görsel seçin.",
+      "nameLabel": "Ad soyad",
+      "namePlaceholder": "Ad Soyad",
+      "nameHint": "Baş harfler (avatar yedeği) bu addan türetilir.",
+      "titleLabel": "Unvan",
+      "titlePlaceholder": "Örn. Kıdemli Portföy Danışmanı",
+      "titleHint": "Görünen unvan; yetki seviyeniz ayrı bir alandır.",
+      "phoneLabel": "Telefon",
+      "phonePlaceholder": "0532 000 00 00",
+      "emailLabel": "E-posta",
+      "emailHint": "E-posta aynı zamanda giriş kimliğiniz; değiştirilmesi doğrulama akışı gerektiriyor ve şu an kapsam dışı.",
+      "submit": "Değişiklikleri kaydet",
+      "saveError": "Profil kaydedilemedi",
+      "saved": "Profil güncellendi"
+    },
+    "password": {
+      "title": "Şifre",
+      "description": "Hesabınıza giriş için kullandığınız şifreyi değiştirin.",
+      "currentLabel": "Mevcut şifre",
+      "newLabel": "Yeni şifre",
+      "repeatLabel": "Yeni şifre (tekrar)",
+      "minHint": "En az {count} karakter.",
+      "mismatch": "Şifreler eşleşmiyor.",
+      "submit": "Şifreyi değiştir",
+      "submitting": "Güncelleniyor…",
+      "error": "Şifre değiştirilemedi",
+      "saved": "Şifreniz güncellendi",
+      "savedHint": "Bir sonraki girişte yeni şifrenizi kullanın."
+    },
+    "twoFactor": {
+      "title": "İki adımlı doğrulama",
+      "description": "Şifrenizin yanına ikinci bir doğrulama adımı ekler.",
+      "body": "Supabase, doğrulayıcı uygulama (TOTP) ile iki adımlı doğrulamayı destekliyor — ama bu bir aç/kapa anahtarı değil: QR kodu okutma, kod doğrulama ve <b>giriş akışına ikinci adım eklenmesi</b> gerekiyor. Yalnızca kaydı yapıp girişte sormamak, olmayan bir güvenliği varmış gibi göstermek olurdu. Bu yüzden ayrı bir iş olarak bırakıldı."
+    },
+    "notifications": {
+      "title": "Bildirim tercihleri",
+      "description": "Hangi olaylarda bildirim almak istediğinizi seçin. Değişiklikler anında kaydedilir.",
+      "hint": "Kapatılan tür için bildirim <b>hiç oluşturulmaz</b> — sonradan açtığınızda geçmişe dönük bildirim gelmez. Kendi yaptığınız işlemler zaten bildirim üretmez.",
+      "error": "Tercih kaydedilemedi",
+      "type": {
+        "customer_added": {
+          "label": "Yeni müşteri atandı",
+          "description": "Bir yönetici üzerinize müşteri kaydettiğinde."
+        },
+        "listing_created": {
+          "label": "Portföye ilan eklendi",
+          "description": "Bir yönetici portföyünüze ilan girdiğinde."
+        },
+        "sale_closed": {
+          "label": "Satış kapandı",
+          "description": "İlanınıza gelen bir teklif kabul edildiğinde."
+        },
+        "appointment_scheduled": {
+          "label": "Randevu planlandı",
+          "description": "Takviminize bir randevu eklendiğinde."
+        },
+        "work_note_mention": {
+          "label": "Sana soruldu",
+          "description": "Bir danışman bir notta sizi andığında ya da notunuzu yanıtladığında."
+        },
+        "work_note_assigned": {
+          "label": "Kayıt devri",
+          "description": "Bir müşteri ya da ilan size devredildiğinde veya sizden alındığında."
+        },
+        "work_note_resolved": {
+          "label": "Soru çözüldü",
+          "description": "Sorduğunuz bir soru cevaplandığında ya da yaptığınız devir kabul edildiğinde."
+        }
+      }
+    },
+    "appearance": {
+      "title": "Görünüm ve dil",
+      "description": "Tema ve arayüz dili.",
+      "themeBody": "<b>Tema.</b> Uygulama tek temayla (koyu) tasarlandı: tasarım token'ları koyu zeminde ayırt edilebilir olacak şekilde seçildi ve açık tema bunların tamamının ikinci bir setini gerektiriyor. Yarım bir açık tema, kontrastı bozuk bir arayüz demekti. Altyapı hazır — <c>globals.css</c> içindeki <c>light</c> varyantı bekliyor.",
+      "languageBody": "<b>Dil.</b> Arayüz Türkçe ve İngilizce olarak kullanılabiliyor. Seçim üst çubuktaki küre simgesinden yapılıyor, tercih bir çerezde saklanıyor ve oturumdan bağımsız olarak korunuyor. Çevirinin tamamı bitti: AI Asistan dışındaki her modül iki dilde de çalışıyor."
+    },
+    "company": {
+      "title": "Şirket bilgileri",
+      "description": "Ofisin resmi bilgileri. Tüm ekip görür, yalnızca yöneticiler düzenleyebilir.",
+      "logoLabel": "Logo",
+      "fallbackName": "Şirket",
+      "nameLabel": "Şirket adı",
+      "namePlaceholder": "Örn. Şahenk Gayrimenkul",
+      "addressLabel": "Adres",
+      "addressPlaceholder": "Mahalle, cadde, no, ilçe/il",
+      "taxOfficeLabel": "Vergi dairesi",
+      "taxOfficePlaceholder": "Örn. Kadıköy",
+      "taxNumberLabel": "Vergi numarası",
+      "phoneLabel": "Telefon",
+      "phonePlaceholder": "0216 000 00 00",
+      "emailLabel": "E-posta",
+      "emailPlaceholder": "info@ornek.com",
+      "submit": "Şirket bilgilerini kaydet",
+      "saveError": "Şirket bilgileri kaydedilemedi",
+      "saved": "Şirket bilgileri güncellendi"
+    },
+    "api": {
+      "title": "API anahtarları",
+      "description": "Dış sistemlerin bu CRM'e erişmesi için üretilen anahtarlar.",
+      "body": "Gerçek bir anahtar yönetimi; üretme, saklama (yalnızca özet), yetkilendirme kapsamı, iptal ve kullanım kaydı ister — kendi başına bir modül. Çalışmayan bir anahtar listesi göstermektense bölüm boş bırakıldı."
+    }
+  },
+  "profile": {
+    "page": {
+      "title": "Profilim",
+      "description": "Performansınız, iletişim bilgileriniz ve rozetleriniz.",
+      "fallbackDescription": "Hesabınıza bağlı personel kaydı.",
+      "editProfile": "Profili düzenle"
+    },
+    "stats": {
+      "totalSales": "Toplam satış",
+      "totalSalesHint": "{count} kapanan işlem",
+      "customers": "Müşteri",
+      "customersHint": "{count} aktif",
+      "listings": "İlan",
+      "listingsHint": "{count} aktif",
+      "monthlyCommission": "Bu ayki prim · {rate}",
+      "monthlyCommissionHint": "{count} işlem bu ay",
+      "month": "Bu ay",
+      "monthHint": "{count} işlem"
+    },
+    "account": {
+      "title": "Hesap bilgileri",
+      "phone": "Telefon",
+      "email": "E-posta",
+      "code": "Personel kodu",
+      "joined": "{date} tarihinde ekibe katıldınız. Rol ve prim oranınızı yalnızca ofis yöneticiniz değiştirebilir."
+    }
+  },
+  "agentField": {
+    "label": "Danışman",
+    "hintSelf": "Varsayılan olarak siz atandınız; ekipten başka birine devredebilirsiniz.",
+    "placeholder": "Danışman seçin",
+    "unassigned": "Atanmamış",
+    "noRecord": "Personel kaydı bulunamadı",
+    "lockedHint": "Bu alanı yalnızca yöneticiler değiştirebilir"
+  },
+  "upload": {
+    "avatar": {
+      "label": "Profil fotoğrafı",
+      "upload": "Fotoğraf yükle",
+      "hint": "JPG, PNG veya WebP · en fazla {size}. Boş bırakılırsa baş harfler gösterilir.",
+      "progressAria": "{name} fotoğrafı yükleniyor",
+      "error": "Fotoğraf yüklenemedi"
+    },
+    "cover": {
+      "label": "Kapak görseli",
+      "select": "Kapak seç",
+      "alt": "Kapak önizlemesi",
+      "error": "Kapak yüklenemedi"
+    },
+    "change": "Değiştir",
+    "remove": "Kaldır",
+    "errors": {
+      "unexpected": "Beklenmeyen bir hata oluştu.",
+      "unsupportedImage": "“{name}” desteklenmeyen bir biçimde. JPG, PNG veya WebP yükleyin.",
+      "unsupportedDocument": "“{name}” desteklenmeyen bir biçimde. PDF, Word veya görsel yükleyin.",
+      "tooLarge": "“{name}” çok büyük ({size}). En fazla {limit} yükleyebilirsiniz.",
+      "emptyFile": "“{name}” boş görünüyor.",
+      "sessionExpired": "Oturumunuz sonlanmış. Sayfayı yenileyip tekrar deneyin.",
+      "stillTooLarge": "“{name}” sıkıştırıldıktan sonra bile {size} — sınır {limit}.",
+      "serverLimit": "“{name}” sunucu sınırını aştı (en fazla {limit}).",
+      "forbidden": "Bu dosyayı yükleme yetkiniz yok.",
+      "httpFailed": "Yükleme başarısız (HTTP {status}).",
+      "connection": "Bağlantı hatası — yükleme tamamlanamadı.",
+      "aborted": "Yükleme iptal edildi."
+    }
+  }
+}

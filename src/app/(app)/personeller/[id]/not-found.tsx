@@ -1,19 +1,22 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { UserRoundX } from "lucide-react";
 
 import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 
-export default function AgentNotFound() {
+export default async function AgentNotFound() {
+  const t = await getTranslations("agents.notFound");
+
   return (
     <EmptyState
       icon={UserRoundX}
-      badge="Bulunamadı"
-      title="Bu personel kayıtlı değil"
-      description="Aradığınız kayıt silinmiş veya bağlantı hatalı olabilir. Personel listesinden devam edebilirsiniz."
+      badge={t("badge")}
+      title={t("title")}
+      description={t("description")}
       action={
         <Button asChild>
-          <Link href="/personeller">Personellere dön</Link>
+          <Link href="/personeller">{t("action")}</Link>
         </Button>
       }
       className="min-h-[460px]"

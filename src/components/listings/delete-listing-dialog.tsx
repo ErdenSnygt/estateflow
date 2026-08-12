@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { deleteListing } from "@/lib/actions/listings";
@@ -32,6 +33,7 @@ export function DeleteListingDialog({
   listingTitle: string;
 }) {
   const router = useRouter();
+  const t = useTranslations("listings.delete");
   const [open, setOpen] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
 
@@ -44,13 +46,13 @@ export function DeleteListingDialog({
     setIsDeleting(false);
 
     if (!result.ok) {
-      toast.error("İlan silinemedi", { description: result.error });
+      toast.error(t("errorTitle"), { description: result.error });
       return;
     }
 
     setOpen(false);
-    toast.success("İlan silindi", {
-      description: `${listingTitle} portföyden kaldırıldı.`,
+    toast.success(t("successTitle"), {
+      description: t("successDescription", { title: listingTitle }),
     });
 
     router.push("/ilanlar");
@@ -62,32 +64,40 @@ export function DeleteListingDialog({
       <AlertDialogTrigger asChild>
         <Button variant="secondary" className="text-danger hover:text-danger">
           <Trash2 className="size-4" />
-          Sil
+          {t("trigger")}
         </Button>
       </AlertDialogTrigger>
 
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>İlanı silmek istiyor musunuz?</AlertDialogTitle>
+          <AlertDialogTitle>{t("title")}</AlertDialogTitle>
           <AlertDialogDescription>
-            <span className="font-medium text-foreground">{listingTitle}</span>{" "}
-            ({listingId.toUpperCase()}) portföyünüzden kaldırılacak. Bu işlem
-            geri alınamaz ve ilan yayında olduğu portallardan da düşer.
+            {/* Cümle parçalanmıyor: ilan adı Türkçe'de başta, İngilizce'de de
+                başta ama noktalama ve devamı dile göre değişiyor. Kalın yazım
+                metnin İÇİNDE `<b>` olarak duruyor, `t.rich` onu React
+                elemanına çeviriyor. */}
+            {t.rich("description", {
+              title: listingTitle,
+              id: listingId.toUpperCase(),
+              b: (chunks) => (
+                <span className="font-medium text-foreground">{chunks}</span>
+              ),
+            })}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isDeleting}>Vazgeç</AlertDialogCancel>
+          <AlertDialogCancel disabled={isDeleting}>{t("cancel")}</AlertDialogCancel>
           <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
             {isDeleting ? (
               <>
                 <Loader2 className="size-4 animate-spin" />
-                Siliniyor…
+                {t("deleting")}
               </>
             ) : (
               <>
                 <Trash2 className="size-4" />
-                Evet, sil
+                {t("confirm")}
               </>
             )}
           </AlertDialogAction>

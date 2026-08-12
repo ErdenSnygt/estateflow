@@ -1,3 +1,5 @@
+import type { Formatter } from "@/i18n/dates";
+
 /**
  * ============================================================================
  * TAKVİM MATEMATİĞİ
@@ -211,11 +213,10 @@ export function monthGrid(date: DateKey): DateKey[][] {
 export const CALENDAR_VIEWS = ["gun", "hafta", "ay"] as const;
 export type CalendarView = (typeof CALENDAR_VIEWS)[number];
 
-export const CALENDAR_VIEW_LABELS: Record<CalendarView, string> = {
-  gun: "Gün",
-  hafta: "Hafta",
-  ay: "Ay",
-};
+/* Görünüm ETİKETLERİ burada değil, sözlükte (`appointments.view.*`).
+   Değerler Türkçe kalıyor çünkü URL'de görünüyorlar (`?view=hafta`) ve bir
+   bağlantının anlamı dil değiştirince değişmemeli — `listings` kategorileri
+   veritabanında `'satilik'` tuttuğu için çevrilmediğiyle aynı ayrım. */
 
 /**
  * Görünümün kapsadığı gün aralığı — veri sorgusu bunu kullanıyor.
@@ -281,69 +282,83 @@ export function formatDuration(minutes: number): string {
    ========================================================================== */
 
 /**
- * Ay ve gün adları SABİT DİZİ, `Intl` değil.
+ * ============================================================================
+ * FAZ 21: SABİT DİZİLER KALKTI, `Intl` GELDİ
+ * ============================================================================
+ * Burada on dokuz Türkçe kelime elde tutuluyordu ve gerekçesi şuydu: gün
+ * anahtarını (`"2026-07-28"`) `Date`e çevirip `Intl`e vermek, modülün özenle
+ * kaçındığı saat dilimi çözümlemesini geri getirirdi.
  *
- * `data/sales.ts` grafik ekseni için aynı şeyi yapıyor ve gerekçe aynı: gün
- * anahtarı zaten ofis takviminde: onu `Date`e çevirip `Intl`e vermek, kaçındığımız
- * saat dilimi çözümlemesini geri getirirdi. Tek dil konuşan bir arayüzde on
- * dokuz kelimeyi elde tutmak daha ucuz.
+ * O gerekçe iki dilde geçersiz — ay adları dilin parçası ve iki dizi tutmak
+ * `Intl`i elle yeniden yazmak olurdu. Saat dilimi endişesi ise BURADA GEÇERLİ
+ * DEĞİL, çünkü:
+ *
+ *  · Gün anahtarı UTC gece yarısı olarak okunuyor (`dateFromKey`),
+ *  · biçimlendirici Europe/Istanbul'a sabit (`i18n/request.ts`),
+ *  · Türkiye UTC'nin DAİMA İLERİSİNDE (bugün +3, 2016 öncesinde +2).
+ *
+ * Yani UTC gece yarısı her zaman aynı takvim gününün sabahına düşüyor; gün
+ * kayması mümkün değil. Ters yönde (Amerika saat dilimleri) bu tutmazdı ve o
+ * yüzden varsayım burada açıkça yazılı.
+ *
+ * Fonksiyonlar `Formatter`ı PARAMETRE olarak alıyor, kendileri okumuyor:
+ * modül saf kalsın ve `calendar.test.ts` sahte bir biçimlendiriciyle
+ * çalışabilsin diye — `listings-schema.ts` fabrikasıyla aynı desen.
  */
-const MONTH_LONG = [
-  "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
-  "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık",
-] as const;
 
-const MONTH_SHORT = [
-  "Oca", "Şub", "Mar", "Nis", "May", "Haz",
-  "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara",
-] as const;
-
-/** Pazartesiden başlar — `weekdayIndex` ile aynı sıra. */
-export const WEEKDAY_SHORT = [
-  "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz",
-] as const;
-
-export const WEEKDAY_LONG = [
-  "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar",
-] as const;
+/** Gün anahtarını `Intl`e verilebilir bir ana çevirir (UTC gece yarısı). */
+function dateFromKey(date: DateKey): Date {
+  return new Date(`${date}T00:00:00Z`);
+}
 
 /** Ayın kaçıncı günü. */
 export function dayNumber(date: DateKey): number {
   return Number(date.slice(8, 10));
 }
 
-/** "28 Temmuz 2026" */
-export function formatDayLong(date: DateKey): string {
-  const [year, month, day] = date.split("-").map(Number);
-  return `${day} ${MONTH_LONG[month - 1]} ${year}`;
+/** "28 Temmuz 2026" · "July 28, 2026" */
+export function formatDayLong(format: Formatter, date: DateKey): string {
+  return format.dateTime(dateFromKey(date), "long");
 }
 
-/** "28 Tem" */
-export function formatDayShort(date: DateKey): string {
-  const [, month, day] = date.split("-").map(Number);
-  return `${day} ${MONTH_SHORT[month - 1]}`;
+/** "28 Tem" · "Jul 28" */
+export function formatDayShort(format: Formatter, date: DateKey): string {
+  return format.dateTime(dateFromKey(date), "dayShort");
 }
 
-/** "Temmuz 2026" */
-export function formatMonthLong(date: DateKey): string {
-  const [year, month] = date.split("-").map(Number);
-  return `${MONTH_LONG[month - 1]} ${year}`;
+/** "Temmuz 2026" · "July 2026" */
+export function formatMonthLong(format: Formatter, date: DateKey): string {
+  return format.dateTime(dateFromKey(date), "monthLong");
+}
+
+/** "Salı" · "Tuesday" */
+export function formatWeekdayLong(format: Formatter, date: DateKey): string {
+  return format.dateTime(dateFromKey(date), "weekdayLong");
+}
+
+/** "Sal" · "Tue" — ızgara sütun başlıkları. */
+export function formatWeekdayShort(format: Formatter, date: DateKey): string {
+  return format.dateTime(dateFromKey(date), "weekdayShort");
 }
 
 /** Görünüm başlığı: gün, hafta aralığı ya da ay. */
-export function formatViewLabel(view: CalendarView, date: DateKey): string {
+export function formatViewLabel(
+  format: Formatter,
+  view: CalendarView,
+  date: DateKey,
+): string {
   switch (view) {
     case "gun":
-      return `${formatDayLong(date)}, ${WEEKDAY_LONG[weekdayIndex(date)]}`;
+      return `${formatDayLong(format, date)}, ${formatWeekdayLong(format, date)}`;
     case "hafta": {
       const days = weekDays(date);
       const sameYear = days[0].slice(0, 4) === days[6].slice(0, 4);
       return sameYear
-        ? `${formatDayShort(days[0])} – ${formatDayShort(days[6])} ${days[6].slice(0, 4)}`
-        : `${formatDayShort(days[0])} ${days[0].slice(0, 4)} – ${formatDayShort(days[6])} ${days[6].slice(0, 4)}`;
+        ? `${formatDayShort(format, days[0])} – ${formatDayShort(format, days[6])} ${days[6].slice(0, 4)}`
+        : `${formatDayShort(format, days[0])} ${days[0].slice(0, 4)} – ${formatDayShort(format, days[6])} ${days[6].slice(0, 4)}`;
     }
     case "ay":
-      return formatMonthLong(date);
+      return formatMonthLong(format, date);
   }
 }
 

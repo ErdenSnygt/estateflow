@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { getTranslations } from "next-intl/server";
 
 import { createClient } from "@/lib/supabase/server";
 
@@ -40,8 +41,13 @@ export async function GET(request: NextRequest) {
   }
 
   if (!code) {
+    /* Kendi ürettiğimiz TEK mesaj bu, dolayısıyla çevrilen de tek bu.
+       Sağlayıcıdan gelen `providerError` ve Supabase'in `error.message`
+       değeri dışarıdan geliyor ve İngilizce — onları çevirmek, olmayan bir
+       sözlüğü uydurmak olurdu (bkz. README, "Neler çevrilmiyor"). */
+    const t = await getTranslations("auth");
     return NextResponse.redirect(
-      `${origin}/login?error=${encodeURIComponent("Giriş kodu alınamadı.")}`,
+      `${origin}/login?error=${encodeURIComponent(t("missingCode"))}`,
     );
   }
 

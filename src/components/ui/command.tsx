@@ -30,14 +30,16 @@ function Command({
 }
 
 function CommandDialog({
-  title = "Komut paleti",
-  description = "Sayfa ve komut arayın",
+  /* Ikisi de sr-only ve EKRAN OKUYUCU icin: varsayilan degerleri buradaydi
+     ve sabit Turkce idi. Primitive dili bilmiyor; metni cagiran veriyor. */
+  title,
+  description,
   children,
   className,
   ...props
 }: React.ComponentProps<typeof Dialog> & {
-  title?: string;
-  description?: string;
+  title: string;
+  description: string;
   className?: string;
 }) {
   return (

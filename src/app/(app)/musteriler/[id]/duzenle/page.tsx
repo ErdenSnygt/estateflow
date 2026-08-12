@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 import { getCustomerById } from "@/lib/data/customers";
 import { getAgents } from "@/lib/data/agents";
@@ -14,18 +15,25 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const customer = await getCustomerById(id);
+  const [customer, t, tCommon] = await Promise.all([
+    getCustomerById(id),
+    getTranslations("customers"),
+    getTranslations("common"),
+  ]);
   return {
-    title: customer ? `${customer.full_name} · Düzenle` : "Müşteri bulunamadı",
+    title: customer
+      ? `${customer.full_name} · ${tCommon("edit")}`
+      : t("notFound.title"),
   };
 }
 
 export default async function EditCustomerPage({ params }: PageProps) {
   const { id } = await params;
-  const [customer, agents, currentAgent] = await Promise.all([
+  const [customer, agents, currentAgent, t] = await Promise.all([
     getCustomerById(id),
     getAgents(),
     getCurrentAgent(),
+    getTranslations("customers.form"),
   ]);
 
   if (!customer) notFound();
@@ -34,8 +42,8 @@ export default async function EditCustomerPage({ params }: PageProps) {
     <div className="space-y-6 pb-4">
       <PageHeader
         backHref={`/musteriler/${customer.id}`}
-        backLabel="Müşteriye dön"
-        title="Müşteriyi düzenle"
+        backLabel={t("editBack")}
+        title={t("editTitle")}
         description={`${customer.id.toUpperCase()} · ${customer.full_name}`}
       />
 

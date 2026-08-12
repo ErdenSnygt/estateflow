@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import {
   Bell,
   Building2,
@@ -25,9 +26,10 @@ import { PasswordForm } from "@/components/settings/password-form";
 import { NotificationPreferencesForm } from "@/components/settings/notification-preferences-form";
 import { CompanyForm } from "@/components/settings/company-form";
 
-export const metadata: Metadata = {
-  title: "Ayarlar",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("settings.page");
+  return { title: t("title") };
+}
 
 /**
  * ============================================================================
@@ -42,9 +44,11 @@ export const metadata: Metadata = {
  * (`company_settings_write`) ve action'ın ilk satırındaki rol kontrolü.
  */
 export default async function AyarlarPage() {
-  const [agent, company] = await Promise.all([
+  const [agent, company, t, tCommon] = await Promise.all([
     getCurrentAgent(),
     getCompanySettings(),
+    getTranslations("settings"),
+    getTranslations("common"),
   ]);
 
   /* Personel kaydına bağlanmamış kullanıcıya form göstermenin anlamı yok:
@@ -53,8 +57,8 @@ export default async function AyarlarPage() {
     return (
       <div className="space-y-6 pb-4">
         <PageHeader
-          title="Ayarlar"
-          description="Profil, tercihler ve şirket bilgileri."
+          title={t("page.title")}
+          description={t("page.fallbackDescription")}
         />
         <AgentNotice />
       </div>
@@ -66,13 +70,13 @@ export default async function AyarlarPage() {
   return (
     <div className="space-y-5 pb-4">
       <PageHeader
-        title="Ayarlar"
-        description="Profilinizi, bildirim tercihlerinizi ve hesap güvenliğinizi buradan yönetin."
+        title={t("page.title")}
+        description={t("page.description")}
         actions={
           <Button variant="secondary" asChild>
             <Link href="/profil">
               <UserRound className="size-4" />
-              Profilimi gör
+              {t("page.viewProfile")}
             </Link>
           </Button>
         }
@@ -81,8 +85,8 @@ export default async function AyarlarPage() {
       {/* --- Profil --- */}
       <SettingsSection
         icon={UserRound}
-        title="Profil"
-        description="Fotoğrafınız, adınız ve iletişim bilgileriniz. Bu bilgiler ekip listesinde ve müşteri kayıtlarında görünür."
+        title={t("profile.title")}
+        description={t("profile.description")}
       >
         <ProfileForm agent={agent} />
       </SettingsSection>
@@ -90,8 +94,8 @@ export default async function AyarlarPage() {
       {/* --- Şifre --- */}
       <SettingsSection
         icon={KeyRound}
-        title="Şifre"
-        description="Hesabınıza giriş için kullandığınız şifreyi değiştirin."
+        title={t("password.title")}
+        description={t("password.description")}
       >
         <PasswordForm />
       </SettingsSection>
@@ -102,58 +106,69 @@ export default async function AyarlarPage() {
           bir açma/kapama anahtarı olarak sunulamıyor. */}
       <SettingsSection
         icon={ShieldCheck}
-        title="İki adımlı doğrulama"
-        description="Şifrenizin yanına ikinci bir doğrulama adımı ekler."
-        badge="Yakında"
+        title={t("twoFactor.title")}
+        description={t("twoFactor.description")}
+        badge={tCommon("soonBadge")}
       >
         <SettingsPlaceholder>
-          Supabase, doğrulayıcı uygulama (TOTP) ile iki adımlı doğrulamayı
-          destekliyor — ama bu bir aç/kapa anahtarı değil: QR kodu okutma, kod
-          doğrulama ve <strong>giriş akışına ikinci adım eklenmesi</strong>{" "}
-          gerekiyor. Yalnızca kaydı yapıp girişte sormamak, olmayan bir
-          güvenliği varmış gibi göstermek olurdu. Bu yüzden ayrı bir iş olarak
-          bırakıldı.
+          {t.rich("twoFactor.body", { b: (chunks) => <strong>{chunks}</strong> })}
         </SettingsPlaceholder>
       </SettingsSection>
 
       {/* --- Bildirim tercihleri --- */}
       <SettingsSection
         icon={Bell}
-        title="Bildirim tercihleri"
-        description="Hangi olaylarda bildirim almak istediğinizi seçin. Değişiklikler anında kaydedilir."
+        title={t("notifications.title")}
+        description={t("notifications.description")}
       >
         <NotificationPreferencesForm
           value={agent.notification_preferences}
         />
       </SettingsSection>
 
-      {/* --- Görünüm ve dil --- */}
+      {/* --- Görünüm ve dil ---
+          ROZET KALDIRILDI (Faz 20). Faz 19'da bölüm "Yakında" işaretliydi ve o
+          zaman doğruydu: ne tema ne dil çalışıyordu. Dil gerçek olunca rozet
+          yanlış bilgi vermeye başladı — bölümün yarısı çalışıyor. Tema hâlâ
+          beklemede ve bunu artık kendi açıklaması söylüyor.
+
+          Faz 25: dil metni de güncellendi. "Çeviri modül modül ilerliyor"
+          cümlesi doğruluğunu yitirdi — seri bitti. */}
       <SettingsSection
         icon={Moon}
-        title="Görünüm ve dil"
-        description="Tema ve arayüz dili."
-        badge="Yakında"
+        title={t("appearance.title")}
+        description={t("appearance.description")}
       >
         <div className="space-y-3">
           <SettingsPlaceholder>
-            <strong className="text-secondary-foreground">Tema.</strong>{" "}
-            Uygulama tek temayla (koyu) tasarlandı: tasarım token&apos;ları
-            koyu zeminde ayırt edilebilir olacak şekilde seçildi ve açık tema
-            bunların tamamının ikinci bir setini gerektiriyor. Yarım bir açık
-            tema, kontrastı bozuk bir arayüz demekti. Altyapı hazır —
-            <code className="mx-1 rounded bg-surface px-1 py-0.5 text-[11px]">
-              globals.css
-            </code>
-            içindeki <code className="text-[11px]">light</code> varyantı
-            bekliyor.
+            {/* İki etiketli zengin metin: <b> bölümün adı, <c> dosya/değişken
+                adı. Cümlenin akışı iki dilde farklı, o yüzden parçalara
+                bölünmüyor. */}
+            {t.rich("appearance.themeBody", {
+              b: (chunks) => (
+                <strong className="text-secondary-foreground">{chunks}</strong>
+              ),
+              c: (chunks) => (
+                <code className="mx-1 rounded bg-surface px-1 py-0.5 text-[11px]">
+                  {chunks}
+                </code>
+              ),
+            })}
           </SettingsPlaceholder>
 
+          {/* DİL ARTIK PLACEHOLDER DEĞİL — Faz 19.
+              Buradaki metin, dil seçiminin neden bir "yakında" olmaktan
+              çıktığını ve seçicinin nerede olduğunu söylüyor. Seçicinin
+              KENDİSİ burada tekrarlanmıyor: navbar'da her sayfada duruyor ve
+              aynı kontrolü iki yere koymak, hangisinin geçerli olduğu
+              sorusunu doğururdu. */}
           <SettingsPlaceholder>
             <Globe className="mr-1 inline size-3.5" />
-            <strong className="text-secondary-foreground">Dil.</strong> Arayüz
-            metinleri şu an bileşenlerin içinde yazılı. Dil seçimi, önce bir
-            çeviri katmanı (i18n) ve tüm metinlerin oradan okunması demek —
-            sözlük olmadan açılır menü yalnızca tek seçenek gösterirdi.
+            {t.rich("appearance.languageBody", {
+              b: (chunks) => (
+                <strong className="text-secondary-foreground">{chunks}</strong>
+              ),
+            })}
           </SettingsPlaceholder>
         </div>
       </SettingsSection>
@@ -162,8 +177,8 @@ export default async function AyarlarPage() {
       {isManager && (
         <SettingsSection
           icon={Building2}
-          title="Şirket bilgileri"
-          description="Ofisin resmi bilgileri. Tüm ekip görür, yalnızca yöneticiler düzenleyebilir."
+          title={t("company.title")}
+          description={t("company.description")}
         >
           <CompanyForm settings={company} />
         </SettingsSection>
@@ -172,16 +187,11 @@ export default async function AyarlarPage() {
       {/* --- API anahtarları --- */}
       <SettingsSection
         icon={KeyRound}
-        title="API anahtarları"
-        description="Dış sistemlerin bu CRM'e erişmesi için üretilen anahtarlar."
-        badge="Yakında"
+        title={t("api.title")}
+        description={t("api.description")}
+        badge={tCommon("soonBadge")}
       >
-        <SettingsPlaceholder>
-          Gerçek bir anahtar yönetimi; üretme, saklama (yalnızca özet),
-          yetkilendirme kapsamı, iptal ve kullanım kaydı ister — kendi başına
-          bir modül. Çalışmayan bir anahtar listesi göstermektense bölüm boş
-          bırakıldı.
-        </SettingsPlaceholder>
+        <SettingsPlaceholder>{t("api.body")}</SettingsPlaceholder>
       </SettingsSection>
     </div>
   );

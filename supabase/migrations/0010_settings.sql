@@ -1,5 +1,5 @@
 -- =============================================================================
--- Emlak CRM — ayarlar, profil ve şirket bilgileri
+-- EstateFlow — ayarlar, profil ve şirket bilgileri
 -- =============================================================================
 -- Faz 14. Üç ekleme: personelin kendi tercihleri, profil kapak görseli ve
 -- ofis geneli şirket ayarları.
@@ -87,7 +87,7 @@ create table if not exists public.company_settings (
 -- form boş alanlarla açılsın. `on conflict do nothing` tekrar çalıştırmayı
 -- güvenli kılıyor — mevcut değerleri ezmiyor.
 insert into public.company_settings (id, name)
-values ('default', 'Emlak CRM')
+values ('default', 'EstateFlow')
 on conflict (id) do nothing;
 
 drop trigger if exists company_settings_set_updated_at on public.company_settings;

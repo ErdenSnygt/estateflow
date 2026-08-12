@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { AnimatePresence, motion } from "framer-motion";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 
@@ -60,6 +61,7 @@ export function Sidebar({
   canToggle = true,
 }: SidebarProps) {
   const pathname = usePathname();
+  const t = useTranslations();
 
   return (
     <aside
@@ -115,15 +117,15 @@ export function Sidebar({
 
       {/* --- Menü ----------------------------------------------------------- */}
       <nav
-        aria-label="Ana gezinme"
+        aria-label={t("sidebar.mainNav")}
         className={cn(
           "flex-1 space-y-5 overflow-y-auto overflow-x-hidden pb-4",
           isCollapsed ? "px-3" : "px-3",
         )}
       >
         {navigation.map((group) => (
-          <div key={group.paletteTitle} className="space-y-1">
-            {group.title && (
+          <div key={group.key} className="space-y-1">
+            {group.showTitle && (
               <div className="flex h-6 items-center px-3">
                 <AnimatePresence initial={false} mode="wait">
                   {isCollapsed ? (
@@ -144,7 +146,7 @@ export function Sidebar({
                       transition={{ duration: 0.14 }}
                       className="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-muted-foreground"
                     >
-                      {group.title}
+                      {t(`nav.groups.${group.key}`)}
                     </motion.span>
                   )}
                 </AnimatePresence>
@@ -195,7 +197,7 @@ export function Sidebar({
             <button
               type="button"
               onClick={onToggle}
-              aria-label={isCollapsed ? "Menüyü genişlet" : "Menüyü daralt"}
+              aria-label={t(isCollapsed ? "sidebar.expand" : "sidebar.collapse")}
               className={cn(
                 "flex h-9 items-center rounded-lg text-[13px] font-medium",
                 "text-muted-foreground transition-colors duration-200",
@@ -208,11 +210,11 @@ export function Sidebar({
               ) : (
                 <PanelLeftClose className="size-[18px]" />
               )}
-              {!isCollapsed && <span>Menüyü daralt</span>}
+              {!isCollapsed && <span>{t("sidebar.collapse")}</span>}
             </button>
           </TooltipTrigger>
           {isCollapsed && (
-            <TooltipContent side="right">Menüyü genişlet</TooltipContent>
+            <TooltipContent side="right">{t("sidebar.expand")}</TooltipContent>
           )}
         </Tooltip>
         )}

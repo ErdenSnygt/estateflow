@@ -1,10 +1,11 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useFormContext, type FieldValues } from "react-hook-form";
 import { Lock } from "lucide-react";
 
 import type { Agent } from "@/types/database";
-import { AGENT_ROLE_LABELS, AGENT_ROLE_TONES } from "@/lib/agents";
+import { AGENT_ROLE_TONES } from "@/lib/agents";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -62,6 +63,8 @@ export function AgentField({
   className?: string;
 }) {
   const form = useFormContext<FieldValues>();
+  const t = useTranslations("agentField");
+  const tRole = useTranslations("agents.role");
 
   return (
     <FormField
@@ -82,7 +85,7 @@ export function AgentField({
               <Select value={field.value ?? ""} onValueChange={field.onChange}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Danışman seçin" />
+                    <SelectValue placeholder={t("placeholder")} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -103,21 +106,21 @@ export function AgentField({
 
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[13.5px] font-medium text-foreground">
-                    {selected?.full_name ?? "Atanmamış"}
+                    {selected?.full_name ?? t("unassigned")}
                   </p>
                   <p className="truncate text-[11.5px] text-muted-foreground">
-                    {selected?.title ?? "Personel kaydı bulunamadı"}
+                    {selected?.title ?? t("noRecord")}
                   </p>
                 </div>
 
                 {selected && (
                   <Badge variant={AGENT_ROLE_TONES[selected.role]}>
-                    {AGENT_ROLE_LABELS[selected.role]}
+                    {tRole(selected.role)}
                   </Badge>
                 )}
 
                 <Lock
-                  aria-label="Bu alanı yalnızca yöneticiler değiştirebilir"
+                  aria-label={t("lockedHint")}
                   className="size-3.5 shrink-0 text-muted-foreground"
                 />
               </div>

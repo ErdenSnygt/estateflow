@@ -7,7 +7,14 @@ import type { AgentAuditAction } from "@/types/supabase";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentAgent } from "@/lib/auth/server";
 import { isManagerRole } from "@/lib/agents";
-import { fail, ok, toMessage, type ActionResult } from "@/lib/actions/result";
+import {
+  fail,
+  ok,
+  raw,
+  toMessage,
+  type ActionErrorKey,
+  type ActionResult,
+} from "@/lib/actions/result";
 import { removeStorageObjects } from "@/lib/storage/cleanup";
 
 /**
@@ -49,7 +56,7 @@ import { removeStorageObjects } from "@/lib/storage/cleanup";
 
 type Guard =
   | { ok: true; actor: Agent }
-  | { ok: false; error: string };
+  | { ok: false; error: ActionErrorKey };
 
 async function requireManager(): Promise<Guard> {
   const actor = await getCurrentAgent();
@@ -57,19 +64,19 @@ async function requireManager(): Promise<Guard> {
   if (!actor) {
     return {
       ok: false,
-      error: "Oturumunuz bir personel kaydına bağlı değil.",
+      error: "sessionNotLinked",
     };
   }
   /* Pasifleştirilmiş bir yönetici de yetkisiz: `getCurrentAgent` pasif kaydı
      döndürebiliyor (kullanıcı kendi satırını her zaman okur), o yüzden burada
      ayrıca bakılıyor. */
   if (!actor.is_active) {
-    return { ok: false, error: "Hesabınız pasif durumda." };
+    return { ok: false, error: "accountInactive" };
   }
   if (!isManagerRole(actor.role)) {
     return {
       ok: false,
-      error: "Bu işlem için patron veya ofis müdürü yetkisi gerekiyor.",
+      error: "managerRequired",
     };
   }
 
@@ -176,18 +183,18 @@ export async function inviteAgent(input: {
   const fullName = input.fullName.trim();
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return fail("Geçerli bir e-posta adresi girin.");
+    return fail("emailInvalid");
   }
   if (fullName.length < 3) {
-    return fail("Ad soyad en az 3 karakter olmalıdır.");
+    return fail("nameMin3");
   }
   if (input.commissionRate < 0 || input.commissionRate > 1) {
-    return fail("Prim oranı 0 ile 1 arasında olmalıdır.");
+    return fail("commissionRateRange");
   }
   /* Yalnızca patron başka bir patron atayabilir: ofis müdürü kendisinden üst
      bir yetki üretememeli. */
   if (input.role === "patron" && guard.actor.role !== "patron") {
-    return fail("Patron rolünü yalnızca bir patron atayabilir.");
+    return fail("patronRoleOnlyByPatron");
   }
 
   const admin = createAdminClient();
@@ -202,7 +209,7 @@ export async function inviteAgent(input: {
     .maybeSingle();
 
   if (existing) {
-    return fail(`${email} adresiyle kayıtlı bir personel zaten var.`);
+    return fail("agentEmailExists", { email });
   }
 
   const temporaryPassword = generateTemporaryPassword();
@@ -217,11 +224,12 @@ export async function inviteAgent(input: {
   });
 
   if (authError || !created.user) {
-    return fail(
-      authError?.message.includes("already been registered")
-        ? `${email} adresiyle bir kullanıcı hesabı zaten var. Mevcut hesabı bir personel kaydına bağlamak için veritabanından eşleştirme yapın.`
-        : (authError?.message ?? "Kullanıcı hesabı oluşturulamadı."),
-    );
+    if (authError?.message.includes("already been registered")) {
+      return fail("authAccountExists", { email });
+    }
+    /* Auth sağlayıcısının kendi metni ÇEVRİLMİYOR — `raw` bunun bilinçli bir
+       karar olduğunu söylüyor (gerekçe `lib/actions/result.ts`). */
+    return authError ? fail(raw(authError.message)) : fail("authAccountFailed");
   }
 
   /* Personel kimliği: mevcut `agt-N` biçimi korunuyor. Dizi yok (0001'de
@@ -291,7 +299,7 @@ export async function updateAgent(
   if (!guard.ok) return fail(guard.error);
 
   if (input.commissionRate < 0 || input.commissionRate > 1) {
-    return fail("Prim oranı 0 ile 1 arasında olmalıdır.");
+    return fail("commissionRateRange");
   }
 
   const admin = createAdminClient();
@@ -303,7 +311,7 @@ export async function updateAgent(
     .maybeSingle();
 
   if (readError) return fail(toMessage(readError));
-  if (!current) return fail("Personel bulunamadı.");
+  if (!current) return fail("staffNotFound");
 
   /* İKİ YETKİ SINIRI:
      · Kimse kendi rolünü ya da primini değiştiremez — bir ofis müdürü kendini
@@ -315,14 +323,14 @@ export async function updateAgent(
 
   if (isSelf && (roleChanged || commissionChanged)) {
     return fail(
-      "Kendi rolünüzü ve prim oranınızı değiştiremezsiniz. Bunu başka bir yönetici yapmalı.",
+      "cannotEditOwnRole",
     );
   }
   if (
     guard.actor.role !== "patron" &&
     (input.role === "patron" || current.role === "patron")
   ) {
-    return fail("Patron rolüyle ilgili değişiklikleri yalnızca patron yapabilir.");
+    return fail("patronChangesOnlyByPatron");
   }
 
   const nextAvatar = input.avatarUrl === "" ? null : input.avatarUrl;
@@ -399,7 +407,7 @@ export async function setAgentActive(
   if (!guard.ok) return fail(guard.error);
 
   if (agentId === guard.actor.id) {
-    return fail("Kendi hesabınızı pasifleştiremezsiniz.");
+    return fail("cannotDeactivateSelf");
   }
 
   const admin = createAdminClient();
@@ -410,14 +418,12 @@ export async function setAgentActive(
     .eq("id", agentId)
     .maybeSingle();
 
-  if (!target) return fail("Personel bulunamadı.");
+  if (!target) return fail("staffNotFound");
   if (target.is_active === isActive) {
-    return fail(
-      isActive ? "Personel zaten aktif." : "Personel zaten pasif durumda.",
-    );
+    return fail(isActive ? "staffAlreadyActive" : "staffAlreadyInactive");
   }
   if (target.role === "patron" && guard.actor.role !== "patron") {
-    return fail("Patron hesabını yalnızca bir patron pasifleştirebilir.");
+    return fail("patronDeactivateOnlyByPatron");
   }
 
   /* SON PATRONU KİLİTLEME. Tüm patronlar pasifleştirilirse kimse kimseyi
@@ -431,7 +437,7 @@ export async function setAgentActive(
 
     if ((count ?? 0) <= 1) {
       return fail(
-        "Son aktif patron pasifleştirilemez; önce başka bir patron atayın.",
+        "lastPatron",
       );
     }
   }

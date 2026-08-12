@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { Plus, SearchX } from "lucide-react";
 
 import { getListings } from "@/lib/data/listings";
@@ -25,7 +26,10 @@ export async function ListingResults({
 }) {
   const filters = parseListingFilters(searchParams);
   const viewMode = parseViewMode(searchParams);
-  const listings = await getListings(filters);
+  const [listings, t] = await Promise.all([
+    getListings(filters),
+    getTranslations("listings"),
+  ]);
 
   if (listings.length === 0) {
     const hasFilters = countActiveFilters(searchParams) > 0;
@@ -33,25 +37,21 @@ export async function ListingResults({
     return (
       <EmptyState
         icon={SearchX}
-        badge={hasFilters ? "Sonuç yok" : "Boş portföy"}
-        title={
-          hasFilters ? "Aramanızla eşleşen ilan yok" : "Henüz ilan eklenmemiş"
-        }
-        description={
-          hasFilters
-            ? "Filtreleri gevşetmeyi veya arama teriminizi kısaltmayı deneyin. Şehir ve ilçe seçimlerini kaldırmak genelde en hızlı sonucu verir."
-            : "Portföyünüze ilk ilanı ekleyerek başlayın. Eklediğiniz ilanlar burada listelenecek ve portallara yayınlanabilecek."
-        }
+        badge={t(hasFilters ? "empty.filteredBadge" : "empty.badge")}
+        title={t(hasFilters ? "empty.filteredTitle" : "empty.emptyTitle")}
+        description={t(
+          hasFilters ? "empty.filteredDescription" : "empty.emptyDescription",
+        )}
         action={
           hasFilters ? (
             <Button variant="secondary" asChild>
-              <Link href="/ilanlar">Filtreleri temizle</Link>
+              <Link href="/ilanlar">{t("empty.clearFilters")}</Link>
             </Button>
           ) : (
             <Button asChild>
               <Link href="/ilanlar/yeni">
                 <Plus className="size-4" />
-                Yeni ilan ekle
+                {t("newLong")}
               </Link>
             </Button>
           )
@@ -63,11 +63,18 @@ export async function ListingResults({
 
   return (
     <div className="space-y-4">
+      {/* Sayı ve "ilan listeleniyor" TEK METİNDE: İngilizcede sözcük sırası
+          aynı olsa da her dilde öyle olmayabilir; parça birleştirmek çeviriye
+          kapalı bir cümle üretirdi. Kalın yazım `<b>` ile metnin içinde. */}
       <p className="text-[12.5px] text-muted-foreground">
-        <span className="font-medium text-secondary-foreground">
-          {formatNumber(listings.length)}
-        </span>{" "}
-        ilan listeleniyor
+        {t.rich("count", {
+          count: formatNumber(listings.length),
+          b: (chunks) => (
+            <span className="font-medium text-secondary-foreground">
+              {chunks}
+            </span>
+          ),
+        })}
       </p>
 
       {viewMode === "list" ? (

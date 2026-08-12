@@ -26,42 +26,36 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   customer_added: true,
   listing_created: true,
   sale_closed: true,
-  message_received: true,
   appointment_scheduled: true,
+  work_note_mention: true,
+  work_note_assigned: true,
+  work_note_resolved: true,
 };
 
-/** Ayarlar formundaki satırlar — etiket ve açıklama tek yerde. */
-export const NOTIFICATION_PREFERENCE_FIELDS: {
-  type: NotificationType;
-  label: string;
-  description: string;
-}[] = [
-  {
-    type: "customer_added",
-    label: "Yeni müşteri atandı",
-    description: "Bir yönetici üzerinize müşteri kaydettiğinde.",
-  },
-  {
-    type: "listing_created",
-    label: "Portföye ilan eklendi",
-    description: "Bir yönetici portföyünüze ilan girdiğinde.",
-  },
-  {
-    type: "sale_closed",
-    label: "Satış kapandı",
-    description: "İlanınıza gelen bir teklif kabul edildiğinde.",
-  },
-  {
-    type: "message_received",
-    label: "Yeni mesaj",
-    description: "Müşterilerinizden biri mesaj gönderdiğinde.",
-  },
-  {
-    type: "appointment_scheduled",
-    label: "Randevu planlandı",
-    description: "Takviminize bir randevu eklendiğinde.",
-  },
-];
+/**
+ * Ayarlar formundaki satırlar — YALNIZCA SIRA.
+ *
+ * Faz 25'te etiket ve açıklama sözlüğe geçti
+ * (`settings.notifications.type.<tür>.label` / `.description`). Burada kalan
+ * tek bilgi, satırların hangi sırayla çizileceği; `DEFAULT_...` nesnesinin
+ * anahtar sırasına güvenmek yerine ayrı bir dizi tutuluyor çünkü o nesne
+ * "hangi türler var" sorusunu, bu dizi "hangi sırayla gösterilir" sorusunu
+ * yanıtlıyor.
+ *
+ * `message_received` Faz 18'de kalkıp yerini iş notu olaylarının üçlüsüne
+ * bıraktı. Üçü ayrı satır çünkü ayrı ihtiyaçlar: soru sorulması eyleme
+ * çağırıyor, devir bir bilgilendirme, çözülme bir kapanış. Kullanıcı
+ * üçüncüyü kapatıp ilk ikisini açık tutmak isteyebilir.
+ */
+export const NOTIFICATION_PREFERENCE_TYPES = [
+  "customer_added",
+  "listing_created",
+  "sale_closed",
+  "appointment_scheduled",
+  "work_note_mention",
+  "work_note_assigned",
+  "work_note_resolved",
+] as const satisfies readonly NotificationType[];
 
 /**
  * Ham jsonb → güvenli tercih nesnesi.

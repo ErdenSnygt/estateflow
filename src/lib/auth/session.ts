@@ -74,6 +74,17 @@ function initialsOf(name: string): string {
 }
 
 /**
+ * Görünen ad ve unvan bulunamazsa kullanılacak metinler.
+ *
+ * Faz 25: bu iki yedek sabit Türkçeydi ("Kullanıcı", "Yetki bekliyor").
+ * `toSession` saf ve senkron — aktif dili okuyamıyor — bu yüzden metinleri
+ * ÇAĞIRAN veriyor (`lib/offers.ts` ve `lib/badges.ts` ile aynı sınır).
+ * Middleware tarafı boş geçiyor ve bu doğru: oradaki oturumun tek işi
+ * "giriş var mı" sorusunu yanıtlamak, adı hiçbir yerde çizilmiyor.
+ */
+export type SessionFallbacks = { name: string; title: string };
+
+/**
  * Supabase kullanıcısını arayüzün beklediği şekle çevirir.
  *
  * PERSONEL KAYDI VARSA O KAZANIR. Auth üst verisi kullanıcının kendi yazdığı
@@ -84,7 +95,11 @@ function initialsOf(name: string): string {
  * Personel kaydı yoksa isim üç yerden gelebilir: e-posta/şifre kaydında
  * `full_name`, Google'da `name`, hiçbiri yoksa e-postanın kullanıcı adı kısmı.
  */
-export function toSession(user: User, agent?: Agent | null): Session {
+export function toSession(
+  user: User,
+  agent?: Agent | null,
+  fallbacks: SessionFallbacks = { name: "", title: "" },
+): Session {
   const meta = user.user_metadata ?? {};
   const email = user.email ?? "";
 
@@ -93,7 +108,7 @@ export function toSession(user: User, agent?: Agent | null): Session {
     (typeof meta.full_name === "string" && meta.full_name) ||
     (typeof meta.name === "string" && meta.name) ||
     email.split("@")[0] ||
-    "Kullanıcı";
+    fallbacks.name;
 
   return {
     userId: user.id,
@@ -101,7 +116,7 @@ export function toSession(user: User, agent?: Agent | null): Session {
     name,
     /* Unvan yoksa "yetkisiz" demek yerine durumu tarif ediyoruz: kullanıcı
        hesabını açmış ama henüz bir ofise bağlanmamış. */
-    title: agent?.title || "Yetki bekliyor",
+    title: agent?.title || fallbacks.title,
     initials: agent?.initials || initialsOf(name),
     agentId: agent?.id ?? null,
     agentRole: agent?.role ?? null,

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useFormatter, useTranslations } from "next-intl";
 import {
   Building2,
   CalendarClock,
@@ -9,42 +10,70 @@ import {
 } from "lucide-react";
 
 import type { ActivityItem, ActivityType } from "@/lib/data/activity";
-import { formatCurrencyCompact, formatRelativeTime } from "@/lib/format";
+import { formatCurrencyCompact } from "@/lib/format";
+import { formatRelative } from "@/i18n/dates";
 import { cn } from "@/lib/utils";
 
-/** Cümlenin fiili UI'da durur — veri katmanı yalnızca yapıyı taşır. */
+/**
+ * Olayın ikonu, rengi ve ÇEVİRİ ANAHTARI.
+ *
+ * Cümlenin fiili UI'da durur — veri katmanı yalnızca yapıyı taşır. Faz 20'de
+ * metnin kendisi de buradan çıktı: artık yalnızca anahtar var, cümle
+ * `messages/<dil>.json` içinde.
+ *
+ * CÜMLE PARÇA PARÇA BİRLEŞTİRİLMİYOR. Önceki sürüm "özne + fiil" diye ikiye
+ * bölüyordu ve Türkçede bu işe yarıyordu ("Kadıköy dairesi portföye
+ * eklendi"). İngilizcede sözcük sırası değişiyor — "an offer came in for
+ * Kadıköy dairesi" — yani özne cümlenin ortasında kalabiliyor. Bu yüzden
+ * kalıbın TAMAMI tek bir çeviri metni ve özne bir yer tutucu. Kalın yazım
+ * metnin içinde `<b>` ile işaretli; `t.rich` onu React elemanına çeviriyor.
+ */
+/* Anahtar DÜZ `string` DEĞİL: öyle olsaydı `t.rich()` çağrısı sözlükte
+   olmayan bir anahtarı da kabul ederdi ve hata çalışma zamanına kalırdı.
+   Birlik tipi, `types/i18n.d.ts` güvenlik ağının bu çağrıda da işlemesini
+   sağlıyor. */
+type ActivityMessageKey =
+  | "listingCreated"
+  | "saleClosed"
+  | "offerReceived"
+  | "customerAdded"
+  | "appointmentScheduled";
+
 const ACTIVITY_META: Record<
   ActivityType,
-  { icon: LucideIcon; text: string; className: string }
+  { icon: LucideIcon; messageKey: ActivityMessageKey; className: string }
 > = {
   listing_created: {
     icon: Building2,
-    text: "portföye eklendi",
+    messageKey: "listingCreated",
     className: "bg-brand-soft text-brand",
   },
   sale_closed: {
     icon: Handshake,
-    text: "satışı tamamlandı",
+    messageKey: "saleClosed",
     className: "bg-success-soft text-success",
   },
   offer_received: {
     icon: FileText,
-    text: "için teklif alındı",
+    messageKey: "offerReceived",
     className: "bg-warning-soft text-warning",
   },
   customer_added: {
     icon: UserPlus,
-    text: "müşteri olarak kaydedildi",
+    messageKey: "customerAdded",
     className: "bg-[color-mix(in_oklab,var(--accent-violet)_16%,transparent)] text-violet",
   },
   appointment_scheduled: {
     icon: CalendarClock,
-    text: "ile randevu oluşturuldu",
+    messageKey: "appointmentScheduled",
     className: "bg-surface-inset text-secondary-foreground",
   },
 };
 
 export function RecentActivity({ items }: { items: ActivityItem[] }) {
+  const t = useTranslations("dashboard.activity");
+  const format = useFormatter();
+
   /* Sunucu bileşeni: `Date.now()` yalnızca render sırasında bir kez okunur,
      istemcide yeniden hesaplanmadığı için hydration uyuşmazlığı doğmaz.
      Faz 4'te burada sabit DATA_EPOCH vardı; veri gerçek olduğu için artık
@@ -70,10 +99,12 @@ export function RecentActivity({ items }: { items: ActivityItem[] }) {
 
             <div className="min-w-0 flex-1">
               <p className="text-[13px] leading-snug text-secondary-foreground">
-                <span className="font-medium text-foreground">
-                  {item.subject}
-                </span>{" "}
-                {meta.text}
+                {t.rich(meta.messageKey, {
+                  subject: item.subject,
+                  b: (chunks) => (
+                    <span className="font-medium text-foreground">{chunks}</span>
+                  ),
+                })}
                 {item.amount !== null && (
                   <>
                     {" · "}
@@ -84,7 +115,7 @@ export function RecentActivity({ items }: { items: ActivityItem[] }) {
                 )}
               </p>
               <p className="mt-0.5 truncate text-[11.5px] text-muted-foreground">
-                {item.actor} · {formatRelativeTime(item.created_at, now)}
+                {item.actor} · {formatRelative(format, item.created_at, now)}
               </p>
             </div>
 
@@ -95,7 +126,7 @@ export function RecentActivity({ items }: { items: ActivityItem[] }) {
                   <span className="absolute inline-flex size-full animate-ping rounded-full bg-success opacity-75" />
                   <span className="relative inline-flex size-1.5 rounded-full bg-success" />
                 </span>
-                Yeni
+                {t("new")}
               </span>
             )}
           </div>

@@ -1,21 +1,25 @@
 import Image from "next/image";
 import Link from "next/link";
+import { useFormatter, useTranslations } from "next-intl";
 import { Eye, Heart, MapPin, Maximize2 } from "lucide-react";
 
 import type { Listing } from "@/types/database";
 import { cn } from "@/lib/utils";
 import {
-  CATEGORY_LABELS,
   formatListingPrice,
   formatRooms,
   isResidential,
 } from "@/lib/listings";
-import { formatArea, formatNumber, formatShortDate } from "@/lib/format";
+import { formatArea, formatNumber } from "@/lib/format";
+import { formatDate } from "@/i18n/dates";
 import { Card } from "@/components/ui/card";
 import { ListingStatusBadge } from "@/components/listings/listing-status-badge";
 
 /** Izgara görünümündeki ilan kartı. */
 export function ListingCard({ listing }: { listing: Listing }) {
+  const t = useTranslations("listings");
+  const format = useFormatter();
+
   return (
     <Link
       href={`/ilanlar/${listing.id}`}
@@ -41,12 +45,12 @@ export function ListingCard({ listing }: { listing: Listing }) {
           <div className="absolute inset-x-3 top-3 flex items-start justify-between gap-2">
             <ListingStatusBadge status={listing.status} />
             <span className="rounded-md bg-[#05070C]/60 px-2 py-1 text-[11px] font-medium text-white backdrop-blur-sm">
-              {CATEGORY_LABELS[listing.category]}
+              {t(`category.${listing.category}`)}
             </span>
           </div>
 
           <p className="absolute bottom-3 left-3 text-[19px] font-semibold tracking-[-0.02em] text-white drop-shadow-sm">
-            {formatListingPrice(listing)}
+            {formatListingPrice(listing, t("perMonth"))}
           </p>
         </div>
 
@@ -89,7 +93,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
                 {formatNumber(listing.favorites_count)}
               </span>
             </div>
-            <span>{formatShortDate(listing.published_at)}</span>
+            <span>{formatDate(format, listing.published_at, "short")}</span>
           </div>
         </div>
       </Card>

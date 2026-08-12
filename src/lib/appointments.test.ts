@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import type { AppointmentStatus, AppointmentType } from "@/types/database";
-import { CUSTOMER_EVENT_LABELS } from "@/lib/customers";
+import { CUSTOMER_EVENT_TYPES } from "@/lib/customers";
 import {
-  APPOINTMENT_STATUS_LABELS,
-  APPOINTMENT_TYPE_LABELS,
+  APPOINTMENT_STATUSES,
+  APPOINTMENT_TYPES,
   APPOINTMENT_TYPE_PALETTE,
   appointmentTitle,
   availableTransitions,
@@ -14,13 +14,15 @@ import {
   timelineEventFor,
 } from "@/lib/appointments";
 
-const TYPES = Object.keys(APPOINTMENT_TYPE_LABELS) as AppointmentType[];
-const STATUSES = Object.keys(APPOINTMENT_STATUS_LABELS) as AppointmentStatus[];
+const TYPES: readonly AppointmentType[] = APPOINTMENT_TYPES;
+const STATUSES: readonly AppointmentStatus[] = APPOINTMENT_STATUSES;
 
 describe("kategori sözlüğü", () => {
-  it("her tür için etiket ve renk var", () => {
+  it("her tür için renk var", () => {
+    /* Etiket denetimi buradan KALKTI: Faz 21'de metinler sözlüğe taşındı ve
+       "her tür için etiket var mı" sorusu artık `messages.test.ts` içinde,
+       iki dil için birden soruluyor. */
     for (const type of TYPES) {
-      expect(APPOINTMENT_TYPE_LABELS[type]).toBeTruthy();
       expect(APPOINTMENT_TYPE_PALETTE[type].accent).toMatch(/^bg-chart-[1-5]$/);
     }
   });
@@ -31,7 +33,10 @@ describe("kategori sözlüğü", () => {
     expect(new Set(accents).size).toBe(TYPES.length);
   });
 
-  it("boş başlık yerine kategori adı geçiyor", () => {
+  it("boş başlık yerine kategori adı geçiyor — VE TÜRKÇE KALIYOR", () => {
+    /* Çıktı veritabanına yazılıyor (`appointments.title`, aktivite akışı,
+       bildirim). Kaydedilmiş metin okuyanın diline göre değişemez; gerekçe
+       `lib/appointments.ts` içindeki `STORED_TYPE_LABELS` başlığında. */
     expect(appointmentTitle("", "ev_gezme")).toBe("Ev gezme");
     expect(appointmentTitle("   ", "telefon_gorusmesi")).toBe(
       "Telefon görüşmesi",
@@ -58,17 +63,26 @@ describe("durum geçişleri", () => {
     }
   });
 
+  /* Faz 22: red gerekçesi artık HAZIR CÜMLE DEĞİL, anahtar + durum değeri.
+     Cümleyi action kuruyor (çeviriyle), bu yüzden test metne değil ANAHTARA
+     ve taşınan parametreye bakıyor — dile bağımsız kalıyor. */
   it("tamamlanmış randevu doğrudan iptale gitmiyor", () => {
     const check = canTransition("tamamlandi", "iptal");
     expect(check.ok).toBe(false);
-    if (!check.ok) expect(check.reason).toContain("Tamamlandı");
+    if (!check.ok) {
+      expect(check.error).toBe("appointmentTransitionNotAllowed");
+      expect(check.params).toEqual({ from: "tamamlandi", to: "iptal" });
+    }
   });
 
   it("aynı duruma geçiş reddediliyor", () => {
     for (const status of STATUSES) {
       const check = canTransition(status, status);
       expect(check.ok).toBe(false);
-      if (!check.ok) expect(check.reason).toContain("zaten");
+      if (!check.ok) {
+        expect(check.error).toBe("appointmentAlreadyInStatus");
+        expect(check.params).toEqual({ status });
+      }
     }
   });
 
@@ -89,7 +103,7 @@ describe("çizelge eşlemesi", () => {
   it("her tür geçerli bir çizelge olayına düşüyor", () => {
     for (const type of TYPES) {
       const event = timelineEventFor(type);
-      expect(CUSTOMER_EVENT_LABELS[event]).toBeTruthy();
+      expect(CUSTOMER_EVENT_TYPES).toContain(event);
     }
   });
 

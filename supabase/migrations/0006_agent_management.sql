@@ -1,5 +1,5 @@
 -- =============================================================================
--- Emlak CRM — personel yönetimi: pasifleştirme ve denetim kaydı
+-- EstateFlow — personel yönetimi: pasifleştirme ve denetim kaydı
 -- =============================================================================
 -- Faz 10. Faz 6'da Personeller modülü salt okunur bırakılmıştı ve README'ye
 -- şu not düşülmüştü: "yeni personel, rol değişikliği ve prim oranı güncellemesi

@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useFormatter, useTranslations } from "next-intl";
 import {
   Building2,
   Download,
@@ -18,9 +19,9 @@ import { toast } from "sonner";
 
 import type { DocumentType } from "@/types/database";
 import type { DocumentItem } from "@/lib/data/documents";
-import { DOCUMENT_TYPE_LABELS, DOCUMENT_TYPE_TONES } from "@/lib/messaging";
-import { formatBytes } from "@/lib/storage/paths";
-import { formatShortDate } from "@/lib/format";
+import { DOCUMENT_TYPE_TONES } from "@/lib/documents";
+import { formatBytes } from "@/i18n/numbers";
+import { formatDate } from "@/i18n/dates";
 import {
   deleteDocument,
   getDocumentDownloadUrl,
@@ -65,6 +66,9 @@ const ICONS: Record<DocumentType, typeof FileText> = {
  */
 export function DocumentRow({ document }: { document: DocumentItem }) {
   const router = useRouter();
+  const t = useTranslations("documents");
+  const tCommon = useTranslations("common");
+  const format = useFormatter();
   const [busy, setBusy] = React.useState<"download" | "preview" | null>(null);
   const [isDeleting, setIsDeleting] = React.useState(false);
 
@@ -80,7 +84,7 @@ export function DocumentRow({ document }: { document: DocumentItem }) {
 
     if (!result.ok) {
       toast.error(
-        mode === "download" ? "İndirilemedi" : "Önizlenemedi",
+        mode === "download" ? t("row.downloadError") : t("row.previewError"),
         { description: result.error },
       );
       return;
@@ -95,11 +99,11 @@ export function DocumentRow({ document }: { document: DocumentItem }) {
     setIsDeleting(false);
 
     if (!result.ok) {
-      toast.error("Belge silinemedi", { description: result.error });
+      toast.error(t("row.deleteError"), { description: result.error });
       return;
     }
 
-    toast.success("Belge silindi", { description: document.title });
+    toast.success(t("row.deleted"), { description: document.title });
     router.refresh();
   }
 
@@ -116,16 +120,18 @@ export function DocumentRow({ document }: { document: DocumentItem }) {
               {document.title}
             </p>
             <Badge variant={DOCUMENT_TYPE_TONES[document.document_type]}>
-              {DOCUMENT_TYPE_LABELS[document.document_type]}
+              {t(`type.${document.document_type}`)}
             </Badge>
           </div>
 
           <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12.5px] text-muted-foreground">
             <span className="tabular-nums">
-              {formatShortDate(document.created_at)}
+              {formatDate(format, document.created_at, "short")}
             </span>
             <span aria-hidden>·</span>
-            <span className="tabular-nums">{formatBytes(document.file_size)}</span>
+            <span className="tabular-nums">
+              {formatBytes(format, document.file_size)}
+            </span>
             {document.uploader && (
               <>
                 <span aria-hidden>·</span>
@@ -166,7 +172,7 @@ export function DocumentRow({ document }: { document: DocumentItem }) {
                 type="button"
                 onClick={() => open("preview")}
                 disabled={busy !== null}
-                aria-label="Önizle"
+                aria-label={t("row.preview")}
                 className="flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground disabled:opacity-50"
               >
                 {busy === "preview" ? (
@@ -176,7 +182,7 @@ export function DocumentRow({ document }: { document: DocumentItem }) {
                 )}
               </button>
             </TooltipTrigger>
-            <TooltipContent>Yeni sekmede aç</TooltipContent>
+            <TooltipContent>{t("row.openInNewTab")}</TooltipContent>
           </Tooltip>
 
           <Tooltip>
@@ -185,7 +191,7 @@ export function DocumentRow({ document }: { document: DocumentItem }) {
                 type="button"
                 onClick={() => open("download")}
                 disabled={busy !== null}
-                aria-label="İndir"
+                aria-label={t("row.download")}
                 className="flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground disabled:opacity-50"
               >
                 {busy === "download" ? (
@@ -195,14 +201,14 @@ export function DocumentRow({ document }: { document: DocumentItem }) {
                 )}
               </button>
             </TooltipTrigger>
-            <TooltipContent>İndir</TooltipContent>
+            <TooltipContent>{t("row.download")}</TooltipContent>
           </Tooltip>
 
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <button
                 type="button"
-                aria-label="Belgeyi sil"
+                aria-label={t("row.deleteAria")}
                 className="flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-danger-soft hover:text-danger"
               >
                 <Trash2 className="size-4" />
@@ -210,19 +216,22 @@ export function DocumentRow({ document }: { document: DocumentItem }) {
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Belge silinsin mi?</AlertDialogTitle>
+                <AlertDialogTitle>{t("row.deleteTitle")}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  <span className="font-medium text-foreground">
-                    {document.title}
-                  </span>{" "}
-                  ve dosyanın kendisi kalıcı olarak silinecek. Bu işlem geri
-                  alınamaz.
+                  {t.rich("row.deleteDescription", {
+                    title: document.title,
+                    b: (chunks) => (
+                      <span className="font-medium text-foreground">
+                        {chunks}
+                      </span>
+                    ),
+                  })}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Vazgeç</AlertDialogCancel>
+                <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
                 <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
-                  {isDeleting ? "Siliniyor…" : "Sil"}
+                  {isDeleting ? t("row.deleting") : tCommon("delete")}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

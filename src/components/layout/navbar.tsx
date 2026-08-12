@@ -3,11 +3,10 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import {
   Bell,
-  Check,
-  Globe,
   LifeBuoy,
   LogOut,
   MessageSquare,
@@ -19,9 +18,11 @@ import {
 
 import { cn } from "@/lib/utils";
 import { findNavItem } from "@/config/navigation";
+import { site } from "@/config/site";
 import { useMetaKey } from "@/hooks/use-meta-key";
 import { signOut } from "@/lib/auth/client";
 import { useSessionUser } from "@/components/layout/session-provider";
+import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Kbd } from "@/components/ui/kbd";
 import { Separator } from "@/components/ui/separator";
@@ -29,7 +30,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
@@ -39,11 +39,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
-const languages = [
-  { code: "tr", label: "Türkçe" },
-  { code: "en", label: "English" },
-] as const;
 
 type NavbarProps = {
   onOpenSearch: () => void;
@@ -56,6 +51,7 @@ export function Navbar({ onOpenSearch, notificationBell }: NavbarProps) {
   const router = useRouter();
   const metaKey = useMetaKey();
   const user = useSessionUser();
+  const t = useTranslations();
 
   async function handleSignOut() {
     await signOut();
@@ -66,7 +62,12 @@ export function Navbar({ onOpenSearch, notificationBell }: NavbarProps) {
   }
 
   const activeItem = findNavItem(pathname);
-  const title = activeItem?.label ?? "Emlak CRM";
+  /* Başlık MENÜ ETİKETİYLE AYNI KAYNAKTAN: sidebar'da "İlanlar" yazan öğe
+     navbar'da da "İlanlar" yazsın. Faz 19'da bu etiket çeviriye taşındı.
+
+     Marka adı yedek olarak duruyor ve ÇEVRİLMİYOR (`site.name`): "EstateFlow"
+     her dilde EstateFlow. */
+  const title = activeItem ? t(`nav.${activeItem.key}.label`) : site.name;
 
   return (
     <header
@@ -98,7 +99,7 @@ export function Navbar({ onOpenSearch, notificationBell }: NavbarProps) {
         <button
           type="button"
           onClick={onOpenSearch}
-          aria-label="Ara"
+          aria-label={t("common.search")}
           className={cn(
             "flex size-9 items-center justify-center rounded-lg text-muted-foreground md:hidden",
             "transition-colors duration-200 hover:bg-surface-hover hover:text-foreground",
@@ -119,7 +120,7 @@ export function Navbar({ onOpenSearch, notificationBell }: NavbarProps) {
           )}
         >
           <Search className="size-4 shrink-0" />
-          <span className="flex-1 text-left">Ara…</span>
+          <span className="flex-1 text-left">{t("common.searchEllipsis")}</span>
           <Kbd className="transition-colors group-hover:border-hairline-strong">
             {metaKey}
           </Kbd>
@@ -140,10 +141,14 @@ export function Navbar({ onOpenSearch, notificationBell }: NavbarProps) {
             Slot gelmezse (kabuğun bildirimsiz kullanıldığı bir durum) eski
             bağlantı davranışı yedek olarak duruyor. */}
         {notificationBell ?? (
-          <IconButton label="Bildirimler" href="/bildirimler" icon={Bell} />
+          <IconButton
+            label={t("nav.notifications.label")}
+            href="/bildirimler"
+            icon={Bell}
+          />
         )}
         <IconButton
-          label="Mesajlar"
+          label={t("nav.messages.label")}
           href="/mesajlar"
           icon={MessageSquare}
           className="hidden md:flex"
@@ -158,7 +163,7 @@ export function Navbar({ onOpenSearch, notificationBell }: NavbarProps) {
           <TooltipTrigger asChild>
             <button
               type="button"
-              aria-label="Tema değiştir"
+              aria-label={t("navbar.themeTrigger")}
               className={cn(
                 "hidden size-9 items-center justify-center rounded-lg text-muted-foreground md:flex",
                 "transition-colors duration-200 hover:bg-surface-hover hover:text-foreground",
@@ -167,36 +172,12 @@ export function Navbar({ onOpenSearch, notificationBell }: NavbarProps) {
               <Moon className="size-[18px]" />
             </button>
           </TooltipTrigger>
-          <TooltipContent>Açık tema yakında</TooltipContent>
+          <TooltipContent>{t("navbar.themeTooltip")}</TooltipContent>
         </Tooltip>
 
-        {/* Dil seçimi — UI hazır, seçim henüz uygulanmıyor */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              aria-label="Dil seçimi"
-              className={cn(
-                "hidden size-9 items-center justify-center rounded-lg text-muted-foreground md:flex",
-                "transition-colors duration-200 hover:bg-surface-hover hover:text-foreground",
-                "data-[state=open]:bg-surface-hover data-[state=open]:text-foreground",
-              )}
-            >
-              <Globe className="size-[18px]" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="min-w-[10rem]">
-            <DropdownMenuLabel>Dil</DropdownMenuLabel>
-            {languages.map((language) => (
-              <DropdownMenuItem key={language.code}>
-                <span>{language.label}</span>
-                {language.code === "tr" && (
-                  <Check className="ml-auto size-4 text-brand" />
-                )}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {/* Dil seçimi — Faz 19'da gerçek oldu. Mobilde gizli: navbar 375 px'de
+            üç öğeye iniyor ve dil, menü çekmecesinde satır olarak duruyor. */}
+        <LanguageSwitcher className="hidden md:flex" />
 
         <Separator
           orientation="vertical"
@@ -210,7 +191,7 @@ export function Navbar({ onOpenSearch, notificationBell }: NavbarProps) {
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              aria-label="Hesap menüsü"
+              aria-label={t("navbar.accountMenu")}
               className={cn(
                 "rounded-full outline-none transition-all duration-200",
                 "ring-1 ring-hairline-strong hover:ring-2 hover:ring-brand/50",
@@ -244,26 +225,26 @@ export function Navbar({ onOpenSearch, notificationBell }: NavbarProps) {
             <DropdownMenuItem asChild>
               <Link href="/profil">
                 <UserRound />
-                Profilim
+                {t("common.profile")}
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link href="/ayarlar">
                 <Settings />
-                Ayarlar
+                {t("nav.settings.label")}
                 <DropdownMenuShortcut>{metaKey},</DropdownMenuShortcut>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem>
               <LifeBuoy />
-              Destek
+              {t("common.support")}
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />
 
             <DropdownMenuItem variant="danger" onSelect={handleSignOut}>
               <LogOut />
-              Çıkış yap
+              {t("common.signOut")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

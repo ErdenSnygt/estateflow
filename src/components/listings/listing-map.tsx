@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { MapPin } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -21,6 +24,7 @@ export function ListingMap({
   label: string;
   className?: string;
 }) {
+  const t = useTranslations("listings");
   const hasCoordinates = latitude !== null && longitude !== null;
 
   return (
@@ -72,7 +76,7 @@ export function ListingMap({
         <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
           {hasCoordinates
             ? `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`
-            : "Koordinat girilmemiş"}
+            : t("detail.noCoordinates")}
         </p>
       </div>
     </div>

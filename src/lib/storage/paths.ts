@@ -89,7 +89,7 @@ export function publicUrlFor(bucket: PublicBucket, path: string): string {
  * Public URL'i bucket + yol ikilisine çözer.
  *
  * DIŞ ADRESLER İÇİN `null` DÖNER ve bu davranış kritik: seed'den gelen görseller
- * `picsum.photos` / `i.pravatar.cc` adreslerinde duruyor. Silme akışı bu
+ * Unsplash CDN'inde (`images.unsplash.com`) duruyor. Silme akışı bu
  * fonksiyonun sonucuna bakıyor, dolayısıyla bir ilan silindiğinde seed
  * görsellerini silmeye ÇALIŞMIYOR bile — zaten bizim bucket'ımızda değiller.
  */
@@ -114,9 +114,9 @@ export function parseStorageUrl(
   return { bucket: bucket as PublicBucket, path: path.split("?")[0] };
 }
 
-/** "4,2 MB" — hata mesajlarında kullanılır. */
-export function formatBytes(bytes: number): string {
-  const mb = bytes / (1024 * 1024);
-  if (mb >= 1) return `${mb.toFixed(1).replace(".", ",")} MB`;
-  return `${Math.round(bytes / 1024)} KB`;
-}
+/* `formatBytes` FAZ 25'TE BU DOSYADAN ÇIKTI → `i18n/numbers.ts`.
+   Ondalık ayracını elle koyuyordu (`.replace(".", ",")`), yani boyut her
+   dilde Türkçe yazılıyordu. Ayrıca bir sunum fonksiyonu burada yanlış
+   yerdeydi: bu dosya bucket adları, sınırlar ve nesne yolları hakkında.
+   Sınır SABİTLERİ (`MAX_UPLOAD_BYTES`, `MAX_DOCUMENT_BYTES`) burada kalıyor
+   — onlar veri, biçimlendirme ise gösterim. */

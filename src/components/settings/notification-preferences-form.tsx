@@ -2,11 +2,12 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import type { Json } from "@/types/supabase";
 import {
-  NOTIFICATION_PREFERENCE_FIELDS,
+  NOTIFICATION_PREFERENCE_TYPES,
   parseNotificationPreferences,
   type NotificationPreferences,
 } from "@/lib/notification-preferences";
@@ -31,6 +32,7 @@ export function NotificationPreferencesForm({
   value: Json | null;
 }) {
   const router = useRouter();
+  const t = useTranslations("settings.notifications");
 
   const [preferences, setPreferences] = React.useState<NotificationPreferences>(
     () => parseNotificationPreferences(value),
@@ -54,7 +56,7 @@ export function NotificationPreferencesForm({
 
     if (!result.ok) {
       setPreferences(previous);
-      toast.error("Tercih kaydedilemedi", { description: result.error });
+      toast.error(t("error"), { description: result.error });
       return;
     }
 
@@ -63,38 +65,34 @@ export function NotificationPreferencesForm({
 
   return (
     <div className="space-y-1">
-      {NOTIFICATION_PREFERENCE_FIELDS.map((field) => (
+      {NOTIFICATION_PREFERENCE_TYPES.map((type) => (
         <div
-          key={field.type}
+          key={type}
           className="flex items-start gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-surface-hover"
         >
           <Checkbox
-            id={`pref-${field.type}`}
-            checked={preferences[field.type]}
-            disabled={pending === field.type}
-            onCheckedChange={(checked) =>
-              toggle(field.type, checked === true)
-            }
+            id={`pref-${type}`}
+            checked={preferences[type]}
+            disabled={pending === type}
+            onCheckedChange={(checked) => toggle(type, checked === true)}
             className="mt-0.5"
           />
           <div className="min-w-0 flex-1">
             <Label
-              htmlFor={`pref-${field.type}`}
+              htmlFor={`pref-${type}`}
               className="cursor-pointer text-[13.5px] font-medium text-foreground"
             >
-              {field.label}
+              {t(`type.${type}.label`)}
             </Label>
             <p className="mt-0.5 text-[12px] leading-relaxed text-muted-foreground">
-              {field.description}
+              {t(`type.${type}.description`)}
             </p>
           </div>
         </div>
       ))}
 
       <p className="px-2 pt-2 text-[11.5px] leading-relaxed text-muted-foreground">
-        Kapatılan tür için bildirim <strong>hiç oluşturulmaz</strong> — sonradan
-        açtığınızda geçmişe dönük bildirim gelmez. Kendi yaptığınız işlemler
-        zaten bildirim üretmez.
+        {t.rich("hint", { b: (chunks) => <strong>{chunks}</strong> })}
       </p>
     </div>
   );

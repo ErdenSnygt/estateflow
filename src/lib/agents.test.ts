@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { AgentRole } from "@/types/database";
 import {
-  AGENT_ROLE_LABELS,
+  AGENT_ROLES,
   AGENT_ROLE_TONES,
   canAssignAgent,
   canViewStaff,
@@ -59,15 +59,17 @@ describe("türetilmiş yetkiler", () => {
   });
 });
 
-describe("rol sözlüğü", () => {
-  it("her rolün etiketi ve rozet tonu var", () => {
+describe("rol listesi", () => {
+  /* Faz 25: `AGENT_ROLE_LABELS` kalktı, etiketler sözlüğe geçti
+     (`agents.role.*`). Etiketlerin varlığını artık `messages.test.ts` iki
+     dil için birden denetliyor; burada YAPI kaldı. */
+  it("her rolün bir rozet tonu var", () => {
     for (const role of ROLES) {
-      expect(AGENT_ROLE_LABELS[role]).toBeTruthy();
       expect(AGENT_ROLE_TONES[role]).toBeTruthy();
     }
   });
 
-  it("sözlük yalnızca bilinen üç rolü tanır", () => {
-    expect(Object.keys(AGENT_ROLE_LABELS).sort()).toEqual([...ROLES].sort());
+  it("sıralı dizi bilinen üç rolü kapsıyor", () => {
+    expect([...AGENT_ROLES].sort()).toEqual([...ROLES].sort());
   });
 });

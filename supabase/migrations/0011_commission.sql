@@ -1,5 +1,5 @@
 -- =============================================================================
--- Emlak CRM — komisyon tahsilat durumu
+-- EstateFlow — komisyon tahsilat durumu
 -- =============================================================================
 -- Faz 16. Gelirler modülü, Satışlar'dan FARKLI BİR SORUYU yanıtlıyor:
 --

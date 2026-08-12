@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { LogOut, Moon, Settings } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { navigation, type NavBadgeKey } from "@/config/navigation";
 import { useNavBadge } from "@/components/layout/nav-badge-provider";
 import { signOut } from "@/lib/auth/client";
-import { AGENT_ROLE_LABELS } from "@/lib/agents";
 import { useSessionUser } from "@/components/layout/session-provider";
+import { LanguageToggleRow } from "@/components/layout/language-switcher";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -44,6 +45,7 @@ export function MobileMenuDrawer({
   const pathname = usePathname();
   const router = useRouter();
   const user = useSessionUser();
+  const t = useTranslations();
 
   async function handleSignOut() {
     await signOut();
@@ -57,8 +59,10 @@ export function MobileMenuDrawer({
       <SheetContent aria-describedby={undefined}>
         <SheetHeader>
           <div className="min-w-0">
-            <SheetTitle>Menü</SheetTitle>
-            <SheetDescription>Tüm bölümler ve hesap ayarları</SheetDescription>
+            <SheetTitle>{t("mobileNav.drawerTitle")}</SheetTitle>
+            <SheetDescription>
+              {t("mobileNav.drawerDescription")}
+            </SheetDescription>
           </div>
           <SheetCloseButton />
         </SheetHeader>
@@ -78,16 +82,18 @@ export function MobileMenuDrawer({
               </p>
             </div>
             {user.agentRole && (
-              <Badge variant="neutral">{AGENT_ROLE_LABELS[user.agentRole]}</Badge>
+              <Badge variant="neutral">
+                {t(`agents.role.${user.agentRole}`)}
+              </Badge>
             )}
           </div>
 
           {/* --- Menü grupları --- */}
           <div className="mt-4 space-y-4">
             {navigation.map((group) => (
-              <div key={group.paletteTitle}>
+              <div key={group.key}>
                 <p className="px-1 pb-1.5 text-[10.5px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                  {group.title ?? group.paletteTitle}
+                  {t(`nav.groups.${group.key}`)}
                 </p>
 
                 <div className="grid grid-cols-2 gap-1.5">
@@ -117,7 +123,7 @@ export function MobileMenuDrawer({
                           )}
                         />
                         <span className="min-w-0 flex-1 truncate">
-                          {item.label}
+                          {t(`nav.${item.key}.label`)}
                         </span>
                         <DrawerBadge
                           badgeKey={item.badgeKey}
@@ -134,17 +140,18 @@ export function MobileMenuDrawer({
           <Separator className="my-4" />
 
           {/* --- Hesap işlemleri ---
-              Masaüstünde navbar'daki profil menüsünde duran şeyler. Tema ve dil
-              hâlâ işlevsiz (tek tema, tek dil) ama arayüz hazır — masaüstüyle
-              aynı durumda tutuluyor. */}
+              Masaüstünde navbar'daki profil menüsünde duran şeyler. Faz 19'da
+              DİL GERÇEK OLDU; tema hâlâ tek ve düğmesi devre dışı duruyor. */}
           <div className="space-y-1.5 pb-2">
             <Link
               href="/ayarlar"
               className="flex items-center gap-2.5 rounded-lg bg-surface px-3 py-2.5 text-[13.5px] font-medium text-secondary-foreground transition-colors active:bg-surface-active"
             >
               <Settings className="size-[18px] text-muted-foreground" />
-              Ayarlar
+              {t("nav.settings.label")}
             </Link>
+
+            <LanguageToggleRow />
 
             <button
               type="button"
@@ -152,8 +159,8 @@ export function MobileMenuDrawer({
               className="flex w-full items-center gap-2.5 rounded-lg bg-surface px-3 py-2.5 text-[13.5px] font-medium text-muted-foreground disabled:opacity-60"
             >
               <Moon className="size-[18px]" />
-              Açık tema
-              <span className="ml-auto text-[11.5px]">yakında</span>
+              {t("mobileNav.lightTheme")}
+              <span className="ml-auto text-[11.5px]">{t("common.comingSoon")}</span>
             </button>
 
             <button
@@ -166,7 +173,7 @@ export function MobileMenuDrawer({
               )}
             >
               <LogOut className="size-[18px]" />
-              Çıkış yap
+              {t("common.signOut")}
             </button>
           </div>
         </SheetBody>

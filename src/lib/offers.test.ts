@@ -6,7 +6,7 @@ import {
   canTransition,
   closesSale,
   isTerminal,
-  OFFER_STATUS_LABELS,
+  OFFER_STATUSES,
 } from "@/lib/offers";
 
 /**
@@ -41,19 +41,22 @@ describe("canTransition", () => {
       const result = canTransition(status, status);
       expect(result.ok).toBe(false);
       if (!result.ok) {
-        /* Mesaj kullanıcıya gösteriliyor; "zaten" ifadesi aynı-duruma-geçiş
-           halini diğer redlerden ayırıyor. */
-        expect(result.reason).toContain("zaten");
+        /* Faz 22: red bir ANAHTAR taşıyor, hazır cümle değil. Aynı-duruma
+           geçişi diğer redlerden ayıran şey artık anahtarın kendisi. */
+        expect(result.error).toBe("offerAlreadyInStatus");
+        expect(result.params).toEqual({ status });
       }
     }
   });
 
-  it("red gerekçesi kullanıcıya gösterilebilir bir cümle", () => {
+  it("red gerekçesi hangi durumdan kaynaklandığını taşıyor", () => {
+    /* Cümleyi action kuruyor; burada denetlenen şey, cümleyi kurmak için
+       gereken BİLGİNİN (hangi durum) kaybolmaması. */
     const result = canTransition("accepted", "rejected");
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.reason).toContain(OFFER_STATUS_LABELS.accepted);
-      expect(result.reason.length).toBeGreaterThan(10);
+      expect(result.error).toBe("offerTerminal");
+      expect(result.params).toEqual({ status: "accepted" });
     }
   });
 
@@ -63,7 +66,7 @@ describe("canTransition", () => {
     expect(same.ok).toBe(false);
     expect(terminal.ok).toBe(false);
     if (!same.ok && !terminal.ok) {
-      expect(same.reason).not.toBe(terminal.reason);
+      expect(same.error).not.toBe(terminal.error);
     }
   });
 });
@@ -116,10 +119,10 @@ describe("closesSale", () => {
   });
 });
 
-describe("etiket sözlüğü", () => {
-  it("her durumun bir etiketi var", () => {
-    for (const status of ALL) {
-      expect(OFFER_STATUS_LABELS[status]).toBeTruthy();
-    }
+describe("durum listesi", () => {
+  /* Faz 24: etiket denetimi `messages.test.ts`e taşındı (iki dil için
+     birden). Burada yalnızca YAPI kaldı. */
+  it("sıralı dizi tüm durumları kapsıyor", () => {
+    expect([...OFFER_STATUSES].sort()).toEqual([...ALL].sort());
   });
 });

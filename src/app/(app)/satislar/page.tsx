@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getFormatter, getTranslations } from "next-intl/server";
 import { Receipt } from "lucide-react";
 
 import { getSalesList } from "@/lib/data/sales";
@@ -10,7 +11,8 @@ import {
   countActiveSaleFilters,
   parseSaleFilters,
 } from "@/lib/sales-filters";
-import { formatCurrency, formatShortDate } from "@/lib/format";
+import { formatCurrency } from "@/lib/format";
+import { formatDate } from "@/i18n/dates";
 import type { SearchParamsInput } from "@/lib/search-params";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
@@ -18,9 +20,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { SalesTabs } from "@/components/sales/sales-tabs";
 import { SalesFilterBar } from "@/components/sales/sales-filter-bar";
 
-export const metadata: Metadata = {
-  title: "Satışlar",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("sales.page");
+  return { title: t("title") };
+}
 
 type PageProps = { searchParams: Promise<SearchParamsInput> };
 
@@ -32,10 +35,12 @@ export default async function SatislarPage({ searchParams }: PageProps) {
      kalan ikisini başlatıyordu — rolü öğrenmek satış listesini ~190 ms
      geciktiriyordu. Danışman listesi rolden bağımsız çekiliyor; bir danışman
      için RLS onu zaten tek satıra indiriyor, yani beklemeye değmez. */
-  const [currentAgent, sales, agents] = await Promise.all([
+  const [currentAgent, sales, agents, t, format] = await Promise.all([
     getCurrentAgent(),
     getSalesList(filters),
     getAgentOptions(),
+    getTranslations("sales.page"),
+    getFormatter(),
   ]);
 
   /* Danışman filtresi yalnızca yöneticiye gösteriliyor; danışman zaten RLS
@@ -48,8 +53,8 @@ export default async function SatislarPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-6 pb-4">
       <PageHeader
-        title="Satışlar"
-        description="Kapanan işlemler. Bir teklif kabul edildiğinde kayıt buraya otomatik düşer."
+        title={t("title")}
+        description={t("description")}
         actions={<SalesTabs />}
       />
 
@@ -62,24 +67,16 @@ export default async function SatislarPage({ searchParams }: PageProps) {
            İlanlar ve Müşteriler bu ayrımı Faz 2/4'ten beri yapıyordu. */
         <EmptyState
           icon={Receipt}
-          badge={hasFilters ? "Sonuç yok" : "Boş"}
-          title={
-            hasFilters
-              ? "Bu filtrelerle eşleşen satış yok"
-              : "Henüz kapanan satış yok"
-          }
-          description={
-            hasFilters
-              ? "Tarih aralığını genişletmeyi ya da danışman filtresini kaldırmayı deneyin."
-              : "Satışlar teklif kabul edildiğinde otomatik oluşur. Teklifler sekmesinden bekleyen teklifleri görebilirsiniz."
-          }
+          badge={t(hasFilters ? "noResultBadge" : "emptyBadge")}
+          title={t(hasFilters ? "noResultTitle" : "emptyTitle")}
+          description={t(hasFilters ? "noResultBody" : "emptyBody")}
         />
       ) : (
         <>
           <Card>
             <CardContent className="flex flex-wrap items-baseline justify-between gap-3 p-4">
               <span className="text-[13px] text-muted-foreground">
-                {sales.length} kapanan işlem
+                {t("count", { count: sales.length })}
               </span>
               <span className="text-[20px] font-semibold tabular-nums tracking-[-0.02em] text-foreground">
                 {formatCurrency(total)}
@@ -101,13 +98,13 @@ export default async function SatislarPage({ searchParams }: PageProps) {
                       </Link>
                     ) : (
                       <p className="text-[14.5px] font-semibold text-muted-foreground">
-                        İlan silinmiş
+                        {t("deletedListing")}
                       </p>
                     )}
 
                     <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12.5px] text-muted-foreground">
                       <span className="tabular-nums">
-                        {formatShortDate(sale.closed_at)}
+                        {formatDate(format, sale.closed_at, "short")}
                       </span>
                       {sale.listing && (
                         <>

@@ -1,5 +1,5 @@
 -- =============================================================================
--- Emlak CRM — randevular (takvim)
+-- EstateFlow — randevular (takvim)
 -- =============================================================================
 -- Faz 11. Zincirin eksik halkası: ilgi → GÖRÜŞME → teklif → satış. Müşteri
 -- çizelgesinde "Ev gezildi" satırları Faz 4'ten beri duruyordu ama onları

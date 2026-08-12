@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getFormatter, getTranslations } from "next-intl/server";
 import {
   BadgeCheck,
   CircleSlash,
@@ -11,8 +12,7 @@ import {
 } from "lucide-react";
 
 import type { CustomerEvent, CustomerEventType } from "@/types/database";
-import { CUSTOMER_EVENT_LABELS } from "@/lib/customers";
-import { formatDate } from "@/lib/format";
+import { formatDate } from "@/i18n/dates";
 import { cn } from "@/lib/utils";
 
 /** İkon ve renk eşlemesi UI'da; veri katmanı yalnızca `type` taşır. */
@@ -33,11 +33,20 @@ const EVENT_STYLE: Record<
  * Dikey zaman çizelgesi. Olaylar veri katmanından tarih sırasında gelir;
  * bileşen sıralama yapmaz.
  */
-export function CustomerTimeline({ events }: { events: CustomerEvent[] }) {
+export async function CustomerTimeline({
+  events,
+}: {
+  events: CustomerEvent[];
+}) {
+  const [t, format] = await Promise.all([
+    getTranslations("customers"),
+    getFormatter(),
+  ]);
+
   if (events.length === 0) {
     return (
       <p className="px-5 py-4 text-[13px] text-muted-foreground">
-        Bu müşteri için henüz kayıtlı bir hareket yok.
+        {t("timeline.empty")}
       </p>
     );
   }
@@ -71,13 +80,13 @@ export function CustomerTimeline({ events }: { events: CustomerEvent[] }) {
             <div className="min-w-0 flex-1 pt-1">
               <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
                 <p className="text-[13.5px] font-medium text-foreground">
-                  {CUSTOMER_EVENT_LABELS[event.type]}
+                  {t(`event.${event.type}`)}
                 </p>
                 <time
                   dateTime={event.created_at}
                   className="text-[11.5px] tabular-nums text-muted-foreground"
                 >
-                  {formatDate(event.created_at)}
+                  {formatDate(format, event.created_at)}
                 </time>
               </div>
 
@@ -90,7 +99,7 @@ export function CustomerTimeline({ events }: { events: CustomerEvent[] }) {
                   href={`/ilanlar/${event.listing_id}`}
                   className="mt-1 inline-block text-[12px] font-medium text-brand transition-colors hover:text-brand-hover"
                 >
-                  İlgili ilanı gör →
+                  {t("timeline.viewListing")} →
                 </Link>
               )}
             </div>

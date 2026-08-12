@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getFormatter, getTranslations } from "next-intl/server";
 import { Coins, Receipt, TrendingUp, Wallet } from "lucide-react";
 
 import { getRevenueByAgent, getRevenueOverview } from "@/lib/data/revenue";
@@ -9,14 +10,12 @@ import {
   DEFAULT_PERIOD,
   PERIOD_OPTIONS,
   periodDays,
-  periodLabel,
+  periodValue,
   type PeriodValue,
 } from "@/lib/revenue";
-import {
-  formatCurrency,
-  formatCurrencyCompact,
-  formatShortDate,
-} from "@/lib/format";
+import { formatCurrency, formatCurrencyCompact } from "@/lib/format";
+import { formatDate } from "@/i18n/dates";
+import { formatPercent, formatRate } from "@/i18n/numbers";
 import { oneOf, type SearchParamsInput } from "@/lib/search-params";
 import { AnimatedNumber } from "@/components/animated-number";
 import { PageHeader } from "@/components/page-header";
@@ -28,9 +27,10 @@ import { PeriodTabs } from "@/components/revenue/period-tabs";
 import { RevenueChart } from "@/components/revenue/revenue-chart";
 import { CommissionStatusControl } from "@/components/revenue/commission-status-control";
 
-export const metadata: Metadata = {
-  title: "Gelirler",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("revenue.page");
+  return { title: t("title") };
+}
 
 type PageProps = { searchParams: Promise<SearchParamsInput> };
 
@@ -61,18 +61,20 @@ export default async function GelirlerPage({ searchParams }: PageProps) {
 
   /* Üçü paralel; `getRevenueByAgent` ile `getRevenueOverview` aynı önbellekli
      sorgudan besleniyor, yani ağa yalnızca bir kez çıkılıyor. */
-  const [agent, overview, byAgent] = await Promise.all([
+  const [agent, overview, byAgent, t, format] = await Promise.all([
     getCurrentAgent(),
     getRevenueOverview(days),
     getRevenueByAgent(days),
+    getTranslations("revenue"),
+    getFormatter(),
   ]);
 
   if (!agent) {
     return (
       <div className="space-y-6 pb-4">
         <PageHeader
-          title="Gelirler"
-          description="Komisyon ve tahsilat takibi."
+          title={t("page.title")}
+          description={t("page.noAgentDescription")}
         />
         <AgentNotice />
       </div>
@@ -85,8 +87,8 @@ export default async function GelirlerPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-5 pb-4">
       <PageHeader
-        title="Gelirler"
-        description="Kapanan işlemlerden doğan komisyon ve tahsilat durumu. Satışlar sayfası işlemleri, burası parayı gösterir."
+        title={t("page.title")}
+        description={t("page.description")}
         actions={<PeriodTabs current={period} />}
       />
 
@@ -94,30 +96,37 @@ export default async function GelirlerPage({ searchParams }: PageProps) {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <SummaryCard
           icon={<Wallet className="size-4" />}
-          label="Toplam komisyon"
+          label={t("summary.total")}
           value={<AnimatedNumber value={totals.total} format="currency" />}
-          hint={`${overview.saleCount} işlem · ${formatCurrencyCompact(overview.volume)} hacim`}
+          hint={t("summary.totalHint", {
+            count: overview.saleCount,
+            volume: formatCurrencyCompact(overview.volume),
+          })}
           emphasis
         />
         <SummaryCard
           icon={<Coins className="size-4" />}
-          label="Tahsil edilen"
+          label={t("summary.collected")}
           value={<AnimatedNumber value={totals.collected} format="currency" />}
-          hint={`Tahsilat oranı %${Math.round(totals.collectionRate * 100)}`}
+          hint={t("summary.collectedHint", {
+            rate: formatPercent(format, totals.collectionRate),
+          })}
           tone="success"
         />
         <SummaryCard
           icon={<TrendingUp className="size-4" />}
-          label="Bekleyen"
+          label={t("summary.pending")}
           value={<AnimatedNumber value={totals.pending} format="currency" />}
-          hint="Henüz tahsil edilmedi"
+          hint={t("summary.pendingHint")}
           tone="warning"
         />
         <SummaryCard
           icon={<Receipt className="size-4" />}
-          label="Geciken"
+          label={t("summary.overdue")}
           value={<AnimatedNumber value={totals.overdue} format="currency" />}
-          hint={totals.overdue > 0 ? "Takip gerekiyor" : "Geciken tahsilat yok"}
+          hint={t(
+            totals.overdue > 0 ? "summary.overdueHint" : "summary.overdueNone",
+          )}
           tone={totals.overdue > 0 ? "danger" : undefined}
         />
       </div>
@@ -125,16 +134,21 @@ export default async function GelirlerPage({ searchParams }: PageProps) {
       {overview.rows.length === 0 ? (
         <EmptyState
           icon={Wallet}
-          badge="Boş"
-          title={`${periodLabel(period)} içinde komisyon yok`}
-          description="Komisyon, bir teklif kabul edilip satış kapandığında doğar. Daha geniş bir dönem seçmeyi ya da Teklifler sayfasından bekleyen teklifleri yanıtlamayı deneyin."
+          badge={t("page.emptyBadge")}
+          /* Cümle İÇİ biçim: İngilizcede sekme etiketi ("Last 3 months")
+             cümlenin ortasında büyük harfle duruyordu. Türkçede iki biçim
+             aynı, o yüzden `periodPhrase` yalnızca İngilizcede ayrışıyor. */
+          title={t("page.emptyTitle", {
+            period: t(`periodPhrase.${periodValue(period)}`),
+          })}
+          description={t("page.emptyBody")}
         />
       ) : (
         <>
           {/* --- Trend --- */}
           <Card>
             <CardHeader>
-              <CardTitle>Aylık komisyon</CardTitle>
+              <CardTitle>{t("chart.title")}</CardTitle>
             </CardHeader>
             <CardContent className="pt-2">
               <RevenueChart data={overview.series} />
@@ -145,7 +159,7 @@ export default async function GelirlerPage({ searchParams }: PageProps) {
           <Card>
             <CardHeader>
               <CardTitle>
-                {isManager ? "Danışman bazlı döküm" : "Komisyon dökümünüz"}
+                {t(isManager ? "byAgent.titleManager" : "byAgent.titleSelf")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 pt-3">
@@ -166,9 +180,11 @@ export default async function GelirlerPage({ searchParams }: PageProps) {
                       {row.fullName}
                     </p>
                     <p className="text-[12px] text-muted-foreground">
-                      {row.saleCount} işlem · %
-                      {(row.commissionRate * 100).toFixed(1)} oran ·{" "}
-                      {formatCurrencyCompact(row.volume)} hacim
+                      {t("byAgent.meta", {
+                        count: row.saleCount,
+                        rate: formatRate(format, row.commissionRate),
+                        volume: formatCurrencyCompact(row.volume),
+                      })}
                     </p>
                   </div>
 
@@ -183,7 +199,9 @@ export default async function GelirlerPage({ searchParams }: PageProps) {
                       />
                     </div>
                     <p className="mt-1 text-[11px] tabular-nums text-muted-foreground">
-                      %{Math.round(row.totals.collectionRate * 100)} tahsil
+                      {t("byAgent.collectedShare", {
+                        rate: formatPercent(format, row.totals.collectionRate),
+                      })}
                     </p>
                   </div>
 
@@ -198,7 +216,7 @@ export default async function GelirlerPage({ searchParams }: PageProps) {
           {/* --- Komisyon satırları --- */}
           <Card>
             <CardHeader>
-              <CardTitle>Komisyon kayıtları</CardTitle>
+              <CardTitle>{t("rows.title")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 pt-3">
               {overview.rows.map((row) => (
@@ -216,12 +234,12 @@ export default async function GelirlerPage({ searchParams }: PageProps) {
                       </Link>
                     ) : (
                       <p className="truncate text-[13.5px] font-medium text-muted-foreground">
-                        İlan silinmiş
+                        {t("rows.deletedListing")}
                       </p>
                     )}
                     <p className="flex flex-wrap items-center gap-x-2 text-[12px] text-muted-foreground">
                       <span className="tabular-nums">
-                        {formatShortDate(row.closed_at)}
+                        {formatDate(format, row.closed_at, "short")}
                       </span>
                       {row.agent && (
                         <>
@@ -231,7 +249,9 @@ export default async function GelirlerPage({ searchParams }: PageProps) {
                       )}
                       <span aria-hidden>·</span>
                       <span className="tabular-nums">
-                        {formatCurrencyCompact(row.amount)} satış
+                        {t("rows.saleAmount", {
+                          amount: formatCurrencyCompact(row.amount),
+                        })}
                       </span>
                     </p>
                   </div>
@@ -252,8 +272,7 @@ export default async function GelirlerPage({ searchParams }: PageProps) {
 
           {!isManager && (
             <p className="px-1 text-[12px] leading-relaxed text-muted-foreground">
-              Tahsilat durumunu yalnızca ofis yöneticileri değiştirebilir.
-              Komisyon tutarı, satış bedelinin prim oranınızla çarpımıdır.
+              {t("page.agentNote")}
             </p>
           )}
         </>

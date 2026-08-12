@@ -337,6 +337,168 @@ const DESCRIPTION_CLOSERS = [
   "Pazarlık payı bulunmaktadır, ciddi alıcılar dikkate alınacaktır.",
 ] as const;
 
+/* ==========================================================================
+   İlan görselleri
+   ========================================================================== */
+/**
+ * KATEGORİYE GÖRE SEÇİLMİŞ GERÇEK GAYRİMENKUL FOTOĞRAFLARI.
+ *
+ * -----------------------------------------------------------------------------
+ * NEDEN RASTGELE GÖRSEL SERVİSİ DEĞİL
+ * -----------------------------------------------------------------------------
+ * Önceki sürüm `picsum.photos/seed/<ilan-id>/1200/800` kullanıyordu. Adres
+ * ilan kimliğinden türediği için görsel KARARLIYDI (aynı ilan hep aynı
+ * fotoğrafı gösteriyordu) ama picsum'un bir kategori kavramı yok: "1+1
+ * Dubleks" ilanının kapağında kahve çekirdeği, "1.620 m² Arsa" ilanında
+ * dizüstü bilgisayar çıkıyordu.
+ *
+ * Bir emlak uygulamasında bu, tek bakışta fark edilen ve tüm ekranı
+ * inandırıcılıktan düşüren bir kusur — üstelik veri katmanının değil yalnızca
+ * seed'in sorunu.
+ *
+ * `source.unsplash.com/?apartment` gibi anahtar kelimeli servisler bunu
+ * çözerdi ama o uç 2024'te kapandı (503 dönüyor). Bu yüzden havuzlar ELLE
+ * seçildi: aşağıdaki kimliklerin her biri Unsplash CDN'inden tek tek çekilip
+ * içeriği doğrulandı.
+ *
+ * -----------------------------------------------------------------------------
+ * DAİRE HAVUZU NEDEN İÇ MEKÂN AĞIRLIKLI
+ * -----------------------------------------------------------------------------
+ * Bir apartman dairesinin dış cephesi ayırt edici değil — İstanbul'da kırk
+ * ilan aynı beton bloğu gösterirdi. Alıcının baktığı şey salon, mutfak ve
+ * banyo. Villa ve ofiste tersi: orada bina karakterin kendisi.
+ */
+const IMAGE_POOLS: Record<ListingCategory, readonly string[]> = {
+  /* `satilik` ve `kiralik` aynı havuzu paylaşıyor: bir dairenin fotoğrafı
+     satılık mı kiralık mı olduğuna göre değişmiyor. */
+  satilik: [
+    "1502005229762-cf1b2da7c5d6", // çift katlı salon, merdiven
+    "1493809842364-78817add7ffb", // lacivert kanepeli oturma odası
+    "1586023492125-27b2c045efd7", // sarı koltuklu salon
+    "1522708323590-d24dbb6b0267", // salon + yemek alanı
+    "1560448204-e02f11c3d0e2", // ferah oturma odası
+    "1484154218962-a197022b5858", // beyaz mutfak, ada tezgâh
+    "1556909212-d5b604d0c90d", // mutfak, kırmızı detay
+    "1600607687939-ce8a6c25118c", // modern salon
+    "1600566753086-00f18fb6b3ea", // salon + iç merdiven
+    "1600210492486-724fe5c67fb0", // bitkili oturma odası
+    "1600607687920-4e2a09cf159d", // yemek masası, ahşap
+    "1512918728675-ed5a9ecdebfd", // yatak odası
+    "1519643381401-22c77e60520e", // yemek odası
+    "1598928506311-c55ded91a20c", // klasik salon
+    "1502672260266-1c1ef2d93688", // bitkili köşe
+    "1522771739844-6a9f6d5f14af", // yatak odası, gece lambası
+    "1554995207-c18c203602cb", // salon, yeşil duvar
+    "1584622650111-993a426fbf0a", // banyo
+    "1560185007-cde436f6a4d0", // cumbalı yemek alanı
+    "1560185893-a55cbc8c57e8", // yatak odası
+    "1600585152220-90363fe7e115", // mutfak adası, tabure
+    "1600573472550-8090b5e0745e", // salon, havuz manzarası
+    "1600566752355-35792bedcfea", // banyo, küvet
+    "1615874959474-d609969a20ed", // yatak odası
+    "1615529182904-14819c35db37", // salon, hasır detay
+    "1631679706909-1844bbd07221", // bej salon
+    "1600121848594-d8644e57abab", // gri salon
+    "1567767292278-a4f21aa2d36e", // beyaz salon
+    "1516455590571-18256e5bb9ff", // yemek alanı
+    "1604328698692-f76ea9498e76", // aydınlık daire
+    "1604014237800-1c9102c219da", // açık plan salon
+    "1590725140246-20acdee442be", // çatı katı mutfak
+    "1600585154084-4e5fe7c39198", // şömineli salon
+    "1600566752229-250ed79470f8", // beyaz mutfak
+    "1523217582562-09d0def993a6", // modern bina dış cephe
+    "1600585154526-990dced4db0d", // bina dış cephe
+    "1600047509807-ba8f99d2cdde", // bina dış cephe
+    "1505873242700-f289a29e1e0f", // loft, endüstriyel
+  ],
+  kiralik: [], // aşağıda `satilik` havuzuna bağlanıyor
+
+  villa: [
+    "1512917774080-9991f1c4c750",
+    "1600596542815-ffad4c1539a9",
+    "1570129477492-45c003edd2be",
+    "1600585154340-be6161a56a0c",
+    "1449844908441-8829872d2607",
+    "1416331108676-a22ccb276e35",
+    "1564013799919-ab600027ffc6",
+    "1568605114967-8130f3a36994",
+    "1580587771525-78b9dba3b914",
+    "1613490493576-7fde63acd811",
+    "1600566753190-17f0baa2a6c3",
+    "1600607688969-a5bfcd646154",
+    "1600047509358-9dc75507daeb",
+    "1613977257363-707ba9348227",
+    "1591474200742-8e512e6f98f8",
+    "1600566753376-12c8ab7fb75b",
+    "1464146072230-91cabc968266",
+    "1592595896551-12b371d546d5",
+    "1613977257592-4871e5fcd7c4",
+    "1571055107559-3e67626fa8be",
+    "1600585153490-76fb20a32601",
+  ],
+
+  ofis: [
+    "1497366754035-f200968a6e72", // cam bölmeli koridor
+    "1497366811353-6870744d04b2", // toplantı odası
+    "1487958449943-2429e8be8625", // gökdelen
+    "1486406146926-c627a92ad1ab", // gökdelenler
+    "1497366216548-37526070297c", // açık ofis
+    "1497215842964-222b430dc094", // çalışma masası
+    "1524758631624-e2822e304c36", // ofis dinlenme alanı
+    "1541746972996-4e0b0f43e02a", // cam duvarlı toplantı
+    "1497366858526-0766cadbe8fa", // toplantı masası
+    "1497215728101-856f4ea42174", // pencereli çalışma alanı
+    "1518005020951-eccb494ad742", // kavisli cephe
+    "1596541223130-5d31a73fb6c6", // ofis binası, sokak
+    "1554435493-93422e8220c8", // cam ofis binası
+  ],
+
+  /* Arsa havuzu en dar olan: boş parsel fotoğrafı stok arşivlerde nadir ve
+     çoğu manzara fotoğrafına dönüşüyor. Buradakiler bilinçli olarak ARAZİ
+     okunacak kareler — tarla, çitli parsel, kuşbakışı yerleşim. Orman, plaj
+     ve karlı dağ gibi "duvar kâğıdı" fotoğraflar elendi: onlar da en az kahve
+     çekirdeği kadar alakasız olurdu. */
+  arsa: [
+    "1500382017468-9049fed747ef", // gün doğumunda tarla
+    "1444858291040-58f756a3bdd6", // çitli yeşil arazi, ahır
+    "1501854140801-50d01698950b", // kuşbakışı yeşil tepeler
+    "1560493676-04071c5f467b", // sıralı ekili tarla
+    "1524813686514-a57563d77965", // kuşbakışı yerleşim, parseller
+    "1470071459604-3b5ec3a7fe05", // yol geçen yeşil vadi
+  ],
+};
+
+/* Kiralık, satılık havuzunu aynen kullanıyor. Ayrı diziler tutmak aynı
+   listeyi iki kez bakımda tutmak olurdu. */
+const POOL_FOR = (category: ListingCategory): readonly string[] =>
+  category === "kiralik" ? IMAGE_POOLS.satilik : IMAGE_POOLS[category];
+
+/**
+ * Bir ilanın görsel adresleri.
+ *
+ * KAPAK BENZERSİZ: `index` doğrudan havuzun başlangıç noktası olduğu için
+ * aynı kategorideki ardışık ilanlar farklı kapaklarla açılıyor. Liste
+ * sayfasında yan yana duran iki kartın aynı fotoğrafı göstermesi, veriyi
+ * sahte gösteren şeylerden biri.
+ *
+ * Sonraki kareler havuzda dönerek ilerliyor (`% length`), yani tek bir ilanın
+ * içinde tekrar yok.
+ */
+function imagesFor(
+  category: ListingCategory,
+  index: number,
+  count: number,
+): string[] {
+  const pool = POOL_FOR(category);
+  return Array.from({ length: count }, (_, offset) => {
+    const id = pool[(index + offset) % pool.length];
+    /* `fit=crop` sabit en-boy oranı veriyor: kart ızgarası her görselde aynı
+       yüksekliği bekliyor. `q=80` ve `auto=format` Unsplash'in kendi
+       optimizasyonu — WebP destekleyen tarayıcıya WebP gidiyor. */
+    return `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=1200&h=800&q=80`;
+  });
+}
+
 /**
  * Kategoriler rastgele değil, sabit bir kotayla dağıtılır: 46 kayıtta
  * ağırlıklı seçim villa/arsa gibi küçük dilimleri 1-2 kayda düşürüyor ve
@@ -442,10 +604,7 @@ function buildListing(index: number): ListingRow {
     // Mahalle dağılımını taklit etmek için ilçe merkezine küçük sapma
     latitude: Number((profile.lat + between(random, -0.018, 0.018)).toFixed(6)),
     longitude: Number((profile.lng + between(random, -0.022, 0.022)).toFixed(6)),
-    images: Array.from(
-      { length: intBetween(random, 4, 6) },
-      (_, imageIndex) => `https://picsum.photos/seed/${id}-${imageIndex}/1200/800`,
-    ),
+    images: imagesFor(category, index, intBetween(random, 4, 6)),
     views_count: viewsCount,
     favorites_count: favoritesCount,
     published_at: publishedAt === null ? null : iso(publishedAt),
@@ -598,17 +757,20 @@ function buildCustomer(index: number, usedNames: Set<string>): CustomerRow {
 
   const phone = `+90 ${pick(random, OPERATOR_PREFIXES)} ${intBetween(random, 100, 999)} ${String(intBetween(random, 0, 99)).padStart(2, "0")} ${String(intBetween(random, 0, 99)).padStart(2, "0")}`;
 
-  /* Bir kısmında fotoğraf yok — Avatar'ın baş harf yedeği de çalışsın. */
-  const hasAvatar = random() < 0.62;
-
   return {
     id: `mst-${2001 + index}`,
     full_name: fullName,
     phone,
     email: `${toEmailLocal(fullName)}@${pick(random, EMAIL_DOMAINS)}`,
-    avatar_url: hasAvatar
-      ? `https://i.pravatar.cc/160?img=${intBetween(random, 1, 70)}`
-      : null,
+    /* MÜŞTERİ FOTOĞRAFI YOK — kolon her kayıtta null.
+       Önceki sürüm `i.pravatar.cc` üzerinden rastgele portreler yazıyordu.
+       Sonuç, gerçek insanların yüzlerinin sahte müşteri kayıtlarına
+       iliştirilmesiydi: hem inandırıcı değil (aynı yüzler her demoda
+       dolaşıyor) hem de bir CRM'in müşteri listesinde stok portre görmek
+       yanlış bir beklenti kuruyor — kimse müşterisinin vesikalığını sisteme
+       girmiyor.
+       Arayüz artık her yerde baş harf gösteriyor (`CustomerAvatar`). */
+    avatar_url: null,
     budget_min: budgetMin,
     budget_max: budgetMax,
     status,
@@ -1188,62 +1350,92 @@ function buildAppointments(): AppointmentRow[] {
 
 const appointments = buildAppointments();
 
-/* --- 9b.2 conversations + messages --------------------------------------- */
+/* --- 9b.2 work_notes ----------------------------------------------------- */
 
-type ConversationRow = {
+type WorkNoteRow = {
   id: string;
-  customer_id: string;
-  agent_id: string;
-  last_message_at: string;
-};
-
-type MessageRow = {
-  conversation_id: string;
-  sender_type: "agent" | "customer";
+  customer_id: string | null;
+  listing_id: string | null;
+  author_agent_id: string;
+  note_type: "question" | "assignment" | "note";
   content: string;
+  mentioned_agent_id: string | null;
+  status: "open" | "resolved" | null;
+  resolved_by_agent_id: string | null;
+  resolved_at: string | null;
+  parent_note_id: string | null;
   created_at: string;
-  read_at: string | null;
 };
 
-const CUSTOMER_LINES = [
-  "Merhaba, ilanı gördüm. Hâlâ müsait mi?",
-  "Fiyatta bir esneklik var mı?",
-  "Hafta sonu görebilir miyiz?",
-  "Aidat ne kadar acaba?",
-  "Krediye uygun mu?",
-  "Fotoğraflardaki mutfak yenilendi mi?",
-  "Teşekkürler, ailemle konuşup döneceğim.",
-  "Otopark dahil mi?",
+/* Faz 18: müşteriyle yazışma yerine EKİP İÇİ iş notları. Metinler bir emlak
+   ofisinde gerçekten yazılacak şeyler — "Merhaba, ilanı gördüm" gibi
+   satırlar müşteriden gelirdi ve bu sistemde müşteri yok. */
+
+const QUESTION_LINES = [
+  "Evrakları ne zaman teslim alabiliriz? Tapu randevusu için tarih vermem gerekiyor.",
+  "Bu müşteriye kredi ön onayı çıktı mı, bilen var mı?",
+  "Mal sahibi fiyatta ne kadar iniyor? Teklif hazırlayacağım.",
+  "Anahtar kimde? Yarın 11:00 için yer gösterme sözü verdim.",
+  "Aidat bilgisini teyit edebilir miyiz, ilanda 2.500 yazıyor ama emin değilim.",
+  "İskân belgesi dosyada var mı? Alıcı sordu.",
+  "Bu kayıt için sözleşme taslağı hazırlandı mı?",
 ];
 
-const AGENT_LINES = [
-  "Merhaba, evet müsait. Detayları hemen paylaşıyorum.",
-  "Mal sahibiyle görüşüp size dönüş yapacağım.",
-  "Cumartesi 14:00 uygun mu?",
-  "Aidat 2.500 TL, ısıtma dahil.",
-  "Kredi için ön onay alabilirsiniz, banka listesini gönderiyorum.",
-  "Mutfak geçen yıl komple yenilendi.",
-  "Tabii, acele etmeyin. Sorularınız olursa buradayım.",
-  "Kapalı otopark dahil, ikinci araç için ek ücret var.",
+const ASSIGNMENT_LINES = [
+  "Bu kaydı ben üstleniyorum, süreç bende devam edecek.",
+  "İzne çıkıyorum, dönene kadar sende kalsın.",
+  "Müşteriyle ilk görüşmeyi ben yaptım, portföyüme alıyorum.",
+  "Bölge sende olduğu için devrediyorum.",
+];
+
+const NOTE_LINES = [
+  "Fiyat konusunda esnek değil, pazarlık payı yok gibi.",
+  "Sabah saatlerinde aranmak istemiyor, öğleden sonra uygun.",
+  "Nakit alıcı, kredi süreci beklemiyoruz.",
+  "Eşiyle birlikte karar veriyor; ikisi birden gelmeden teklif çıkmaz.",
+  "Site içindeki manzaralı blokları tercih ediyor.",
+  "Taşınma tarihi Eylül'den önce olamaz, kira sözleşmesi devam ediyor.",
+];
+
+const REPLY_LINES = [
+  "Ben ilgileniyorum, yarın öğlene kadar dönerim.",
+  "Mal sahibiyle konuştum, 200.000 TL indirim var.",
+  "Evraklar bugün elime geçti, dosyaya yükledim.",
+  "Anahtar ofiste, resepsiyonda bırakıyorum.",
+  "Teyit ettim, aidat 2.500 TL ve ısıtma dahil.",
 ];
 
 /**
- * Konuşmalar MÜŞTERİ BAŞINA TEK (şemadaki unique kısıt).
+ * İş notları — üç tür, ikisi takip edilebilir.
  *
- * Sıcak müşterilerin hepsinde, normallerin bir kısmında yazışma var —
- * ilgisi yüksek müşteriyle daha çok konuşulur. Soğuk müşterilerde yok.
+ * DAĞILIM BİLİNÇLİ, tek tip veriyle arayüzün yarısı hiç çizilmez:
  *
- * OKUNMAMIŞ MESAJ BIRAKILIYOR: birkaç konuşmanın son mesajı müşteriden ve
- * okunmamış. Rozet ve kalın yazı tipi demo'da görünsün diye — hepsi okunmuş
- * olsaydı o durumlar hiç çizilmezdi.
+ *  · Bir kısmı AÇIK kalıyor → panodaki "Açık sorular" sekmesi ve müşteri
+ *    detayındaki "N açık" rozeti dolu görünsün.
+ *  · Bir kısmı @mention taşıyor → "Bana yönelik" sekmesi ve sidebar rozeti
+ *    çalışsın. Anılan kişi kaydın sahibi DEĞİL, başka bir danışman: notu
+ *    yazan da anılan da aynı kişi olsaydı bildirim hiç doğmazdı.
+ *  · Bir kısmının yanıtı var → yanıt zinciri ve `parent_note_id` görünsün.
+ *  · Genel notların durumu NULL → şema kısıtı (`work_notes_status_matches_type`)
+ *    seed tarafından da doğrulanmış oluyor.
+ *
+ * Notların çoğu MÜŞTERİYE bağlı, bir kısmı İLANA: iki bağlam da denenmiş
+ * olsun. Hiçbiri bağlamsız değil — şema zaten reddederdi.
  */
-function buildConversations(): {
-  conversations: ConversationRow[];
-  messages: MessageRow[];
-} {
-  const conversations: ConversationRow[] = [];
-  const messages: MessageRow[] = [];
+function buildWorkNotes(): WorkNoteRow[] {
+  const notes: WorkNoteRow[] = [];
+  let counter = 0;
 
+  const nextId = () =>
+    `c0000000-0000-4000-8000-${String((counter += 1)).padStart(12, "0")}`;
+
+  /* Bir danışmanın kendisi dışındaki ilk meslektaşı — @mention hedefi.
+     Seed'deki personelin hepsi aktif (`is_active` kolonu varsayılanı `true`),
+     o yüzden ek bir süzme gerekmiyor. */
+  const otherAgent = (agentId: string) =>
+    agents.find((agent) => agent.id !== agentId)?.id ?? null;
+
+  /* --- Müşteriye bağlı notlar --- */
   const eligible = customers.filter(
     (customer, index) =>
       customer.status === "sicak" ||
@@ -1252,54 +1444,105 @@ function buildConversations(): {
 
   eligible.forEach((customer, index) => {
     const random = mulberry32(hashSeed(index + 200_000));
-    const conversationId = `c0000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`;
+    const author = customer.assigned_agent_id;
+    const at = NOW - intBetween(random, 1, 25) * DAY;
 
-    const turns = intBetween(random, 4, 9);
-    /* Son mesajın zamanı: son 10 gün içinde. */
-    const lastAt = NOW - intBetween(random, 0, 10) * DAY;
-    /* Mesajlar geriye doğru 40–90 dakikalık aralıklarla diziliyor. */
-    let cursor = lastAt - turns * intBetween(random, 40, 90) * 60_000;
+    /* Tür dağılımı: yarısı soru, üçte biri genel not, kalanı atama. Soru
+       çoğunlukta çünkü panonun varsayılan sekmesi onları gösteriyor. */
+    const roll = random();
+    const type: WorkNoteRow["note_type"] =
+      roll < 0.5 ? "question" : roll < 0.85 ? "note" : "assignment";
 
-    /* Son mesaj kimden: dörtte birinde müşteriden ve OKUNMAMIŞ. */
-    const endsWithCustomer = random() < 0.28;
+    /* Soruların yarısı belirli birine yöneltiliyor, yarısı tüm ekibe. */
+    const mentioned =
+      type !== "note" && random() < 0.55 ? otherAgent(author) : null;
 
-    for (let turn = 0; turn < turns; turn += 1) {
-      /* Sohbet müşteriden başlıyor, sonra sırayla. Son mesajın kimden
-         geleceği yukarıdaki karara göre yön ayarlanıyor. */
-      const fromCustomer =
-        (turn + (endsWithCustomer ? turns + 1 : turns)) % 2 === 0;
+    /* Açık/çözülmüş: genel notta durum YOK (şema kısıtı), diğerlerinin
+       yaklaşık üçte biri kapatılmış. */
+    const resolved = type !== "note" && random() < 0.35;
+    const resolvedAt = resolved ? at + intBetween(random, 2, 40) * 3_600_000 : null;
 
-      cursor += intBetween(random, 40, 90) * 60_000;
+    const id = nextId();
 
-      messages.push({
-        conversation_id: conversationId,
-        sender_type: fromCustomer ? "customer" : "agent",
-        content: fromCustomer
-          ? pick(random, CUSTOMER_LINES)
-          : pick(random, AGENT_LINES),
-        created_at: iso(cursor),
-        /* Danışmanın mesajı baştan okunmuş sayılıyor (uygulama da öyle
-           yazıyor); müşteriden gelen son mesaj okunmamış kalıyor. */
-        read_at: fromCustomer
-          ? turn === turns - 1 && endsWithCustomer
-            ? null
-            : iso(cursor + 5 * 60_000)
-          : iso(cursor),
+    notes.push({
+      id,
+      customer_id: customer.id,
+      listing_id: null,
+      author_agent_id: author,
+      note_type: type,
+      content:
+        type === "question"
+          ? pick(random, QUESTION_LINES)
+          : type === "assignment"
+            ? pick(random, ASSIGNMENT_LINES)
+            : pick(random, NOTE_LINES),
+      mentioned_agent_id: mentioned,
+      status: type === "note" ? null : resolved ? "resolved" : "open",
+      resolved_by_agent_id: resolved ? (mentioned ?? author) : null,
+      resolved_at: resolvedAt ? iso(resolvedAt) : null,
+      parent_note_id: null,
+      created_at: iso(at),
+    });
+
+    /* Soruların bir kısmına yanıt: yanıt her zaman genel not ve üst notun
+       bağlamını devralıyor (uygulama da öyle yazıyor). */
+    if (type === "question" && random() < 0.45) {
+      notes.push({
+        id: nextId(),
+        customer_id: customer.id,
+        listing_id: null,
+        author_agent_id: mentioned ?? otherAgent(author) ?? author,
+        note_type: "note",
+        content: pick(random, REPLY_LINES),
+        mentioned_agent_id: null,
+        status: null,
+        resolved_by_agent_id: null,
+        resolved_at: null,
+        parent_note_id: id,
+        created_at: iso(at + intBetween(random, 1, 20) * 3_600_000),
       });
     }
-
-    conversations.push({
-      id: conversationId,
-      customer_id: customer.id,
-      agent_id: customer.assigned_agent_id,
-      last_message_at: iso(cursor),
-    });
   });
 
-  return { conversations, messages };
+  /* --- İlana bağlı notlar --- */
+  listings
+    .filter((listing) => listing.status === "aktif")
+    .slice(0, 10)
+    .forEach((listing, index) => {
+      const random = mulberry32(hashSeed(index + 210_000));
+      const author = listing.agent_id;
+      const at = NOW - intBetween(random, 1, 18) * DAY;
+      const isQuestion = random() < 0.6;
+
+      notes.push({
+        id: nextId(),
+        customer_id: null,
+        listing_id: listing.id,
+        author_agent_id: author,
+        note_type: isQuestion ? "question" : "note",
+        content: isQuestion
+          ? pick(random, QUESTION_LINES)
+          : pick(random, NOTE_LINES),
+        mentioned_agent_id: isQuestion ? otherAgent(author) : null,
+        status: isQuestion ? "open" : null,
+        resolved_by_agent_id: null,
+        resolved_at: null,
+        parent_note_id: null,
+        created_at: iso(at),
+      });
+    });
+
+  /* Üst notlar önce yazılmalı: `parent_note_id` kendine referans veren bir
+     yabancı anahtar ve toplu insert sırayı korumuyor olabilir. Yanıtları
+     sona almak, üst notun her hâlükârda mevcut olmasını garantiliyor. */
+  return [...notes].sort((a, b) => {
+    if (!a.parent_note_id && b.parent_note_id) return -1;
+    if (a.parent_note_id && !b.parent_note_id) return 1;
+    return Date.parse(a.created_at) - Date.parse(b.created_at);
+  });
 }
 
-const { conversations, messages } = buildConversations();
+const workNotes = buildWorkNotes();
 
 /* --- 9b.3 notifications -------------------------------------------------- */
 
@@ -1309,16 +1552,18 @@ type NotificationRow = {
     | "customer_added"
     | "listing_created"
     | "sale_closed"
-    | "message_received"
-    | "appointment_scheduled";
+    | "appointment_scheduled"
+    | "work_note_mention"
+    | "work_note_assigned"
+    | "work_note_resolved";
   title: string;
   description: string;
   related_entity_type:
     | "customer"
     | "listing"
     | "sale"
-    | "conversation"
     | "appointment"
+    | "work_note"
     | null;
   related_entity_id: string | null;
   read_at: string | null;
@@ -1372,29 +1617,65 @@ function buildNotifications(): NotificationRow[] {
     });
   });
 
-  /* Okunmamış mesajı olan konuşmalar → "yeni mesaj". */
-  const unreadConversationIds = new Set(
-    messages
-      .filter((message) => message.sender_type === "customer" && message.read_at === null)
-      .map((message) => message.conversation_id),
-  );
+  /* Birine YÖNELTİLMİŞ açık notlar → "sana soruldu" / "kayıt devri".
+     Uygulamada bu satırları `createWorkNote` yazıyor; burada aynı kural elle
+     tekrarlanıyor ki demo'da zil ve sidebar rozeti dolu görünsün.
 
-  conversations
-    .filter((conversation) => unreadConversationIds.has(conversation.id))
-    .slice(0, 6)
-    .forEach((conversation) => {
-      const customer = customers.find(
-        (item) => item.id === conversation.customer_id,
-      );
+     BİLDİRİM ANILAN KİŞİYE gidiyor, notu yazana değil — `notify()` de zaten
+     kendine bildirim yazmıyor. */
+  workNotes
+    .filter(
+      (note) => note.status === "open" && note.mentioned_agent_id !== null,
+    )
+    /* ATAMALAR ÖNCE. Liste tarih sırasında ve atamalar azınlıkta (soru
+       çoğunlukta bilerek); `slice` doğrudan uygulansaydı ilk sekiz satır
+       tesadüfen hep soru olabiliyordu ve demo'da `work_note_assigned`
+       bildirimi hiç görünmüyordu — bir tür sessizce kayboluyordu. */
+    .sort((a, b) => {
+      if (a.note_type === b.note_type) return 0;
+      return a.note_type === "assignment" ? -1 : 1;
+    })
+    .slice(0, 8)
+    .forEach((note, index) => {
+      const random = mulberry32(hashSeed(index + 315_000));
+      const context = note.customer_id
+        ? customers.find((item) => item.id === note.customer_id)?.full_name
+        : listings.find((item) => item.id === note.listing_id)?.title;
+
+      const isAssignment = note.note_type === "assignment";
+
       rows.push({
-        agent_id: conversation.agent_id,
-        type: "message_received",
-        title: `${customer?.full_name ?? "Müşteri"} mesaj gönderdi`,
-        description: "Yanıt bekleyen bir mesajınız var.",
-        related_entity_type: "conversation",
-        related_entity_id: conversation.id,
-        read_at: null,
-        created_at: conversation.last_message_at,
+        agent_id: note.mentioned_agent_id!,
+        type: isAssignment ? "work_note_assigned" : "work_note_mention",
+        title: isAssignment
+          ? `${context ?? "Bir kayıt"} sana devredildi`
+          : `${context ?? "Bir kayıt"} için sana soruldu`,
+        description: note.content.slice(0, 120),
+        related_entity_type: "work_note",
+        related_entity_id: note.id,
+        /* Çoğu okunmamış: rozet demo'da görünsün. */
+        read_at: random() < 0.25 ? iso(Date.parse(note.created_at) + 3_600_000) : null,
+        created_at: note.created_at,
+      });
+    });
+
+  /* Kapatılmış notlar → soruyu sorana "çözüldü". */
+  workNotes
+    .filter((note) => note.status === "resolved" && note.resolved_at)
+    .slice(0, 4)
+    .forEach((note) => {
+      rows.push({
+        agent_id: note.author_agent_id,
+        type: "work_note_resolved",
+        title:
+          note.note_type === "assignment"
+            ? "Yaptığın devir kabul edildi"
+            : "Sorduğun soru çözüldü",
+        description: note.content.slice(0, 120),
+        related_entity_type: "work_note",
+        related_entity_id: note.id,
+        read_at: note.resolved_at,
+        created_at: note.resolved_at!,
       });
     });
 
@@ -1513,13 +1794,13 @@ const documents = buildDocuments();
 
 const companySettings = {
   id: "default",
-  name: "Emlak CRM Gayrimenkul",
+  name: "EstateFlow Gayrimenkul",
   logo_url: null,
   address: "Bağdat Caddesi No:184, Kadıköy / İstanbul",
   tax_office: "Kadıköy",
   tax_number: "1234567890",
   phone: "+90 216 555 12 34",
-  email: "info@emlakcrm.com",
+  email: "info@estateflow.com",
 };
 
 /* ==========================================================================
@@ -1543,11 +1824,11 @@ async function insertAll(table: string, rows: object[]) {
 
 /** Silme sırası yabancı anahtarları takip eder: çocuklar önce. */
 const DELETE_ORDER = [
-  /* Faz 11–14 tabloları en başta: hepsi listings/customers/agents'a bağlı.
-     `messages` `conversations`tan önce, `conversations` `customers`tan önce. */
+  /* Faz 11–18 tabloları en başta: hepsi listings/customers/agents'a bağlı.
+     `work_notes` kendine de referans veriyor (`parent_note_id`) ama tek bir
+     filtresiz DELETE hepsini birden siliyor, sıra sorunu doğmuyor. */
   "notifications",
-  "messages",
-  "conversations",
+  "work_notes",
   "documents",
   "appointments",
   "offers",
@@ -1624,8 +1905,7 @@ async function main() {
 
   /* --- Faz 11–14 tabloları --- */
   await insertAll("appointments", appointments);
-  await insertAll("conversations", conversations);
-  await insertAll("messages", messages);
+  await insertAll("work_notes", workNotes);
 
   /* Dosyalar satırlardan önce: `file_size` yüklemeden dönüyor. */
   await uploadDemoDocuments();
@@ -1663,7 +1943,7 @@ async function main() {
       `    Kapanan satış   ${sales.length} (${sales.filter((row) => row.commission_status === "collected").length} komisyon tahsil edildi)`,
       `    Teklif          ${offers.length} (${pending} bekliyor)`,
       `    Randevu         ${appointments.length} (${appointments.filter((row) => row.status === "planlandi").length} planlı)`,
-      `    Konuşma         ${conversations.length} · ${messages.length} mesaj (${messages.filter((row) => row.sender_type === "customer" && row.read_at === null).length} okunmamış)`,
+      `    İş notu         ${workNotes.length} (${workNotes.filter((row) => row.status === "open").length} açık · ${workNotes.filter((row) => row.parent_note_id !== null).length} yanıt)`,
       `    Evrak           ${documents.length}`,
       `    Bildirim        ${notifications.length} (${notifications.filter((row) => row.read_at === null).length} okunmamış)`,
       `    Bu ay ciro      ₺${revenue.toLocaleString("tr-TR")}`,

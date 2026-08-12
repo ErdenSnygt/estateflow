@@ -36,10 +36,11 @@ export type {
   CommissionStatus,
   Currency,
   DocumentType,
-  MessageAttachmentType,
-  MessageSender,
   NotificationEntity,
   NotificationType,
+  WorkNoteAttachmentType,
+  WorkNoteStatus,
+  WorkNoteType,
   CustomerEventType,
   CustomerStatus,
   InterestIntent,
@@ -160,31 +161,35 @@ export type AppointmentInsert = Omit<
 export type AppointmentUpdate = Partial<AppointmentInsert>;
 
 /* ==========================================================================
-   Mesajlar
+   İş notları
    ========================================================================== */
 
 /**
- * Müşteri yazışma dizisi.
+ * Ekip içi iş notu — Faz 18.
  *
- * MÜŞTERİ BAŞINA TEK KAYIT (`customer_id` unique). `agent_id` sahiplik değil,
- * "şu an kim yürütüyor" bilgisi — müşteri devredildiğinde yazışma bölünmesin
- * diye. Gerekçe `0008_messaging.sql` içinde.
- */
-export type Conversation = Tables<"conversations">;
-
-/**
- * Tek mesaj.
+ * Faz 12'deki `Conversation` + `Message` ikilisinin yerini aldı. Gerekçe
+ * `0012_work_notes.sql` başlığında ve README'de: müşteriyle yazışma bu
+ * sistemde yok (telefon/WhatsApp gibi dış kanallarda yürüyor), uygulama içinde
+ * gerçekten yürüyen iletişim EKİP İÇİ olanı.
+ *
+ * Bir not her zaman bir MÜŞTERİ ya da İLAN kaydına bağlı (ikisi birden de
+ * olabilir); bağlamsız not kabul edilmiyor.
  *
  * `attachment_url` bir URL DEĞİL, private `documents` bucket'ındaki nesne
- * yolu; kalıcı adres yok, indirme anında imzalanıyor. Kolon adı şemadaki
- * adla aynı kalsın diye korundu — `lib/storage/signed.ts`.
+ * yolu; kalıcı adres yok, indirme anında imzalanıyor (`lib/storage/signed.ts`).
  */
-export type Message = Tables<"messages">;
+export type WorkNote = Tables<"work_notes">;
 
-/** `sender_type` ve `conversation_id` dışarıdan gelmez; action ikisini de kurar. */
-export type MessageInsert = Omit<
-  TablesInsert<"messages">,
-  "id" | "created_at" | "read_at"
+/**
+ * Yeni not.
+ *
+ * Çözüm alanları DIŞARIDA: `resolveWorkNote` action'ı damgalıyor, formdan
+ * gelen bir gövde bir notu "zaten çözülmüş" olarak doğuramaz. `author_agent_id`
+ * de dışarıda — onu oturum belirliyor, istemci değil.
+ */
+export type WorkNoteInsert = Omit<
+  TablesInsert<"work_notes">,
+  "id" | "created_at" | "author_agent_id" | "resolved_at" | "resolved_by_agent_id"
 >;
 
 /* ==========================================================================

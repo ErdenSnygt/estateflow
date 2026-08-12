@@ -3,12 +3,13 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useFormatter, useTranslations } from "next-intl";
 import { Check, Trash2, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 
 import type { Notification } from "@/types/database";
-import { notificationHref } from "@/lib/messaging";
-import { formatRelativeTime } from "@/lib/format";
+import { notificationHref } from "@/lib/notifications";
+import { formatRelative } from "@/i18n/dates";
 import { cn } from "@/lib/utils";
 import {
   deleteNotification,
@@ -26,7 +27,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
  * kez daha yaptırmak olurdu. Ayrı düğme yine de duruyor — hedefe gitmeden
  * temizlemek isteyenler için.
  *
- * `reference` DIŞARIDAN GELİYOR: `formatRelativeTime` zaman kaynağını çağırana
+ * `reference` DIŞARIDAN GELİYOR: `formatRelative` zaman kaynağını çağırana
  * bıraktırıyor, aksi halde sunucu ve istemci farklı "şimdi" hesaplayıp
  * hydration uyuşmazlığı üretirdi (gerekçe `lib/format.ts`).
  */
@@ -43,6 +44,9 @@ export function NotificationRow({
   compact?: boolean;
 }) {
   const router = useRouter();
+  const t = useTranslations("notifications.row");
+  const tCommon = useTranslations("common");
+  const format = useFormatter();
   const [isBusy, setIsBusy] = React.useState(false);
 
   const href = notificationHref(
@@ -72,7 +76,7 @@ export function NotificationRow({
     setIsBusy(false);
 
     if (!result.ok) {
-      toast.error("İşlem tamamlanamadı", { description: result.error });
+      toast.error(t("actionError"), { description: result.error });
       return;
     }
     router.refresh();
@@ -87,7 +91,7 @@ export function NotificationRow({
     setIsBusy(false);
 
     if (!result.ok) {
-      toast.error("Bildirim silinemedi", { description: result.error });
+      toast.error(t("deleteError"), { description: result.error });
       return;
     }
     router.refresh();
@@ -112,7 +116,7 @@ export function NotificationRow({
           {/* Okunmamış noktası — rozet yerine nokta, çünkü sayı taşımıyor. */}
           {isUnread && (
             <span
-              aria-label="Okunmadı"
+              aria-label={t("unreadAria")}
               className="mt-1.5 size-1.5 shrink-0 rounded-full bg-brand"
             />
           )}
@@ -130,7 +134,7 @@ export function NotificationRow({
         )}
 
         <p className="mt-1 text-[11.5px] tabular-nums text-muted-foreground">
-          {formatRelativeTime(notification.created_at, reference)}
+          {formatRelative(format, notification.created_at, reference)}
         </p>
       </div>
 
@@ -142,7 +146,7 @@ export function NotificationRow({
                 type="button"
                 onClick={toggleRead}
                 disabled={isBusy}
-                aria-label={isUnread ? "Okundu işaretle" : "Okunmadı işaretle"}
+                aria-label={t(isUnread ? "markRead" : "markUnread")}
                 className="flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground disabled:opacity-50"
               >
                 {isUnread ? (
@@ -153,7 +157,7 @@ export function NotificationRow({
               </button>
             </TooltipTrigger>
             <TooltipContent>
-              {isUnread ? "Okundu işaretle" : "Okunmadı işaretle"}
+              {t(isUnread ? "markRead" : "markUnread")}
             </TooltipContent>
           </Tooltip>
 
@@ -163,13 +167,13 @@ export function NotificationRow({
                 type="button"
                 onClick={handleDelete}
                 disabled={isBusy}
-                aria-label="Bildirimi sil"
+                aria-label={t("deleteAria")}
                 className="flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-danger-soft hover:text-danger disabled:opacity-50"
               >
                 <Trash2 className="size-4" />
               </button>
             </TooltipTrigger>
-            <TooltipContent>Sil</TooltipContent>
+            <TooltipContent>{tCommon("delete")}</TooltipContent>
           </Tooltip>
         </div>
       )}

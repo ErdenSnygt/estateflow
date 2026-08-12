@@ -1,11 +1,13 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import type { AgentOption } from "@/lib/data/agents";
 import { useFilterParams } from "@/hooks/use-filter-params";
 import {
   APPOINTMENT_FILTER_KEYS,
-  APPOINTMENT_STATUS_OPTIONS,
-  APPOINTMENT_TYPE_OPTIONS,
+  APPOINTMENT_STATUSES,
+  APPOINTMENT_TYPES,
   APPOINTMENT_TYPE_PALETTE,
 } from "@/lib/appointments";
 import { cn } from "@/lib/utils";
@@ -40,6 +42,8 @@ export function AppointmentFilterBar({
   /** Boş dizi = danışman filtresi gizli (danışman zaten kendisini görüyor). */
   agentOptions: AgentOption[];
 }) {
+  const t = useTranslations("appointments");
+
   const { get, set, clear, activeCount } = useFilterParams([
     ...APPOINTMENT_FILTER_KEYS,
   ]);
@@ -51,7 +55,9 @@ export function AppointmentFilterBar({
       className="items-end gap-3 rounded-xl border border-hairline bg-surface p-3"
     >
       <div className="space-y-1.5">
-        <Label className="text-[11.5px] text-muted-foreground">Tür</Label>
+        <Label className="text-[11.5px] text-muted-foreground">
+          {t("filters.typeLabel")}
+        </Label>
         <Select
           value={fromParam(get("type"))}
           onValueChange={(value) => set("type", toParam(value))}
@@ -60,10 +66,10 @@ export function AppointmentFilterBar({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL}>Tüm türler</SelectItem>
-            {APPOINTMENT_TYPE_OPTIONS.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
+            <SelectItem value={ALL}>{t("filters.allTypes")}</SelectItem>
+            {APPOINTMENT_TYPES.map((value) => (
+              <SelectItem key={value} value={value}>
+                {t(`type.${value}`)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -71,7 +77,9 @@ export function AppointmentFilterBar({
       </div>
 
       <div className="space-y-1.5">
-        <Label className="text-[11.5px] text-muted-foreground">Durum</Label>
+        <Label className="text-[11.5px] text-muted-foreground">
+          {t("filters.statusLabel")}
+        </Label>
         <Select
           value={fromParam(get("status"))}
           onValueChange={(value) => set("status", toParam(value))}
@@ -80,10 +88,10 @@ export function AppointmentFilterBar({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL}>Tüm durumlar</SelectItem>
-            {APPOINTMENT_STATUS_OPTIONS.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
+            <SelectItem value={ALL}>{t("filters.allStatuses")}</SelectItem>
+            {APPOINTMENT_STATUSES.map((value) => (
+              <SelectItem key={value} value={value}>
+                {t(`status.${value}`)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -92,7 +100,9 @@ export function AppointmentFilterBar({
 
       {agentOptions.length > 0 && (
         <div className="space-y-1.5">
-          <Label className="text-[11.5px] text-muted-foreground">Danışman</Label>
+          <Label className="text-[11.5px] text-muted-foreground">
+            {t("filters.agentLabel")}
+          </Label>
           <Select
             value={fromParam(get("agent"))}
             onValueChange={(value) => set("agent", toParam(value))}
@@ -101,7 +111,7 @@ export function AppointmentFilterBar({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={ALL}>Tüm danışmanlar</SelectItem>
+              <SelectItem value={ALL}>{t("filters.allAgents")}</SelectItem>
               {agentOptions.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
@@ -114,19 +124,19 @@ export function AppointmentFilterBar({
 
       {/* Renk anahtarı — dar ekranda gizleniyor, orada zaten satır kaydırılıyor. */}
       <div className="ml-auto hidden flex-wrap items-center gap-x-3 gap-y-1 lg:flex">
-        {APPOINTMENT_TYPE_OPTIONS.map((option) => (
+        {APPOINTMENT_TYPES.map((value) => (
           <span
-            key={option.value}
+            key={value}
             className="flex items-center gap-1.5 text-[11.5px] text-muted-foreground"
           >
             <span
               aria-hidden
               className={cn(
                 "size-2 rounded-full",
-                APPOINTMENT_TYPE_PALETTE[option.value].accent,
+                APPOINTMENT_TYPE_PALETTE[value].accent,
               )}
             />
-            {option.label}
+            {t(`type.${value}`)}
           </span>
         ))}
       </div>

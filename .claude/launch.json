@@ -2,13 +2,13 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "emlak-crm",
+      "name": "estateflow",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 3000
     },
     {
-      "name": "emlak-crm-prod",
+      "name": "estateflow-prod",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["start"],
       "port": 3000

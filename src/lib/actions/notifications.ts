@@ -4,7 +4,13 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentAgent } from "@/lib/auth/server";
-import { fail, ok, toMessage, type ActionResult } from "@/lib/actions/result";
+import {
+  fail,
+  ok,
+  toMessage,
+  type ActionErrorKey,
+  type ActionResult,
+} from "@/lib/actions/result";
 
 /**
  * ============================================================================
@@ -29,11 +35,11 @@ function revalidateNotifications() {
 
 /** Kullanıcının kendi kimliği — action'ların hepsi bununla sınırlanıyor. */
 async function requireAgentId(): Promise<
-  { ok: true; id: string } | { ok: false; error: string }
+  { ok: true; id: string } | { ok: false; error: ActionErrorKey }
 > {
   const agent = await getCurrentAgent();
-  if (!agent) return { ok: false, error: "Personel kaydınız bulunamadı." };
-  if (!agent.is_active) return { ok: false, error: "Hesabınız pasif durumda." };
+  if (!agent) return { ok: false, error: "agentNotFound" };
+  if (!agent.is_active) return { ok: false, error: "accountInactive" };
   return { ok: true, id: agent.id };
 }
 

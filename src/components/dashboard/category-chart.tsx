@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useFormatter, useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 
 import type { CategoryBreakdown } from "@/lib/data/listings";
 import { donutSegments, seriesColor } from "@/lib/chart";
-import { CATEGORY_LABELS } from "@/lib/listings";
 import { formatNumber } from "@/lib/format";
+import { formatPercent } from "@/i18n/numbers";
 import { cn } from "@/lib/utils";
 
 const SIZE = 200;
@@ -14,6 +15,8 @@ const CENTER = SIZE / 2;
 
 export function CategoryChart({ data }: { data: CategoryBreakdown[] }) {
   const [active, setActive] = useState<number | null>(null);
+  const t = useTranslations();
+  const format = useFormatter();
 
   const total = data.reduce((sum, item) => sum + item.count, 0);
   const segments = donutSegments(
@@ -31,7 +34,7 @@ export function CategoryChart({ data }: { data: CategoryBreakdown[] }) {
           height={SIZE}
           viewBox={`0 0 ${SIZE} ${SIZE}`}
           role="img"
-          aria-label="İlan kategorisi dağılımı"
+          aria-label={t("dashboard.portfolio.chartLabel")}
           onMouseLeave={() => setActive(null)}
         >
           {segments.map((segment, index) => (
@@ -64,7 +67,9 @@ export function CategoryChart({ data }: { data: CategoryBreakdown[] }) {
               {formatNumber(activeItem ? activeItem.count : total)}
             </p>
             <p className="mt-1 text-[11.5px] text-muted-foreground">
-              {activeItem ? CATEGORY_LABELS[activeItem.category] : "toplam ilan"}
+              {activeItem
+                ? t(`listings.category.${activeItem.category}`)
+                : t("dashboard.portfolio.totalListings")}
             </p>
           </div>
         </div>
@@ -89,13 +94,13 @@ export function CategoryChart({ data }: { data: CategoryBreakdown[] }) {
                 style={{ backgroundColor: seriesColor(index) }}
               />
               <span className="min-w-0 flex-1 truncate text-[13px] text-secondary-foreground">
-                {CATEGORY_LABELS[item.category]}
+                {t(`listings.category.${item.category}`)}
               </span>
               <span className="text-[13px] font-medium tabular-nums text-foreground">
                 {item.count}
               </span>
               <span className="w-10 text-right text-[12px] tabular-nums text-muted-foreground">
-                %{Math.round(item.share * 100)}
+                {formatPercent(format, item.share)}
               </span>
             </button>
           </li>

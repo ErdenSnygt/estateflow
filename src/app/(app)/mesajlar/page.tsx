@@ -1,136 +1,129 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { MessageSquare } from "lucide-react";
 
-import {
-  getConversationById,
-  getConversations,
-  getMessages,
-} from "@/lib/data/messages";
+import { getWorkNoteFormOptions, getWorkNotes } from "@/lib/data/work-notes";
+import { parseWorkNoteQuery, type WorkNoteFilter } from "@/lib/work-notes";
 import { single, type SearchParamsInput } from "@/lib/search-params";
-import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/page-header";
-import { ConversationList } from "@/components/messages/conversation-list";
-import { MessageThread } from "@/components/messages/message-thread";
+import { EmptyState } from "@/components/empty-state";
+import { WorkNoteCard } from "@/components/work-notes/work-note-card";
+import { WorkNoteComposer } from "@/components/work-notes/work-note-composer";
+import { WorkNoteFilterBar } from "@/components/work-notes/work-note-filter-bar";
 
-export const metadata: Metadata = {
-  title: "Mesajlar",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("workNotes.page");
+  return { title: t("title") };
+}
 
 type PageProps = { searchParams: Promise<SearchParamsInput> };
 
 /**
  * ============================================================================
- * MESAJ MERKEZİ — İKİ PANEL
+ * MESAJLAR — İŞ AKIŞI PANOSU
  * ============================================================================
- * Seçili konuşma URL'DE (`?k=`), bileşen durumunda değil. Üç kazancı var:
- * bağlantı paylaşılabilir (bildirimden gelen link doğrudan konuşmayı açıyor),
- * geri tuşu çalışıyor ve mesajlar sunucuda çekilebiliyor.
+ * Faz 12'de burası iki panelli bir gelen kutusuydu: solda müşteri konuşmaları,
+ * sağda sohbet balonları. Faz 18'de model değişti ve düzen de onunla değişti.
  *
  * -----------------------------------------------------------------------------
- * MOBİLDE İKİ AYRI EKRAN — SAF CSS İLE
+ * NEDEN ARTIK İKİ PANEL DEĞİL
  * -----------------------------------------------------------------------------
- * Faz 9 deseni: 375 px'de iki panel yan yana sığmaz. Ayrım JavaScript'siz
- * yapılıyor, çünkü hangi panelin görüneceğini belirleyen şey ZATEN URL'de:
+ * İki panel bir SEÇİM gerektirir: solda bir şey seç, sağda oku. Bu, konuşma
+ * başına uzun bir geçmiş olduğunda doğru düzen. İş notlarında öyle bir geçmiş
+ * yok — her not kendi başına okunabilen, birkaç satırlık bir kayıt. Onları
+ * seçtirmek, kullanıcıyı iki tıklama uzağa koymak olurdu.
  *
- *   `?k` yok  → mobilde liste, masaüstünde liste + boş durum
- *   `?k` var  → mobilde konuşma, masaüstünde liste + konuşma
- *
- * `useMediaQuery` ile yapılsaydı sunucu her zaman `false` döndüğü için ilk
- * boyamada yanlış panel çizilir, hydration'dan sonra yerine oturur ve
- * kullanıcı bir kare titreme görürdü — Faz 9'da sidebar'da yaşanan sorun.
+ * Bunun yerine TEK AKIŞ: filtre üstte, notlar altta, her not kendi eylemleriyle
+ * birlikte. `/satislar/teklifler` ile aynı desen.
  *
  * -----------------------------------------------------------------------------
- * YÜKSEKLİK NEDEN SABİT
+ * SEÇİLİ SEKME VE VURGULANAN NOT URL'DE
  * -----------------------------------------------------------------------------
- * Panellerin kendi içinde kayması gerekiyor (liste ayrı, akış ayrı), yani
- * sayfa gövdesi değil kutular kaymalı. `dvh` kullanılıyor: mobil tarayıcılarda
- * adres çubuğu gizlenip görünürken `vh` sabit kalıyor ve yazma alanı alt
- * gezinme çubuğunun altında kayboluyordu.
+ * `?f=` sekme, `?t=` tür, `?q=` arama, `?n=` bildirimden gelen vurgu. Hepsi
+ * URL'de çünkü bağlantı paylaşılabilir olmalı: bir bildirime tıklayan kullanıcı
+ * doğrudan o notun bulunduğu görünüme düşüyor (`lib/notifications.ts`).
+ *
+ * Menüdeki ad "Mesajlar" olarak KALDI ve adres de `/mesajlar`. İkisi de
+ * bilinçli: kullanıcının menüde aradığı yer orası, ve kaydedilmiş bağlantılar
+ * kırılmasın. İçeriğin ne olduğunu sayfa başlığı anlatıyor.
  */
 export default async function MesajlarPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const activeId = single(params, "k");
+  const query = parseWorkNoteQuery(params);
+  const highlightId = single(params, "n");
 
-  /* KONUŞMA LİSTESİ VE MESAJLAR PARALEL.
-     Önceki sürüm sırayla bekliyordu: önce liste, sonra seçili konuşmayı
-     listede arayıp mesajları çekiyordu — iki ağ turu üst üste. Oysa hangi
-     konuşmanın açılacağı ZATEN URL'DE (`?k=`), yani mesaj sorgusu listeyi
-     beklemek zorunda değil. */
-  const [conversations, messages] = await Promise.all([
-    getConversations(),
-    activeId ? getMessages(activeId) : Promise.resolve([]),
+  /* İkisi birbirinden bağımsız — paralel. Form seçenekleri filtreden
+     etkilenmiyor: hangi görünümde olursak olalım not yazılabilmeli. */
+  const [notes, options, t, tCommon] = await Promise.all([
+    getWorkNotes(query),
+    getWorkNoteFormOptions(),
+    getTranslations("workNotes"),
+    getTranslations("common"),
   ]);
-
-  /* Seçili konuşmanın üstverisi genellikle listeden geliyor, ek sorgu yok.
-     Listede yoksa (silinmiş ya da erişilemeyen bir kimlik) tek bir sorgu
-     daha; o da null dönerse boş durum çiziliyor — hata sayfası değil. */
-  const active = activeId
-    ? (conversations.find((conversation) => conversation.id === activeId) ??
-      (await getConversationById(activeId)))
-    : null;
 
   /* Göreli zamanların ölçüldüğü an TEK YERDE ve sunucuda. İstemci
      bileşenlerinin kendi `Date.now()`unu çağırması hydration uyuşmazlığı
      üretirdi — gerekçe `lib/format.ts` içinde. */
   const reference = Date.now();
 
+  const hasNarrowing = Boolean(query.type || query.search);
+
   return (
-    <div className="flex h-[calc(100dvh-11rem)] min-h-[26rem] flex-col gap-4 md:h-[calc(100dvh-9rem)]">
+    <div className="space-y-6 pb-4">
       <PageHeader
-        title="Mesajlar"
-        description="Müşteri yazışmalarınız tek gelen kutusunda."
-        className="shrink-0"
+        title={t("page.title")}
+        description={t("page.description")}
       />
 
-      <div className="grid min-h-0 flex-1 overflow-hidden rounded-xl border border-hairline bg-surface md:grid-cols-[minmax(260px,320px)_minmax(0,1fr)]">
-        {/* --- Sol panel: konuşmalar --- */}
-        <aside
-          className={cn(
-            "min-h-0 md:border-r md:border-hairline",
-            active ? "hidden md:block" : "block",
-          )}
-        >
-          <ConversationList
-            conversations={conversations}
-            activeId={active?.id}
-            reference={reference}
-          />
-        </aside>
+      <WorkNoteComposer options={options} />
 
-        {/* --- Sağ panel: seçili yazışma --- */}
-        <section className={cn("min-h-0", active ? "block" : "hidden md:block")}>
-          {active ? (
-            <MessageThread
-              conversation={active}
-              messages={messages}
+      <WorkNoteFilterBar active={query.filter} />
+
+      {notes.length === 0 ? (
+        <EmptyState
+          icon={MessageSquare}
+          badge={tCommon("empty")}
+          title={t(emptyKey(query.filter, hasNarrowing, "Title"))}
+          description={t(emptyKey(query.filter, hasNarrowing, "Body"))}
+        />
+      ) : (
+        <div className="space-y-3">
+          {notes.map((note) => (
+            <WorkNoteCard
+              key={note.id}
+              note={note}
+              options={options}
               reference={reference}
+              highlighted={note.id === highlightId}
             />
-          ) : (
-            <EmptyThread hasConversations={conversations.length > 0} />
-          )}
-        </section>
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
-/** Masaüstünde konuşma seçilmediğinde sağ panelde duran boş durum. */
-function EmptyThread({ hasConversations }: { hasConversations: boolean }) {
-  return (
-    <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
-      <span className="flex size-12 items-center justify-center rounded-xl bg-surface-inset text-muted-foreground">
-        <MessageSquare className="size-5" />
-      </span>
-      <div className="space-y-1">
-        <p className="text-[14px] font-medium text-foreground">
-          {hasConversations ? "Bir konuşma seçin" : "Henüz yazışma yok"}
-        </p>
-        <p className="max-w-xs text-[12.5px] leading-relaxed text-muted-foreground">
-          {hasConversations
-            ? "Soldaki listeden bir müşteri seçerek yazışmayı görüntüleyin."
-            : "Bir müşteri detay sayfasındaki “Mesaj gönder” düğmesiyle ilk yazışmayı başlatabilirsiniz."}
-        </p>
-      </div>
-    </div>
-  );
+/* ==========================================================================
+   Boş durumlar
+   ========================================================================== */
+
+/**
+ * Sekme başına AYRI METİN. "Kayıt bulunamadı" demek üç farklı durumu tek
+ * cümleye sıkıştırırdı: hiç not olmaması, açık iş kalmaması ve filtrenin çok
+ * dar olması birbirinden farklı şeyler — ilki bir başlangıç, ikincisi bir
+ * başarı, üçüncüsü bir düzeltme daveti.
+ *
+ * Fonksiyon artık METİN DEĞİL ANAHTAR üretiyor; cümleler sözlükte
+ * (`workNotes.empty.*`). Dönüş tipi ŞABLON BİRLİĞİ: `filter` zaten dört
+ * değerden biri, yani üretilen anahtar da sekiz olasılıktan biri ve `t()`
+ * çağrısı derleme zamanında denetleniyor. Düz `string` olsaydı yanlış bir
+ * anahtar sessizce ekrana düşerdi.
+ */
+function emptyKey(
+  filter: WorkNoteFilter,
+  narrowed: boolean,
+  part: "Title" | "Body",
+): `empty.narrowed${typeof part}` | `empty.${WorkNoteFilter}${typeof part}` {
+  if (narrowed) return `empty.narrowed${part}`;
+  return `empty.${filter}${part}`;
 }

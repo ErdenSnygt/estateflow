@@ -1,5 +1,6 @@
 "use server";
 
+import { getTranslations } from "next-intl/server";
 import { revalidatePath } from "next/cache";
 
 import type { AppointmentStatus, AppointmentType } from "@/types/database";
@@ -13,7 +14,14 @@ import {
   timelineEventFor,
 } from "@/lib/appointments";
 import { notify } from "@/lib/actions/notify";
-import { fail, ok, toMessage, type ActionResult } from "@/lib/actions/result";
+import {
+  fail,
+  ok,
+  resolveActionError,
+  toMessage,
+  type ActionErrorKey,
+  type ActionResult,
+} from "@/lib/actions/result";
 
 /**
  * ============================================================================
@@ -46,23 +54,25 @@ function revalidateCalendar(customerId?: string | null, listingId?: string | nul
 /** Randevu sahibini belirler; yalnızca yönetici başkasını seçebilir. */
 async function resolveAgentId(
   requested: string | undefined,
-): Promise<{ ok: true; agentId: string } | { ok: false; error: string }> {
+): Promise<
+  { ok: true; agentId: string } | { ok: false; error: ActionErrorKey }
+> {
   const agent = await getCurrentAgent();
 
   if (!agent) {
     return {
       ok: false,
-      error: "Personel kaydınız bulunamadı; randevu oluşturulamıyor.",
+      error: "appointmentAgentNotFound",
     };
   }
   if (!agent.is_active) {
-    return { ok: false, error: "Hesabınız pasif durumda." };
+    return { ok: false, error: "accountInactive" };
   }
 
   if (requested && requested !== agent.id && !isManagerRole(agent.role)) {
     return {
       ok: false,
-      error: "Başka bir danışmanın takvimine randevu ekleyemezsiniz.",
+      error: "appointmentOtherAgent",
     };
   }
 
@@ -70,15 +80,15 @@ async function resolveAgentId(
 }
 
 /** Ortak zaman doğrulaması — form da sürükle-bırak da buradan geçiyor. */
-function checkTimes(startIso: string, endIso: string): string | null {
+function checkTimes(startIso: string, endIso: string): ActionErrorKey | null {
   const start = Date.parse(startIso);
   const end = Date.parse(endIso);
 
   if (Number.isNaN(start) || Number.isNaN(end)) {
-    return "Randevu tarihi okunamadı.";
+    return "appointmentDateUnreadable";
   }
   if (end <= start) {
-    return "Bitiş saati başlangıçtan sonra olmalıdır.";
+    return "appointmentEndBeforeStart";
   }
   return null;
 }
@@ -105,7 +115,7 @@ export async function createAppointment(
   const timeError = checkTimes(input.startIso, input.endIso);
   if (timeError) return fail(timeError);
 
-  if (!input.customerId) return fail("Randevu için müşteri seçin.");
+  if (!input.customerId) return fail("appointmentCustomerRequired");
 
   const owner = await resolveAgentId(input.agentId);
   if (!owner.ok) return fail(owner.error);
@@ -202,7 +212,7 @@ export async function updateAppointment(
     .maybeSingle();
 
   if (readError) return fail(toMessage(readError));
-  if (!current) return fail("Randevu bulunamadı.");
+  if (!current) return fail("appointmentNotFound");
 
   const startIso = input.startIso ?? current.start_time;
   const endIso = input.endIso ?? current.end_time;
@@ -275,10 +285,24 @@ export async function setAppointmentStatus(
     .maybeSingle();
 
   if (readError) return fail(toMessage(readError));
-  if (!appointment) return fail("Randevu bulunamadı.");
+  if (!appointment) return fail("appointmentNotFound");
 
   const check = canTransition(appointment.status, next);
-  if (!check.ok) return fail(check.reason);
+  if (!check.ok) {
+    /* Durum ETİKETLERİ buradan geliyor, `lib/appointments.ts`ten değil: o
+       modül saf ve senkron, çeviri ise asenkron. Saf katman anahtar + durum
+       DEĞERİ taşıyor, action onu etikete çeviriyor. */
+    const tStatus = await getTranslations("appointments.status");
+    return fail(
+      check.error,
+      Object.fromEntries(
+        Object.entries(check.params).map(([name, status]) => [
+          name,
+          tStatus(status),
+        ]),
+      ),
+    );
+  }
 
   const { data: updated, error: updateError } = await supabase
     .from("appointments")
@@ -289,7 +313,7 @@ export async function setAppointmentStatus(
 
   if (updateError) return fail(toMessage(updateError));
   if (!updated || updated.length === 0) {
-    return fail("Randevunun durumu bu sırada değişmiş; sayfayı yenileyin.");
+    return fail("appointmentStatusChanged");
   }
 
   /* Çizelge olayı YALNIZCA "tamamlandı"da ve yalnızca müşterisi olan
@@ -331,9 +355,11 @@ export async function setAppointmentStatus(
     });
 
   if (eventError) {
-    return fail(
-      `Randevu tamamlandı olarak işaretlendi ama görüşme geçmişine yazılamadı: ${toMessage(eventError)}`,
-    );
+    /* İç hata da çevrilerek gömülüyor: `toMessage` bir anahtar ya da ham
+       Supabase metni döndürüyor, `resolveActionError` ikisini de çözüyor. */
+    return fail("appointmentTimelineFailed", {
+      reason: await resolveActionError(toMessage(eventError)),
+    });
   }
 
   /* Görüşme yapıldı — müşteri listesindeki "son görüşme" sütunu ve varsayılan

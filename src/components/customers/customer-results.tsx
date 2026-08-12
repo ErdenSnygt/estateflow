@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { UserRoundSearch } from "lucide-react";
 
 import { getCustomers } from "@/lib/data/customers";
@@ -7,7 +8,6 @@ import {
   parseCustomerFilters,
 } from "@/lib/customers-filters";
 import type { SearchParamsInput } from "@/lib/search-params";
-import { formatNumber } from "@/lib/format";
 import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import { CustomerCard } from "@/components/customers/customer-card";
@@ -19,7 +19,10 @@ export async function CustomerResults({
   searchParams: SearchParamsInput;
 }) {
   const filters = parseCustomerFilters(searchParams);
-  const customers = await getCustomers(filters);
+  const [customers, t] = await Promise.all([
+    getCustomers(filters),
+    getTranslations("customers.list"),
+  ]);
 
   if (customers.length === 0) {
     const hasFilters = countActiveCustomerFilters(searchParams) > 0;
@@ -27,21 +30,13 @@ export async function CustomerResults({
     return (
       <EmptyState
         icon={UserRoundSearch}
-        badge={hasFilters ? "Sonuç yok" : "Boş liste"}
-        title={
-          hasFilters
-            ? "Aramanızla eşleşen müşteri yok"
-            : "Henüz müşteri eklenmemiş"
-        }
-        description={
-          hasFilters
-            ? "Bütçe bandını genişletmeyi veya temsilci seçimini kaldırmayı deneyin. Arama kutusu ad, telefon ve e-postada birlikte arar."
-            : "Müşteri kayıtlarınız burada listelenecek; her kayıt ilgilendiği ilanlarla ve görüşme geçmişiyle birlikte tutulur."
-        }
+        badge={t(hasFilters ? "noResultBadge" : "emptyBadge")}
+        title={t(hasFilters ? "noResultTitle" : "emptyTitle")}
+        description={t(hasFilters ? "noResultDescription" : "emptyDescription")}
         action={
           hasFilters ? (
             <Button variant="secondary" asChild>
-              <Link href="/musteriler">Filtreleri temizle</Link>
+              <Link href="/musteriler">{t("clearFilters")}</Link>
             </Button>
           ) : null
         }
@@ -52,11 +47,18 @@ export async function CustomerResults({
 
   return (
     <div className="space-y-4">
+      {/* Sayı cümlenin İÇİNDE: Türkçede sonda ("… müşteri listeleniyor"),
+          İngilizcede başta ("3 customers listed"). Vurgulu yazım `<b>` ile
+          metinde, `t.rich` onu elemana çeviriyor. */}
       <p className="text-[12.5px] text-muted-foreground">
-        <span className="font-medium text-secondary-foreground">
-          {formatNumber(customers.length)}
-        </span>{" "}
-        müşteri listeleniyor
+        {t.rich("count", {
+          count: customers.length,
+          b: (chunks) => (
+            <span className="font-medium text-secondary-foreground">
+              {chunks}
+            </span>
+          ),
+        })}
       </p>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">

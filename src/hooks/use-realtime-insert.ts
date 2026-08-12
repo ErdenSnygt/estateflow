@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/client";
  * REALTIME — YENİ SATIR ABONELİĞİ
  * ============================================================================
  * Postgres'e eklenen satırları dinler ve geri çağırır. Uygulamada YALNIZCA İKİ
- * YERDE kullanılıyor: yeni mesajlar ve yeni bildirimler.
+ * TABLO için kullanılıyor: `work_notes` ve `notifications`.
  *
  * -----------------------------------------------------------------------------
  * NEREDE KULLANILMIYOR VE NEDEN
@@ -24,9 +24,12 @@ import { createClient } from "@/lib/supabase/client";
  *   duran bir soket, yeniden bağlanma mantığı ve iki ayrı doğruluk kaynağı
  *   getiriyor.
  *
- *   Mesaj ve bildirim ise TANIMI GEREĞİ dışarıdan geliyor. Müşteri yazdığında
- *   ya da yönetici teklifini kabul ettiğinde kullanıcının sayfayı yenilemesini
- *   beklemek, özelliğin kendisini işlevsiz bırakırdı.
+ *   İş notu ve bildirim ise TANIMI GEREĞİ dışarıdan geliyor. Bir danışman sana
+ *   soru sorduğunda ya da yönetici teklifini kabul ettiğinde, kullanıcının
+ *   sayfayı yenilemesini beklemek özelliğin kendisini işlevsiz bırakırdı.
+ *
+ * FAZ 18: `messages` yerini `work_notes` aldı. Ölçüt değişmedi, tablo değişti —
+ * yayın tanımı `0012_work_notes.sql` içinde güncellendi.
  *
  * -----------------------------------------------------------------------------
  * FİLTRE SUNUCUDA, İSTEMCİDE DEĞİL
@@ -38,7 +41,7 @@ import { createClient } from "@/lib/supabase/client";
  */
 
 type Options = {
-  table: "messages" | "notifications";
+  table: "work_notes" | "notifications";
   /** PostgREST biçiminde: `agent_id=eq.agt-1`. Boşsa abonelik kurulmaz. */
   filter?: string;
   /** Kanal adı — aynı sayfada iki abonelik varsa çakışmasın. */

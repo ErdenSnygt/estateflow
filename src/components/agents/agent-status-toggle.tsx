@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Loader2, UserRoundCheck, UserRoundX } from "lucide-react";
 import { toast } from "sonner";
 
@@ -36,6 +37,8 @@ export function AgentStatusToggle({
   isActive: boolean;
 }) {
   const router = useRouter();
+  const t = useTranslations("agents.status");
+  const tCommon = useTranslations("common");
   const [isOpen, setIsOpen] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
 
@@ -46,14 +49,13 @@ export function AgentStatusToggle({
     setIsOpen(false);
 
     if (!result.ok) {
-      toast.error("İşlem tamamlanamadı", { description: result.error });
+      toast.error(t("error"), { description: result.error });
       return;
     }
 
-    toast.success(
-      isActive ? "Personel pasifleştirildi" : "Personel yeniden etkinleştirildi",
-      { description: agentName },
-    );
+    toast.success(t(isActive ? "deactivated" : "activated"), {
+      description: agentName,
+    });
     router.refresh();
   }
 
@@ -66,12 +68,12 @@ export function AgentStatusToggle({
         {isActive ? (
           <>
             <UserRoundX className="size-4" />
-            Pasifleştir
+            {t("deactivate")}
           </>
         ) : (
           <>
             <UserRoundCheck className="size-4" />
-            Yeniden etkinleştir
+            {t("activate")}
           </>
         )}
       </Button>
@@ -80,35 +82,32 @@ export function AgentStatusToggle({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {isActive
-                ? `${agentName} pasifleştirilsin mi?`
-                : `${agentName} yeniden etkinleştirilsin mi?`}
+              {t(isActive ? "confirmDeactivate" : "confirmActivate", {
+                name: agentName,
+              })}
             </AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-2">
                 {isActive ? (
                   <>
-                    <p>Bu personel giriş yapabilir ama hiçbir veriye erişemez.</p>
+                    <p>{t("deactivateBody")}</p>
                     <ul className="list-disc space-y-1 pl-5">
-                      <li>İlanları, müşterileri ve satışları silinmez</li>
-                      <li>Prim ve performans geçmişi korunur</li>
-                      <li>Listelerde &quot;pasif&quot; rozetiyle görünür</li>
+                      <li>{t("keepsRecords")}</li>
+                      <li>{t("keepsHistory")}</li>
+                      <li>{t("showsBadge")}</li>
                     </ul>
-                    <p className="text-muted-foreground">
-                      İstediğiniz zaman geri alabilirsiniz.
-                    </p>
+                    <p className="text-muted-foreground">{t("reversible")}</p>
                   </>
                 ) : (
-                  <p>
-                    Erişimi geri açılacak; rolü ve prim oranı eskisi gibi
-                    kalacak.
-                  </p>
+                  <p>{t("activateBody")}</p>
                 )}
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isSaving}>Vazgeç</AlertDialogCancel>
+            <AlertDialogCancel disabled={isSaving}>
+              {tCommon("cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={(event) => {
                 event.preventDefault();
@@ -119,12 +118,14 @@ export function AgentStatusToggle({
               {isSaving ? (
                 <>
                   <Loader2 className="size-4 animate-spin" />
-                  İşleniyor…
+                  {t("processing")}
                 </>
-              ) : isActive ? (
-                "Pasifleştir"
               ) : (
-                "Etkinleştir"
+                t(
+                  isActive
+                    ? "confirmDeactivateAction"
+                    : "confirmActivateAction",
+                )
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

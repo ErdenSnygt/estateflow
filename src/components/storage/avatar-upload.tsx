@@ -2,11 +2,14 @@
 
 import * as React from "react";
 import { Loader2, Trash2, Upload } from "lucide-react";
+import { useFormatter, useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
-import { uploadImage, UploadError } from "@/lib/storage/upload";
-import { ACCEPT_ATTRIBUTE, formatBytes, MAX_UPLOAD_BYTES } from "@/lib/storage/paths";
+import { uploadImage } from "@/lib/storage/upload";
+import { useUploadErrorMessage } from "@/i18n/upload-error";
+import { formatBytes, formatPercent } from "@/i18n/numbers";
+import { ACCEPT_ATTRIBUTE, MAX_UPLOAD_BYTES } from "@/lib/storage/paths";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -37,6 +40,9 @@ export function AvatarUpload({
   disabled?: boolean;
   className?: string;
 }) {
+  const t = useTranslations("upload");
+  const format = useFormatter();
+  const uploadMessage = useUploadErrorMessage();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [ratio, setRatio] = React.useState<number | null>(null);
 
@@ -50,11 +56,8 @@ export function AvatarUpload({
       const url = await uploadImage(file, "avatars", setRatio);
       onChange(url);
     } catch (error) {
-      toast.error("Fotoğraf yüklenemedi", {
-        description:
-          error instanceof UploadError
-            ? error.message
-            : "Beklenmeyen bir hata oluştu.",
+      toast.error(t("avatar.error"), {
+        description: uploadMessage(error, t("errors.unexpected")),
       });
     } finally {
       setRatio(null);
@@ -83,10 +86,10 @@ export function AvatarUpload({
               aria-valuenow={Math.round(ratio * 100)}
               aria-valuemin={0}
               aria-valuemax={100}
-              aria-label={`${name} fotoğrafı yükleniyor`}
+              aria-label={t("avatar.progressAria", { name })}
               className="text-[10.5px] font-medium tabular-nums text-white"
             >
-              %{Math.round(ratio * 100)}
+              {formatPercent(format, ratio)}
             </span>
           </div>
         )}
@@ -102,7 +105,7 @@ export function AvatarUpload({
             onClick={() => inputRef.current?.click()}
           >
             <Upload className="size-3.5" />
-            {value ? "Değiştir" : "Fotoğraf yükle"}
+            {t(value ? "change" : "avatar.upload")}
           </Button>
 
           {value && (
@@ -114,14 +117,13 @@ export function AvatarUpload({
               onClick={() => onChange("")}
             >
               <Trash2 className="size-3.5" />
-              Kaldır
+              {t("remove")}
             </Button>
           )}
         </div>
 
         <p className="text-[12px] text-muted-foreground">
-          JPG, PNG veya WebP · en fazla {formatBytes(MAX_UPLOAD_BYTES)}. Boş
-          bırakılırsa baş harfler gösterilir.
+          {t("avatar.hint", { size: formatBytes(format, MAX_UPLOAD_BYTES) })}
         </p>
       </div>
 

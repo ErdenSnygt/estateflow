@@ -1,0 +1,1499 @@
+{
+  "common": {
+    "tagline": "A modern CRM for real estate teams",
+    "search": "Search",
+    "searchEllipsis": "Search…",
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "retry": "Try again",
+    "backToDashboard": "Back to dashboard",
+    "comingSoon": "soon",
+    "soonBadge": "Coming soon",
+    "profile": "My profile",
+    "settings": "Settings",
+    "support": "Support",
+    "signOut": "Sign out",
+    "fallbackUserName": "User",
+    "fallbackUserTitle": "Team member",
+    "empty": "Empty",
+    "optional": "(optional)",
+    "awaitingRole": "Awaiting access"
+  },
+  "language": {
+    "label": "Language",
+    "trigger": "Select language",
+    "changed": "Interface language changed"
+  },
+  "nav": {
+    "groups": {
+      "general": "General",
+      "portfolio": "Portfolio",
+      "communication": "Communication",
+      "finance": "Finance",
+      "management": "Management",
+      "system": "System"
+    },
+    "dashboard": {
+      "label": "Dashboard",
+      "description": "An overview of your portfolio, current metrics and the daily summary on a single screen."
+    },
+    "listings": {
+      "label": "Listings",
+      "description": "List your entire property portfolio, manage photos and details, publish to portals."
+    },
+    "customers": {
+      "label": "Customers",
+      "description": "Buyer and seller records, requirement matching and customer history are tracked here."
+    },
+    "appointments": {
+      "label": "Appointments",
+      "description": "Plan your viewing and meeting calendar in daily, weekly and monthly views."
+    },
+    "messages": {
+      "label": "Messages",
+      "description": "Ask your team a question on a customer or listing record, leave a note, or hand over ownership."
+    },
+    "documents": {
+      "label": "Documents",
+      "description": "Store contracts, title deeds and authorisation papers securely, with version history."
+    },
+    "sales": {
+      "label": "Sales",
+      "description": "Follow sale and rental processes stage by stage, report on closed deals."
+    },
+    "revenue": {
+      "label": "Revenue",
+      "description": "View your commission income, collection status and earnings by period."
+    },
+    "agents": {
+      "label": "Team",
+      "description": "Invite team members, manage their permission levels and performance."
+    },
+    "reports": {
+      "label": "Reports",
+      "description": "Detailed analysis of portfolio, sales and team performance lives here."
+    },
+    "notifications": {
+      "label": "Notifications",
+      "description": "System alerts, reminders and team notifications gathered in a single feed."
+    },
+    "settings": {
+      "label": "Settings",
+      "description": "Manage your account, office, billing and integration settings here."
+    }
+  },
+  "navbar": {
+    "themeTrigger": "Switch theme",
+    "themeTooltip": "Light theme coming soon",
+    "accountMenu": "Account menu"
+  },
+  "sidebar": {
+    "mainNav": "Main navigation",
+    "collapse": "Collapse menu",
+    "expand": "Expand menu",
+    "planTitle": "Pro Plan",
+    "planQuota": "Your active listing quota"
+  },
+  "mobileNav": {
+    "nav": "Mobile navigation",
+    "more": "More",
+    "drawerTitle": "Menu",
+    "drawerDescription": "All sections and account settings",
+    "lightTheme": "Light theme"
+  },
+  "commandPalette": {
+    "placeholder": "Search pages, customers or listings…",
+    "emptyTitle": "No results found",
+    "emptyHint": "Try a different keyword.",
+    "quickActions": "Quick actions",
+    "newListing": "Add a listing",
+    "newCustomer": "Add a customer",
+    "newAppointment": "Create an appointment",
+    "goToPage": "Go to page",
+    "hintNavigate": "navigate",
+    "hintSelect": "select",
+    "hintClose": "close",
+    "description": "Search pages and commands",
+    "dialogTitle": "Command palette"
+  },
+  "notices": {
+    "noAgentTitle": "Your account is not linked to a team member record yet",
+    "noAgentBody": "That is why listing, customer and report lists appear empty — no data was deleted, you simply lack permission. Your office manager needs to add you to the team from the Team module.",
+    "deactivatedTitle": "Your account is deactivated",
+    "deactivatedBody": "{name}, your office manager has deactivated your account. Your past records — listings, customers and sales — were not deleted and remain intact; however, your access is closed.",
+    "deactivatedHint": "If you believe this is a mistake, please contact your office manager."
+  },
+  "errors": {
+    "screenTitle": "This screen could not be loaded",
+    "screenBody": "Something went wrong while fetching the data. Check your connection and try again; if the problem persists, let your office manager know.",
+    "code": "Error code: {digest}",
+    "actions": {
+      "agentNotFound": "Your team member record could not be found.",
+      "accountInactive": "Your account is inactive.",
+      "noPermission": "You do not have permission for this action.",
+      "managerRequired": "This action requires owner or office manager permissions.",
+      "sessionNotLinked": "Your session is not linked to a team member record.",
+      "duplicate": "This record already exists (unique field conflict).",
+      "missingRelation": "The related record was not found; the selected agent may have been deleted.",
+      "checkViolation": "The values entered do not satisfy the database rules.",
+      "forbidden": "You do not have permission for this action. Your session may have expired.",
+      "listingNotFound": "Listing not found.",
+      "listingDeletedMeanwhile": "Listing not found; someone else may have deleted it.",
+      "customerNotFound": "Customer not found.",
+      "appointmentCustomerRequired": "Select a customer for the appointment.",
+      "appointmentNotFound": "Appointment not found.",
+      "appointmentStatusChanged": "The appointment status changed in the meantime; refresh the page.",
+      "appointmentTimelineFailed": "The appointment was marked completed but could not be written to the contact history: {reason}",
+      "appointmentDateUnreadable": "The appointment date could not be read.",
+      "appointmentEndBeforeStart": "The end time must be after the start time.",
+      "appointmentAgentNotFound": "Your team member record could not be found; the appointment cannot be created.",
+      "appointmentOtherAgent": "You cannot add appointments to another agent's calendar.",
+      "appointmentAlreadyInStatus": "The appointment is already “{status}”.",
+      "appointmentTransitionNotAllowed": "An appointment that is “{from}” cannot be set to “{to}”.",
+      "offerAmountPositive": "The offer amount must be greater than 0.",
+      "offerListingSold": "This listing has been sold; no new offers can be recorded.",
+      "offerPendingExists": "This customer already has a pending offer of {amount} on this listing. To record a new one, first answer or expire the old offer from the Offers page.",
+      "offerPendingRace": "This customer already has a pending offer on this listing. Refresh the page.",
+      "offerNotFound": "Offer not found.",
+      "offerStatusChanged": "The offer status changed in the meantime; refresh the page.",
+      "offerSaleFailed": "The offer was accepted but the sale record could not be created: {reason}",
+      "offerAlreadyInStatus": "The offer is already “{status}”.",
+      "offerTerminal": "An offer that is “{status}” can no longer be changed.",
+      "documentTitleRequired": "The document title cannot be empty.",
+      "documentUploadFailed": "The file could not be uploaded; try again.",
+      "documentAgentNotFound": "Your team member record could not be found; the document cannot be saved.",
+      "documentNotFound": "Document not found.",
+      "documentNotFoundOrForbidden": "The document was not found or you do not have access to it.",
+      "documentDownloadLinkFailed": "The download link could not be created. Try again.",
+      "documentPreviewLinkFailed": "The preview link could not be created.",
+      "noteNotFoundOrForbidden": "The note was not found or you do not have access to it.",
+      "noteAlreadyResolved": "This note is already closed.",
+      "noteNoStatus": "General notes have no open/resolved state.",
+      "saleNotFound": "Sale record not found.",
+      "commissionManagerRequired": "Only an owner or office manager can change the collection status.",
+      "commissionStatusChanged": "The record status changed in the meantime; refresh the page.",
+      "commissionAlreadyInStatus": "The commission is already “{status}”.",
+      "commissionTransitionNotAllowed": "This transition is not possible from “{status}”.",
+      "profileNameMin2": "The full name must be at least 2 characters.",
+      "passwordMin8": "The new password must be at least 8 characters.",
+      "passwordSameAsOld": "The new password cannot be the same as the current one.",
+      "sessionUnreadable": "Session information could not be read. Refresh the page and try again.",
+      "passwordWrong": "Your current password is not correct.",
+      "companyManagerRequired": "Only managers can edit the company details.",
+      "companyNameRequired": "The company name cannot be empty.",
+      "emailInvalid": "Enter a valid email address.",
+      "nameMin3": "The full name must be at least 3 characters.",
+      "commissionRateRange": "The commission rate must be between 0 and 1.",
+      "patronRoleOnlyByPatron": "Only an owner can assign the owner role.",
+      "agentEmailExists": "A team member is already registered with {email}.",
+      "staffNotFound": "Team member not found.",
+      "cannotEditOwnRole": "You cannot change your own role or commission rate. Another manager has to do it.",
+      "patronChangesOnlyByPatron": "Only an owner can make changes involving the owner role.",
+      "cannotDeactivateSelf": "You cannot deactivate your own account.",
+      "patronDeactivateOnlyByPatron": "Only an owner can deactivate an owner account.",
+      "lastPatron": "The last active owner cannot be deactivated; assign another owner first.",
+      "staffAlreadyActive": "The team member is already active.",
+      "staffAlreadyInactive": "The team member is already inactive.",
+      "authAccountExists": "A user account already exists for {email}. To link the existing account to a team member record, match them in the database.",
+      "authAccountFailed": "The user account could not be created.",
+      "noteEmpty": "An empty note cannot be saved.",
+      "noteAttachmentTypeUnknown": "The attachment type could not be determined.",
+      "noteAgentNotFound": "Your team member record could not be found; the note cannot be written.",
+      "noteParentNotFound": "The note you are replying to was not found.",
+      "noteReplyToReply": "You cannot reply to a reply; reply to the original note instead.",
+      "noteContextRequired": "A note must be linked to a customer or a listing.",
+      "noteTargetNotFound": "The selected team member was not found.",
+      "noteTargetInactive": "{name} is an inactive account; the note cannot be directed to them.",
+      "noteHandoffCustomerForbidden": "You cannot hand this customer over; you can only hand over records you are responsible for.",
+      "noteHandoffListingForbidden": "You cannot hand this listing over; you can only hand over records you are responsible for."
+    }
+  },
+  "auth": {
+    "subtitle": "Sign in to your account to continue",
+    "email": "Email",
+    "emailPlaceholder": "you@realestate.com",
+    "password": "Password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "forgotPassword": "Forgot password",
+    "rememberMe": "Remember me",
+    "signIn": "Sign in",
+    "signingIn": "Signing in…",
+    "or": "OR",
+    "continueWithGoogle": "Continue with Google",
+    "continueWithApple": "Continue with Apple",
+    "noAccount": "Don't have an account?",
+    "missingCode": "Sign-in code could not be read.",
+    "requestDemo": "Request a demo",
+    "redirecting": "Redirecting…",
+    "errors": {
+      "invalidCredentials": "Email or password is incorrect.",
+      "emailNotConfirmed": "Your email address has not been verified yet.",
+      "rateLimit": "Too many attempts, try again in a little while.",
+      "providerDisabled": "This sign-in method is not enabled in the Supabase dashboard yet.",
+      "providerDisabledDetail": "{provider} sign-in is not enabled in the Supabase dashboard yet. Enter a Client ID and Secret under Authentication > Providers and enable it."
+    }
+  },
+  "filters": {
+    "trigger": "Filter",
+    "clear": "Clear",
+    "title": "Filters",
+    "activeCount": "{count} filters active",
+    "hint": "Make a selection to narrow the results",
+    "showResults": "Show results",
+    "min": "Min",
+    "max": "Max",
+    "apply": "Apply",
+    "reset": "Reset",
+    "rangeTitle": "{label} range ({unit})"
+  },
+  "dashboard": {
+    "greeting": "Welcome {name} 👋",
+    "description": "Where your portfolio stands today, sales performance and your team's latest activity.",
+    "kpi": {
+      "totalListings": "Total listings",
+      "totalCustomers": "Total customers",
+      "monthlySales": "Sales this month",
+      "pendingOffers": "Pending offers",
+      "hintPublished": "{count} listings published",
+      "hintCustomers": "registered customers",
+      "hintDeals": "{count} deals closed",
+      "hintOffers": "awaiting a reply"
+    },
+    "sales": {
+      "title": "Sales performance",
+      "description": "Monthly revenue from {count} deals closed over the last 12 months",
+      "yearTotal": "12-month total",
+      "chartLabel": "Sales revenue over the last 12 months",
+      "closedDeals": "{count} deals closed"
+    },
+    "portfolio": {
+      "title": "Portfolio breakdown",
+      "description": "Category, publication status and value summary",
+      "chartLabel": "Listing category breakdown",
+      "totalListings": "listings in total",
+      "statusTitle": "Publication status",
+      "statusShare": "{count} listings · {percent}",
+      "salesValue": "For-sale portfolio value",
+      "rentValue": "Monthly rental potential",
+      "averagePricePerSqm": "Avg. price per m² (excl. land)",
+      "totalArea": "Total area"
+    },
+    "activity": {
+      "title": "Recent activity",
+      "description": "Your team's latest moves",
+      "new": "New",
+      "listingCreated": "<b>{subject}</b> was added to the portfolio",
+      "saleClosed": "<b>{subject}</b> was sold",
+      "offerReceived": "an offer came in for <b>{subject}</b>",
+      "customerAdded": "<b>{subject}</b> was registered as a customer",
+      "appointmentScheduled": "an appointment was created with <b>{subject}</b>"
+    },
+    "appointments": {
+      "title": "Today's appointments",
+      "description": "{date} · {count} appointments",
+      "calendar": "Calendar"
+    }
+  },
+  "listings": {
+    "title": "Listings",
+    "description": "Filter, edit and track the publication status of every property in your portfolio.",
+    "new": "New listing",
+    "newLong": "Add a listing",
+    "count": "{count} listings shown",
+    "perMonth": "/mo",
+    "category": {
+      "satilik": "For sale",
+      "kiralik": "For rent",
+      "arsa": "Land",
+      "villa": "Villa",
+      "ofis": "Office"
+    },
+    "status": {
+      "aktif": "Active",
+      "pasif": "Inactive",
+      "taslak": "Draft",
+      "satildi": "Sold"
+    },
+    "sort": {
+      "label": "Sort",
+      "newest": "Newest",
+      "priceAsc": "Price (low to high)",
+      "priceDesc": "Price (high to low)",
+      "areaDesc": "Area (largest first)",
+      "viewsDesc": "Most viewed"
+    },
+    "rooms": {
+      "andAbove": "{value} and above"
+    },
+    "filters": {
+      "searchPlaceholder": "Search by title, district or listing no…",
+      "searchAria": "Search listings",
+      "clearSearch": "Clear search",
+      "gridView": "Grid view",
+      "listView": "List view",
+      "category": "Category",
+      "allCategories": "All categories",
+      "status": "Status",
+      "allStatuses": "All statuses",
+      "city": "City",
+      "allCities": "All cities",
+      "district": "District",
+      "allDistricts": "All districts",
+      "rooms": "Rooms",
+      "allRooms": "Any number of rooms",
+      "price": "Price",
+      "area": "Area"
+    },
+    "empty": {
+      "filteredBadge": "No results",
+      "filteredTitle": "No listings match your search",
+      "filteredDescription": "Try relaxing the filters or shortening your search term. Removing the city and district selections usually helps fastest.",
+      "clearFilters": "Clear filters",
+      "badge": "Empty portfolio",
+      "emptyTitle": "No listings added yet",
+      "emptyDescription": "Start by adding your first listing. Everything you add will be listed here and can be published to portals."
+    },
+    "notFound": {
+      "badge": "Not found",
+      "title": "This listing is not in the portfolio",
+      "description": "The listing you are looking for may have been deleted or archived, or the link may be wrong. You can continue by searching the portfolio list.",
+      "back": "Back to listings"
+    },
+    "detail": {
+      "back": "Back to listings",
+      "descriptionTitle": "Description",
+      "features": "Features",
+      "listingNo": "Listing no",
+      "category": "Category",
+      "area": "Area",
+      "roomCount": "Room count",
+      "rooms": "Rooms",
+      "pricePerSqm": "Price per m²",
+      "cityDistrict": "City / District",
+      "publishedAt": "Published on",
+      "updatedAt": "Last updated",
+      "views": "Views",
+      "favorites": "Favourites",
+      "addedOn": "Added on {date}",
+      "agent": "Portfolio agent",
+      "interested": "Interested customers",
+      "interestedCount": "{count, plural, =1 {1 customer is interested} other {# customers are interested}}",
+      "lastContact": "Last contact: {date}",
+      "neverContacted": "Not contacted yet",
+      "appointments": "Appointments",
+      "appointmentsCount": "{count, plural, =1 {1 appointment is linked to this listing} other {# appointments are linked to this listing}}",
+      "location": "Location",
+      "related": "Other listings in {district}",
+      "noCoordinates": "No coordinates entered"
+    },
+    "gallery": {
+      "aria": "Images of {title}",
+      "imageAlt": "{title} — image {index}",
+      "goTo": "Image {index}",
+      "previous": "Previous image",
+      "next": "Next image"
+    },
+    "delete": {
+      "trigger": "Delete",
+      "title": "Delete this listing?",
+      "cancel": "Cancel",
+      "confirm": "Yes, delete",
+      "deleting": "Deleting…",
+      "successTitle": "Listing deleted",
+      "errorTitle": "Listing could not be deleted",
+      "description": "<b>{title}</b> ({id}) will be removed from your portfolio. This cannot be undone, and the listing will also come down from the portals it is published on.",
+      "successDescription": "{title} was removed from your portfolio."
+    },
+    "form": {
+      "newTitle": "Add a listing",
+      "newDescription": "Enter the details of the property you want to add. You can save it as a draft and finish later.",
+      "editTitle": "Edit listing",
+      "editBack": "Back to listing",
+      "basicsTitle": "Basics",
+      "basicsDescription": "The title and marketing copy that will appear on portals.",
+      "titleLabel": "Title",
+      "titlePlaceholder": "e.g. Sea-view 3+1 apartment",
+      "titleHint": "Titles that mention the location and a standout feature get more views.",
+      "categoryLabel": "Category",
+      "statusLabel": "Status",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Describe the location, the building and what is nearby…",
+      "descriptionCounter": "{count} / 2000 characters",
+      "locationTitle": "Location",
+      "locationDescription": "The address is shown on the listing detail page and the map.",
+      "cityLabel": "City",
+      "cityPlaceholder": "Select a city",
+      "districtLabel": "District",
+      "addressLabel": "Street address",
+      "addressPlaceholder": "Neighbourhood, street and building number",
+      "addressHint": "The map marker currently falls on the district centre; a coordinate picker is coming in a later phase.",
+      "agentTitle": "Portfolio owner",
+      "agentDescription": "The agent who will follow this listing. Shown as a contact card on the detail page.",
+      "priceTitle": "Price & details",
+      "priceDescription": "For rental listings the price is shown as the monthly rent.",
+      "priceLabel": "Price",
+      "currencyLabel": "Currency",
+      "areaLabel": "Area (m²)",
+      "roomsLabel": "Room count",
+      "roomsPlaceholder": "Select",
+      "photosTitle": "Photos",
+      "photosDescription": "The first image is used as the cover.",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "saveNew": "Save listing",
+      "saveEdit": "Save changes",
+      "createdTitle": "Listing created",
+      "updatedTitle": "Listing updated",
+      "createErrorTitle": "Listing could not be saved",
+      "updateErrorTitle": "Listing could not be updated",
+      "districtPlaceholder": "Select a district",
+      "districtDisabled": "Select a city first",
+      "agentHintSelf": "Listings are saved to your own portfolio."
+    },
+    "images": {
+      "dropTitle": "Drag your photos here",
+      "coverBadge": "Cover",
+      "makeCover": "Make cover",
+      "remove": "Remove image",
+      "removeShort": "Remove",
+      "uploading": "Uploading {name}",
+      "uploadError": "Photo could not be uploaded",
+      "unexpectedError": "Something unexpected went wrong while uploading \"{name}\".",
+      "dropHint": "or click to browse · JPG, PNG, WebP · up to {size}",
+      "imageAlt": "Image {index}",
+      "orderHint": "The first image is used as the cover. To change the order, hover an image and click the star icon."
+    },
+    "validation": {
+      "titleMin": "The title must be at least 10 characters.",
+      "titleMax": "The title can be at most 120 characters.",
+      "descriptionMin": "The description must be at least 30 characters.",
+      "descriptionMax": "The description can be at most 2000 characters.",
+      "cityRequired": "Select a city.",
+      "districtRequired": "Select a district.",
+      "addressRequired": "Enter a street address.",
+      "agentRequired": "Select a portfolio agent.",
+      "required": "{label} is required.",
+      "numberOnly": "Enter digits only.",
+      "positive": "{label} must be greater than 0.",
+      "roomsRequired": "Room count is required for residential listings.",
+      "imagesRequired": "Active listings need at least one image. If you want to save without images, set the status to Draft."
+    }
+  },
+  "offers": {
+    "triggerListing": "Record offer",
+    "triggerCustomer": "Place offer",
+    "titleListing": "Record an offer on this listing",
+    "titleCustomer": "Place an offer for this customer",
+    "descriptionListing": "Log the offer received for {title}.",
+    "descriptionCustomer": "Log the offer placed on behalf of {name}.",
+    "listingLabel": "Listing",
+    "customerLabel": "Customer",
+    "counterpartCustomer": "Customer making the offer",
+    "counterpartListing": "Listing being offered on",
+    "selectCustomer": "Select a customer",
+    "selectListing": "Select a listing",
+    "noCustomers": "No customer is registered as interested in this listing. Add the interest from a customer page first.",
+    "noListings": "This customer has no listings of interest yet. Add them first.",
+    "amountLabel": "Offer amount (₺)",
+    "listPriceHint": "List price {amount}.",
+    "submit": "Save offer",
+    "saving": "Saving…",
+    "invalidAmountTitle": "Invalid amount",
+    "invalidAmountBody": "The offer amount must be a number greater than 0.",
+    "missingTitle": "Missing information",
+    "missingCustomer": "Select a customer.",
+    "missingListing": "Select a listing.",
+    "errorTitle": "Could not save the offer",
+    "successTitle": "Offer saved",
+    "successBody": "{amount} · awaiting response",
+    "status": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "expired": "Expired"
+    },
+    "sort": {
+      "label": "Sort",
+      "recent": "Newest",
+      "amountDesc": "Amount (high to low)",
+      "amountAsc": "Amount (low to high)"
+    },
+    "page": {
+      "title": "Offers",
+      "description": "Answer incoming offers here. An accepted offer closes the sale in one step.",
+      "count": "{count, plural, =1 {1 offer} other {# offers}}",
+      "pending": "{count, plural, =1 {1 awaiting an answer} other {# awaiting an answer}}",
+      "listPrice": "list {amount}",
+      "deletedListing": "Listing deleted",
+      "fallbackListing": "Listing",
+      "emptyBadge": "Empty",
+      "emptyTitle": "No offers yet",
+      "emptyBody": "Offers are created with the “Record offer” button on a listing page or “Place offer” on a customer page.",
+      "noResultBadge": "No results",
+      "noResultTitle": "No offer matches these filters",
+      "noResultBody": "Clear the status or agent filter and try again."
+    },
+    "filters": {
+      "statusLabel": "Status",
+      "allStatuses": "All statuses",
+      "agentLabel": "Agent",
+      "allAgents": "All agents"
+    },
+    "actions": {
+      "accept": "Accept",
+      "reject": "Reject",
+      "expire": "Mark expired",
+      "error": "Could not update the offer",
+      "saleClosed": "Sale closed",
+      "marked": "Offer marked “{status}”",
+      "confirmTitle": "Accept this offer",
+      "confirmIntro": "The offer of {amount} on <b>{title}</b> will be accepted.",
+      "confirmLead": "In a single step this will:",
+      "confirmSale": "create a closed sale record",
+      "confirmListing": "set the listing to “sold”",
+      "confirmOthers": "close the other pending offers on the same listing",
+      "confirmTimeline": "add a purchase entry to the customer's contact history",
+      "confirmWarning": "An accepted offer cannot be undone.",
+      "confirmSubmit": "Accept and close the sale",
+      "processing": "Working…"
+    }
+  },
+  "sales": {
+    "page": {
+      "title": "Sales",
+      "description": "Closed deals. When an offer is accepted the record lands here automatically.",
+      "count": "{count, plural, =1 {1 closed deal} other {# closed deals}}",
+      "deletedListing": "Listing deleted",
+      "emptyBadge": "Empty",
+      "emptyTitle": "No closed sales yet",
+      "emptyBody": "Sales are created automatically when an offer is accepted. Check the Offers tab for pending offers.",
+      "noResultBadge": "No results",
+      "noResultTitle": "No sale matches these filters",
+      "noResultBody": "Try widening the date range or clearing the agent filter."
+    },
+    "tabs": {
+      "aria": "Sales view",
+      "sales": "Sales",
+      "offers": "Offers"
+    },
+    "filters": {
+      "from": "From",
+      "to": "To",
+      "agentLabel": "Agent",
+      "allAgents": "All agents"
+    },
+    "sort": {
+      "label": "Sort",
+      "recent": "Newest",
+      "amountDesc": "Amount (high to low)",
+      "amountAsc": "Amount (low to high)"
+    }
+  },
+  "revenue": {
+    "commissionStatus": {
+      "pending": "Pending",
+      "collected": "Collected",
+      "overdue": "Overdue"
+    },
+    "period": {
+      "30": "Last 30 days",
+      "90": "Last 3 months",
+      "180": "Last 6 months",
+      "365": "Last year",
+      "aria": "Period"
+    },
+    "periodPhrase": {
+      "30": "the last 30 days",
+      "90": "the last 3 months",
+      "180": "the last 6 months",
+      "365": "the last year"
+    },
+    "page": {
+      "title": "Revenue",
+      "description": "Commission and collection status from closed deals. The Sales page shows the deals; this one shows the money.",
+      "noAgentDescription": "Commission and collection tracking.",
+      "emptyBadge": "Empty",
+      "emptyTitle": "No commission in {period}",
+      "emptyBody": "Commission is created when an offer is accepted and the sale closes. Try a wider period, or answer pending offers from the Offers page.",
+      "agentNote": "Only office managers can change the collection status. The commission is the sale amount multiplied by your commission rate."
+    },
+    "summary": {
+      "total": "Total commission",
+      "totalHint": "{count} deals · {volume} volume",
+      "collected": "Collected",
+      "collectedHint": "Collection rate {rate}",
+      "pending": "Pending",
+      "pendingHint": "Not collected yet",
+      "overdue": "Overdue",
+      "overdueHint": "Needs following up",
+      "overdueNone": "No overdue collections"
+    },
+    "chart": {
+      "title": "Monthly commission",
+      "aria": "Monthly commission revenue and collection",
+      "legendTotal": "Total commission",
+      "legendCollected": "Collected",
+      "tooltipCollected": "{amount} collected",
+      "tooltipTotal": "{amount} commission"
+    },
+    "byAgent": {
+      "titleManager": "Breakdown by agent",
+      "titleSelf": "Your commission breakdown",
+      "meta": "{count} deals · {rate} rate · {volume} volume",
+      "collectedShare": "{rate} collected"
+    },
+    "rows": {
+      "title": "Commission records",
+      "deletedListing": "Listing deleted",
+      "saleAmount": "{amount} sale"
+    },
+    "control": {
+      "menuLabel": "Collection status",
+      "aria": "Collection status: {status}. Click to change.",
+      "error": "Could not change the status",
+      "marked": "Commission marked “{status}”"
+    }
+  },
+  "reports": {
+    "page": {
+      "title": "Reports",
+      "description": "Portfolio breakdown, sales trend for the period, and team performance.",
+      "noAgentDescription": "A summary of portfolio, sales and team performance.",
+      "footnote": "Reports are calculated live from the existing records; no separate analytics store is kept. The numbers you see are limited to the records you have access to."
+    },
+    "portfolio": {
+      "title": "Portfolio analysis",
+      "hint": "{count} listings",
+      "byCategory": "By category",
+      "byStatus": "By status",
+      "empty": "No listings in the portfolio.",
+      "mostViewed": "Most viewed",
+      "mostFavorited": "Most favourited",
+      "noListings": "Nothing to show."
+    },
+    "sales": {
+      "title": "Sales analysis",
+      "dealCount": "Closed deals",
+      "volume": "Sales volume",
+      "average": "Average deal",
+      "trendTitle": "Sales volume trend",
+      "trendAria": "Sales volume over the period",
+      "trendCount": "{count, plural, =1 {1 closed deal} other {# closed deals}}",
+      "empty": "No deals closed in {period}. Try selecting a wider period."
+    },
+    "team": {
+      "title": "Team performance",
+      "hint": "All time",
+      "badge": "Manager",
+      "empty": "No agent has a sale on record yet.",
+      "meta": "{sales} deals · {listings} active listings · {customers} active customers"
+    }
+  },
+  "workNotes": {
+    "type": {
+      "question": "Question",
+      "assignment": "Handover",
+      "note": "Note"
+    },
+    "typeHint": {
+      "question": "A question waiting for an answer. It stays open until someone marks it “resolved”.",
+      "assignment": "You TAKE OVER the record. The customer or listing is genuinely reassigned to you.",
+      "note": "Something the team should see. There is nothing to follow up on."
+    },
+    "status": {
+      "open": "Open",
+      "resolved": "Resolved"
+    },
+    "section": {
+      "title": "Work notes",
+      "openBadge": "{count} open",
+      "all": "All notes",
+      "empty": "No notes on this record yet. Use the box above to ask the team a question, leave some context, or hand the record over."
+    },
+    "card": {
+      "resolvedBy": "closed by {name}",
+      "unknownAuthor": "Unknown",
+      "reply": "Reply",
+      "resolve": "Resolve",
+      "reopen": "Reopen",
+      "openSr": "This note is still open.",
+      "attachmentFailed": "The attachment could not be opened; refresh the page.",
+      "attachmentAlt": "Note attachment",
+      "openAttachment": "Open attachment",
+      "actionError": "Could not complete the action",
+      "resolved": "Note closed",
+      "reopened": "Note reopened",
+      "deleted": "Note deleted",
+      "previewImage": "📷 Image",
+      "previewFile": "📎 File"
+    },
+    "composer": {
+      "typeLabel": "Note type",
+      "customerLabel": "Customer",
+      "listingLabel": "Listing",
+      "notSelected": "Not selected",
+      "mentionLabelAssignment": "Taking over",
+      "mentionLabelDefault": "To",
+      "everyone": "Whole team",
+      "selfAssign": "I am taking it over",
+      "contentLabel": "Content",
+      "placeholderReply": "Write your reply…",
+      "placeholderQuestion": "e.g. When are Mr. Yılmaz's documents arriving?",
+      "placeholderAssignment": "e.g. I am taking Mr. Yılmaz over and will hand him back after my leave.",
+      "placeholderNote": "e.g. Mr. Yılmaz is not flexible on price.",
+      "removeAttachment": "Remove attachment",
+      "attach": "Attach a file",
+      "submitReply": "Reply",
+      "submitAssignment": "Hand over",
+      "submitNote": "Add note",
+      "tooLargeTitle": "File too large",
+      "tooLargeBody": "\"{name}\" is {size}. You can attach up to {max}.",
+      "emptyTitle": "Empty note",
+      "emptyBody": "Write something or attach a file.",
+      "noContextTitle": "No context selected",
+      "noContextBody": "A note must be linked to a customer or a listing.",
+      "saveErrorTitle": "Could not save the note",
+      "successReply": "Reply sent",
+      "successAssignment": "Record handed over",
+      "successNote": "Note added",
+      "failedTitle": "Could not save",
+      "unexpectedError": "Something unexpected went wrong."
+    },
+    "page": {
+      "title": "Work notes",
+      "description": "Notes the team leaves for each other. Ask a question about a customer or listing, leave context, or hand the record over."
+    },
+    "filter": {
+      "open": "Open questions",
+      "mine": "For me",
+      "all": "Whole team",
+      "resolved": "Resolved"
+    },
+    "filterBar": {
+      "viewAria": "Work note view",
+      "searchPlaceholder": "Note, customer or listing…",
+      "typeLabel": "Note type",
+      "allTypes": "All types"
+    },
+    "empty": {
+      "narrowedTitle": "No note matches this filter",
+      "narrowedBody": "Clear the search box or the type filter and try again.",
+      "openTitle": "Nothing open",
+      "openBody": "No question is waiting for an answer and no handover is left unaccepted.",
+      "mineTitle": "Nothing addressed to you",
+      "mineBody": "Nobody has mentioned you in a note. When someone asks with “@your name” it appears here and the menu badge goes up.",
+      "resolvedTitle": "Nothing closed yet",
+      "resolvedBody": "Once a question is answered or a handover is accepted, it lands here.",
+      "allTitle": "No work notes yet",
+      "allBody": "Pick a customer or a listing in the form above and leave the first note. Notes also appear on that record's own page."
+    }
+  },
+  "documents": {
+    "type": {
+      "pdf": "General document",
+      "tapu": "Title deed",
+      "kimlik": "ID document",
+      "sozlesme": "Contract"
+    },
+    "section": {
+      "title": "Documents",
+      "archive": "Open in archive",
+      "empty": "No documents yet. Drag a title deed, ID or contract onto the area above; files are kept in protected storage and download links expire shortly after they are issued."
+    },
+    "row": {
+      "preview": "Preview",
+      "openInNewTab": "Open in a new tab",
+      "download": "Download",
+      "deleteAria": "Delete document",
+      "deleteTitle": "Delete this document?",
+      "deleteDescription": "<b>{title}</b> and the file itself will be permanently deleted. This cannot be undone.",
+      "deleting": "Deleting…",
+      "previewError": "Could not preview",
+      "downloadError": "Could not download",
+      "deleteError": "Could not delete the document",
+      "deleted": "Document deleted"
+    },
+    "dropzone": {
+      "dropTitle": "Drag a document here",
+      "hint": "PDF, Word or image · up to {max}",
+      "choose": "Choose a file",
+      "privacy": "Documents are kept in non-public storage; download links are issued per person and expire shortly afterwards.",
+      "removeFile": "Remove file",
+      "uploading": "Uploading… {percent}",
+      "titleLabel": "Title",
+      "titlePlaceholder": "e.g. Title deed — Kadıköy flat",
+      "typeLabel": "Document type",
+      "customerLabel": "Related customer",
+      "listingLabel": "Related listing",
+      "notSelected": "Not selected",
+      "submit": "Upload document",
+      "tooLargeTitle": "File too large",
+      "tooLargeBody": "\"{name}\" is {size}. You can upload up to {max}.",
+      "titleRequiredTitle": "Title required",
+      "titleRequiredBody": "Give the document a title so you can recognise it in the list.",
+      "saveErrorTitle": "Could not save the document",
+      "success": "Document uploaded",
+      "failedTitle": "Upload failed",
+      "unexpectedError": "Something unexpected went wrong during the upload."
+    },
+    "page": {
+      "title": "Documents",
+      "searchDescription": "Documents are found through the customer record. Type a name or a number; the title deeds, IDs and contracts on that record open up.",
+      "allArchive": "Full archive",
+      "totalLabel": "Total documents",
+      "countUnit": "documents"
+    },
+    "search": {
+      "placeholder": "Customer name or phone…",
+      "aria": "Search customers",
+      "noMatchTitle": "No customer matches",
+      "noMatchBody": "Try typing part of the name or the number.",
+      "emptyTitle": "No customers yet",
+      "emptyBody": "Create a record from the Customers page first.",
+      "lastDocument": "Last document: {date}"
+    },
+    "customerView": {
+      "back": "Back to customer search",
+      "title": "{name} — Documents",
+      "description": "{count} documents on record. Files are kept in protected storage and download links are issued per person.",
+      "customerRecord": "Customer record",
+      "call": "Call",
+      "emptyTitle": "No documents for this customer",
+      "emptyBody": "Drag a file onto the area above to upload the first document. It also appears on the customer's own page.",
+      "notFoundBack": "Back to documents",
+      "notFoundTitle": "Customer not found",
+      "notFoundDescription": "The record may have been deleted or you may not have access to it.",
+      "notFoundBadge": "Not found",
+      "notFoundEmptyTitle": "This customer could not be reached",
+      "notFoundEmptyBody": "Go back to the search screen and pick another record.",
+      "emptyBadge": "Empty"
+    },
+    "archive": {
+      "title": "Full archive",
+      "description": "Every uploaded record, including documents not linked to a customer or a listing. Ordered by date.",
+      "emptyTitle": "No documents yet",
+      "emptyBody": "Drag a file onto the area above to upload your first document. If you link it to a customer or a listing, it also appears on their page.",
+      "noMatchTitle": "No document matches this filter",
+      "noMatchBody": "Clear the filters and try again."
+    },
+    "filterBar": {
+      "searchPlaceholder": "Document title…",
+      "typeLabel": "Document type",
+      "allTypes": "All types",
+      "customerLabel": "Customer",
+      "allCustomers": "All customers",
+      "listingLabel": "Listing",
+      "allListings": "All listings"
+    }
+  },
+  "notifications": {
+    "type": {
+      "customer_added": "New customer",
+      "listing_created": "New listing",
+      "sale_closed": "Sale closed",
+      "appointment_scheduled": "Appointment scheduled",
+      "work_note_mention": "You were asked",
+      "work_note_assigned": "Record handed over",
+      "work_note_resolved": "Question resolved"
+    },
+    "page": {
+      "title": "Notifications",
+      "description": "Customers assigned to you, activity on your portfolio, and work notes from the team."
+    },
+    "list": {
+      "filterAria": "Notification filter",
+      "all": "All",
+      "unread": "Unread",
+      "markAll": "Mark all as read",
+      "emptyUnread": "You have no unread notifications.",
+      "empty": "No notifications yet. They appear here when a customer is assigned to you, one of your listings sells, or the team leaves you a note.",
+      "legend": "Notification types: {types}. These are personal to you; for the office-wide activity feed see the <b>Recent activity</b> list on the dashboard.",
+      "markAllError": "Could not complete the action",
+      "markAllSuccess": "{count, plural, =1 {1 notification marked as read} other {# notifications marked as read}}"
+    },
+    "row": {
+      "unreadAria": "Unread",
+      "markRead": "Mark as read",
+      "markUnread": "Mark as unread",
+      "deleteAria": "Delete notification",
+      "actionError": "Could not complete the action",
+      "deleteError": "Could not delete the notification"
+    },
+    "bell": {
+      "aria": "Notifications",
+      "ariaUnread": "Notifications ({count} unread)",
+      "title": "Notifications",
+      "newCount": "{count} new",
+      "markAll": "Mark all as read",
+      "empty": "No notifications yet.",
+      "seeAll": "See all",
+      "noUnread": "No unread notifications"
+    }
+  },
+  "appointments": {
+    "type": {
+      "ev_gezme": "Viewing",
+      "telefon_gorusmesi": "Phone call",
+      "ofis_gorusmesi": "Office meeting",
+      "sozlesme_imzalama": "Contract signing",
+      "diger": "Other"
+    },
+    "status": {
+      "planlandi": "Scheduled",
+      "tamamlandi": "Completed",
+      "iptal": "Cancelled"
+    },
+    "page": {
+      "title": "Appointments",
+      "description": "Your viewing and meeting calendar. A completed appointment is written to the customer's contact history automatically."
+    },
+    "view": {
+      "gun": "Day",
+      "hafta": "Week",
+      "ay": "Month"
+    },
+    "toolbar": {
+      "previous": "Previous",
+      "next": "Next",
+      "today": "Today",
+      "viewsAria": "Calendar view"
+    },
+    "filters": {
+      "typeLabel": "Type",
+      "allTypes": "All types",
+      "statusLabel": "Status",
+      "allStatuses": "All statuses",
+      "agentLabel": "Agent",
+      "allAgents": "All agents"
+    },
+    "workspace": {
+      "add": "New appointment",
+      "empty": "No appointments in this range. Click an empty slot on the grid to create one.",
+      "emptyFiltered": "No appointment matches these filters. Clear them and look again.",
+      "moveError": "Could not move the appointment",
+      "moved": "Appointment moved"
+    },
+    "dialog": {
+      "createTitle": "New appointment",
+      "editTitle": "Edit appointment",
+      "createDescription": "Customer and time are required; linking a listing is optional.",
+      "editDescription": "Update the time, the participants and the notes.",
+      "typeLabel": "Appointment type",
+      "titleLabel": "Title",
+      "dateLabel": "Date",
+      "startLabel": "Start",
+      "endLabel": "End",
+      "customerLabel": "Customer",
+      "customerPlaceholder": "Select a customer",
+      "noCustomers": "No customers on record. Create one from the Customers page first.",
+      "listingLabel": "Listing",
+      "noListing": "Not linked to a listing",
+      "agentLabel": "Agent",
+      "agentPlaceholder": "Select an agent",
+      "locationLabel": "Location",
+      "locationPlaceholder": "Office, listing address, phone…",
+      "notesLabel": "Note",
+      "notesPlaceholder": "Points to cover, reminders…",
+      "submitCreate": "Create appointment",
+      "submitEdit": "Save changes",
+      "invalidTimeTitle": "Invalid time",
+      "invalidTimeBody": "Check the start and end times.",
+      "invalidRangeTitle": "Invalid range",
+      "invalidRangeBody": "The end time must be after the start time.",
+      "missingTitle": "Missing information",
+      "missingCustomer": "Select a customer.",
+      "createError": "Could not save the appointment",
+      "updateError": "Could not update the appointment",
+      "createSuccess": "Appointment created",
+      "updateSuccess": "Appointment updated"
+    },
+    "popover": {
+      "complete": "Completed",
+      "cancel": "Cancel it",
+      "replan": "Move back to scheduled",
+      "confirmDelete": "Are you sure?",
+      "statusError": "Could not update the appointment",
+      "timelineAdded": "Also written to the customer's contact history.",
+      "deleteError": "Could not delete the appointment",
+      "deleted": "Appointment deleted"
+    }
+  },
+  "customers": {
+    "status": {
+      "sicak": "Hot",
+      "normal": "Warm",
+      "soguk": "Cold"
+    },
+    "event": {
+      "created": "Customer record created",
+      "called": "Spoke on the phone",
+      "viewed": "Viewed the property in person",
+      "offer_sent": "Offer sent",
+      "negotiation": "Negotiation meeting held",
+      "purchased": "Purchase completed",
+      "lost": "Process ended without a deal"
+    },
+    "budget": {
+      "under5": "Under ₺5M",
+      "from5to10": "₺5M – ₺10M",
+      "from10to20": "₺10M – ₺20M",
+      "from20to40": "₺20M – ₺40M",
+      "over40": "Over ₺40M"
+    },
+    "sort": {
+      "label": "Sort",
+      "recent": "Last contact",
+      "name": "Name (A-Z)",
+      "budgetDesc": "Budget (high to low)",
+      "budgetAsc": "Budget (low to high)",
+      "interestDesc": "Number of listings of interest"
+    },
+    "list": {
+      "title": "Customers",
+      "description": "Track the buyers interested in your portfolio; every record keeps its listings of interest and contact history together.",
+      "new": "New customer",
+      "searchPlaceholder": "Search by name, phone or email…",
+      "searchAria": "Search customers",
+      "clearSearch": "Clear search",
+      "statusLabel": "Status",
+      "allStatuses": "All statuses",
+      "agentLabel": "Agent",
+      "allAgents": "All agents",
+      "budgetLabel": "Budget",
+      "allBudgets": "All budgets",
+      "count": "{count, plural, =1 {<b>1</b> customer listed} other {<b>#</b> customers listed}}",
+      "emptyBadge": "Empty list",
+      "emptyTitle": "No customers added yet",
+      "emptyDescription": "Your customer records will appear here; each one keeps its listings of interest and contact history together.",
+      "noResultBadge": "No results",
+      "noResultTitle": "No customer matches your search",
+      "noResultDescription": "Try widening the budget band or clearing the agent filter. The search box looks at name, phone and email together.",
+      "clearFilters": "Clear filters"
+    },
+    "card": {
+      "budgetRange": "Budget range",
+      "listings": "{count, plural, =1 {1 listing} other {# listings}}",
+      "notContacted": "Not contacted"
+    },
+    "detail": {
+      "back": "Back to customers",
+      "registered": "{id} · registered on {date}",
+      "call": "Call",
+      "email": "Send email",
+      "budgetRange": "Budget range",
+      "lastContact": "Last contact",
+      "neverContacted": "Not contacted yet",
+      "interestLabel": "Listings of interest",
+      "interestValue": "{count, plural, =1 {1 record} other {# records}}",
+      "notes": "Notes",
+      "interests": "Listings of interest",
+      "interestsEmpty": "No listing has been matched with this customer yet.",
+      "agent": "Assigned agent",
+      "upcoming": "Upcoming appointments",
+      "history": "Contact history"
+    },
+    "timeline": {
+      "empty": "No activity recorded for this customer yet.",
+      "viewListing": "View the related listing"
+    },
+    "addEvent": {
+      "trigger": "Add a contact record",
+      "title": "New contact record",
+      "typeLabel": "Event type",
+      "noteLabel": "Note",
+      "notePlaceholder": "e.g. Second call about the 3+1 in Kadıköy; expecting a ₺500K reduction.",
+      "counter": "{count} / 500 characters",
+      "emptyTitle": "The note cannot be empty",
+      "emptyBody": "Write briefly what was discussed.",
+      "errorTitle": "Could not add the record",
+      "successTitle": "Contact recorded"
+    },
+    "form": {
+      "metaNew": "New customer",
+      "newTitle": "Add a new customer",
+      "newDescription": "Once the record exists you can track its listings of interest and contact history from the customer page.",
+      "editTitle": "Edit customer",
+      "editBack": "Back to customer",
+      "identityTitle": "Identity",
+      "identityDescription": "The core details shown on the customer card and in search results.",
+      "fullNameLabel": "Full name",
+      "fullNamePlaceholder": "e.g. Zeynep Arslan",
+      "phoneLabel": "Phone",
+      "phonePlaceholder": "+90 532 000 00 00",
+      "emailLabel": "Email",
+      "emailPlaceholder": "name@example.com",
+      "budgetTitle": "Budget & status",
+      "budgetDescription": "The budget range is used for listing matches and customer filters.",
+      "budgetMinLabel": "Minimum budget (₺)",
+      "budgetMaxLabel": "Maximum budget (₺)",
+      "statusLabel": "Interest level",
+      "statusHint": "Hot customers are surfaced first in the list.",
+      "agentLabel": "Assigned agent",
+      "agentHintReassign": "You were assigned by default.",
+      "agentHintFixed": "The customer is saved to your own portfolio.",
+      "notesTitle": "Notes",
+      "notesDescription": "What they are looking for and what makes them decide — the rest of the team will read this.",
+      "notesLabel": "Contact note",
+      "notesPlaceholder": "e.g. Looking for a 3+1 in Kadıköy within walking distance of the metro. Mortgage pre-approval granted.",
+      "notesCounter": "{count} / 1000 characters",
+      "submitNew": "Save customer",
+      "submitEdit": "Save changes",
+      "createError": "Could not save the customer",
+      "updateError": "Could not update the customer",
+      "createSuccess": "Customer created",
+      "updateSuccess": "Customer updated"
+    },
+    "validation": {
+      "nameMin": "The full name must be at least 3 characters.",
+      "nameMax": "The full name can be at most 80 characters.",
+      "phoneMin": "The phone number must be at least 10 characters.",
+      "phoneMax": "The phone number is too long.",
+      "emailInvalid": "Enter a valid email address.",
+      "required": "{label} is required.",
+      "numberOnly": "Enter digits only.",
+      "positive": "{label} must be greater than 0.",
+      "agentRequired": "Select an assigned agent.",
+      "notesMax": "The note can be at most 1000 characters.",
+      "budgetOrder": "The maximum budget cannot be lower than the minimum.",
+      "budgetMinName": "The minimum budget",
+      "budgetMaxName": "The maximum budget"
+    },
+    "notFound": {
+      "badge": "Not found",
+      "title": "This customer does not exist",
+      "description": "The record may have been deleted or the link may be wrong. Try searching from the customer list.",
+      "back": "Back to customers"
+    }
+  },
+  "agents": {
+    "role": {
+      "patron": "Owner",
+      "ofis_muduru": "Office Manager",
+      "danisman": "Agent"
+    },
+    "inactive": "Inactive",
+    "page": {
+      "title": "Staff",
+      "description": "{count, plural, =1 {One person} other {# people}} on the team, with this month's sales performance and commission.",
+      "emptyBadge": "Empty",
+      "emptyTitle": "No one on the team yet",
+      "emptyBody": "Use the invite button in the top right to create the first account; it is created instantly and you get a one-time temporary password."
+    },
+    "card": {
+      "month": "This month · {count, plural, =1 {# sale} other {# sales}}",
+      "commission": "Commission ({rate})",
+      "activeCustomers": "{count, plural, =1 {# active customer} other {# active customers}}",
+      "activeListings": "{count, plural, =1 {# active listing} other {# active listings}}"
+    },
+    "detail": {
+      "notFound": "Staff member not found",
+      "back": "Back to staff",
+      "inactiveNotice": "This staff member is <b>inactive</b>: they can sign in but cannot reach any data. The listings, customers and sales history below are kept as they are.",
+      "totalSales": "Total sales",
+      "totalSalesHint": "{count, plural, =1 {# closed deal} other {# closed deals}}",
+      "activeListings": "Active listings",
+      "activeListingsHint": "{count, plural, =1 {# listing} other {# listings}} in portfolio",
+      "activeCustomers": "Active customers",
+      "activeCustomersHint": "{count, plural, =1 {# customer} other {# customers}} assigned",
+      "listingsTitle": "Listings in portfolio",
+      "listingsEmpty": "No listings assigned to this staff member.",
+      "moreListings": "{count} more listings",
+      "customersTitle": "Assigned customers",
+      "customersEmpty": "No customers assigned to this staff member.",
+      "moreCustomers": "{count} more customers",
+      "joinedAt": "Added on {date}",
+      "hasAccount": "This staff member has a sign-in account.",
+      "noAccount": "This staff member is not linked to a sign-in account yet.",
+      "monthTitle": "This month",
+      "monthDeals": "{count, plural, =1 {# closed deal} other {# closed deals}}",
+      "commissionLabel": "Commission · {rate}",
+      "commissionHint": "Commission is the total of deals closed within the month multiplied by the staff member's commission rate."
+    },
+    "badges": {
+      "title": "Badges",
+      "hint": "Badges are not stored anywhere; they are computed on the fly from your listing, customer and sales records.",
+      "item": {
+        "firstSale": {
+          "label": "First Sale",
+          "description": "You closed your first deal."
+        },
+        "tenListings": {
+          "label": "10 Listings",
+          "description": "Ten listings entered your portfolio."
+        },
+        "twentyCustomers": {
+          "label": "20 Customers",
+          "description": "Twenty customer records were assigned to you."
+        },
+        "fiveSales": {
+          "label": "5 Sales",
+          "description": "You closed five deals."
+        },
+        "tenMillionRevenue": {
+          "label": "₺10M Volume",
+          "description": "Your total sales volume passed 10 million TRY."
+        }
+      }
+    },
+    "form": {
+      "metaTitle": "{name} · Edit",
+      "back": "Back to staff member",
+      "title": "Edit staff member",
+      "identityTitle": "Identity",
+      "identityHint": "Shown on cards and on the agent card in listing and customer details.",
+      "nameLabel": "Full name",
+      "titleLabel": "Job title",
+      "phoneLabel": "Phone",
+      "phonePlaceholder": "+90 5xx xxx xx xx",
+      "emailLabel": "Email",
+      "emailHint": "Tied to the sign-in account; changing it requires a new invitation.",
+      "authorityTitle": "Role & Commission",
+      "authorityHint": "The role decides what they can see, the commission rate what they earn.",
+      "lockedSelf": "You cannot change your own role or commission rate; another manager has to do it.",
+      "lockedPatron": "Only an owner can make changes involving the owner role.",
+      "roleLabel": "Access role",
+      "roleChange": "{from} → {to}",
+      "commissionLabel": "Commission rate (%)",
+      "invalidRate": "Invalid commission rate",
+      "invalidRateHint": "Enter a percentage between 0 and 100.",
+      "nameTooShort": "Full name is too short",
+      "saveError": "Could not be saved",
+      "saved": "Staff member updated",
+      "submit": "Save changes"
+    },
+    "invite": {
+      "trigger": "Invite Staff Member",
+      "formTitle": "Invite a new staff member",
+      "formDescription": "The account is created right away and you are given a temporary password.",
+      "namePlaceholder": "e.g. Ayşe Yılmaz",
+      "emailPlaceholder": "name@realestate.com",
+      "defaultTitle": "Real Estate Agent",
+      "titleHint": "Free text shown on cards. Permissions are set by the role below.",
+      "roleHintAgent": "Sees only their own listings and customers.",
+      "roleHintManager": "{role} sees and edits the entire portfolio.",
+      "submit": "Create account",
+      "submitting": "Creating…",
+      "error": "Staff member could not be invited",
+      "resultTitle": "Staff member created",
+      "resultDescription": "An account was opened for {email}.",
+      "warning": "This password is shown <b>only once</b> and was not saved anywhere. It cannot be recovered once you close this window — copy it now and pass it on.",
+      "passwordLabel": "Temporary password",
+      "copyAria": "Copy password",
+      "copyError": "Could not copy to clipboard",
+      "copyErrorHint": "Select and copy the password manually.",
+      "passwordHint": "The staff member should change it from Settings after signing in with it."
+    },
+    "status": {
+      "deactivate": "Deactivate",
+      "activate": "Reactivate",
+      "confirmDeactivate": "Deactivate {name}?",
+      "confirmActivate": "Reactivate {name}?",
+      "deactivateBody": "This staff member can sign in but cannot reach any data.",
+      "keepsRecords": "Their listings, customers and sales are not deleted",
+      "keepsHistory": "Commission and performance history is kept",
+      "showsBadge": "They appear with an “inactive” badge in lists",
+      "reversible": "You can undo this at any time.",
+      "activateBody": "Access will be restored; the role and commission rate stay as they were.",
+      "processing": "Working…",
+      "confirmDeactivateAction": "Deactivate",
+      "confirmActivateAction": "Activate",
+      "error": "Could not complete the action",
+      "deactivated": "Staff member deactivated",
+      "activated": "Staff member reactivated"
+    },
+    "guard": {
+      "badge": "Permission required",
+      "title": "You are not allowed to view this page",
+      "description": "The staff list and performance figures are open only to users with the owner or office manager role. Talk to your office manager if you need access."
+    },
+    "notFound": {
+      "badge": "Not found",
+      "title": "This staff member is not on record",
+      "description": "The record may have been deleted or the link may be wrong. You can continue from the staff list.",
+      "action": "Back to staff"
+    }
+  },
+  "settings": {
+    "page": {
+      "title": "Settings",
+      "description": "Manage your profile, notification preferences and account security here.",
+      "fallbackDescription": "Profile, preferences and company details.",
+      "viewProfile": "View my profile"
+    },
+    "profile": {
+      "title": "Profile",
+      "description": "Your photo, name and contact details. This information appears in the team list and on customer records.",
+      "coverHint": "Shown as the top strip of your profile page. Pick a wide image.",
+      "nameLabel": "Full name",
+      "namePlaceholder": "Full Name",
+      "nameHint": "Your initials (the avatar fallback) are derived from this name.",
+      "titleLabel": "Job title",
+      "titlePlaceholder": "e.g. Senior Portfolio Agent",
+      "titleHint": "The title shown to others; your permission level is a separate field.",
+      "phoneLabel": "Phone",
+      "phonePlaceholder": "0532 000 00 00",
+      "emailLabel": "Email",
+      "emailHint": "Your email is also your sign-in identity; changing it requires a verification flow and is out of scope for now.",
+      "submit": "Save changes",
+      "saveError": "Profile could not be saved",
+      "saved": "Profile updated"
+    },
+    "password": {
+      "title": "Password",
+      "description": "Change the password you use to sign in to your account.",
+      "currentLabel": "Current password",
+      "newLabel": "New password",
+      "repeatLabel": "New password (repeat)",
+      "minHint": "At least {count} characters.",
+      "mismatch": "Passwords do not match.",
+      "submit": "Change password",
+      "submitting": "Updating…",
+      "error": "Password could not be changed",
+      "saved": "Your password was updated",
+      "savedHint": "Use your new password the next time you sign in."
+    },
+    "twoFactor": {
+      "title": "Two-step verification",
+      "description": "Adds a second verification step next to your password.",
+      "body": "Supabase supports two-step verification with an authenticator app (TOTP) — but it is not an on/off switch: it needs QR scanning, code verification and <b>a second step added to the sign-in flow</b>. Enrolling users without asking at sign-in would advertise security that is not there. That is why it was left as separate work."
+    },
+    "notifications": {
+      "title": "Notification preferences",
+      "description": "Choose which events you want to be notified about. Changes are saved instantly.",
+      "hint": "For a type you turn off, no notification is <b>created at all</b> — turning it back on later does not bring back missed ones. Your own actions never produce notifications anyway.",
+      "error": "Preference could not be saved",
+      "type": {
+        "customer_added": {
+          "label": "New customer assigned",
+          "description": "When a manager assigns a customer to you."
+        },
+        "listing_created": {
+          "label": "Listing added to portfolio",
+          "description": "When a manager adds a listing to your portfolio."
+        },
+        "sale_closed": {
+          "label": "Sale closed",
+          "description": "When an offer on your listing is accepted."
+        },
+        "appointment_scheduled": {
+          "label": "Appointment scheduled",
+          "description": "When an appointment is added to your calendar."
+        },
+        "work_note_mention": {
+          "label": "You were asked",
+          "description": "When an agent mentions you in a note or replies to your note."
+        },
+        "work_note_assigned": {
+          "label": "Record handover",
+          "description": "When a customer or listing is handed over to you or taken from you."
+        },
+        "work_note_resolved": {
+          "label": "Question resolved",
+          "description": "When a question you asked is answered or a handover you made is accepted."
+        }
+      }
+    },
+    "appearance": {
+      "title": "Appearance and language",
+      "description": "Theme and interface language.",
+      "themeBody": "<b>Theme.</b> The app was designed with a single (dark) theme: the design tokens were picked to stay legible on a dark surface, and a light theme needs a second set of all of them. A half-finished light theme would mean broken contrast. The groundwork is there — the <c>light</c> variant in <c>globals.css</c> is waiting.",
+      "languageBody": "<b>Language.</b> The interface is available in Turkish and English. You switch it from the globe icon in the top bar; the choice is stored in a cookie and survives sign-out. Translation is now complete: every module except the AI Assistant works in both languages."
+    },
+    "company": {
+      "title": "Company details",
+      "description": "The office's official details. The whole team sees them, only managers can edit them.",
+      "logoLabel": "Logo",
+      "fallbackName": "Company",
+      "nameLabel": "Company name",
+      "namePlaceholder": "e.g. Şahenk Real Estate",
+      "addressLabel": "Address",
+      "addressPlaceholder": "Street, number, district/city",
+      "taxOfficeLabel": "Tax office",
+      "taxOfficePlaceholder": "e.g. Kadıköy",
+      "taxNumberLabel": "Tax number",
+      "phoneLabel": "Phone",
+      "phonePlaceholder": "0216 000 00 00",
+      "emailLabel": "Email",
+      "emailPlaceholder": "info@example.com",
+      "submit": "Save company details",
+      "saveError": "Company details could not be saved",
+      "saved": "Company details updated"
+    },
+    "api": {
+      "title": "API keys",
+      "description": "Keys issued so external systems can reach this CRM.",
+      "body": "Real key management needs issuing, storage (digest only), authorization scopes, revocation and a usage log — a module in its own right. Rather than show a key list that does not work, the section was left empty."
+    }
+  },
+  "profile": {
+    "page": {
+      "title": "My Profile",
+      "description": "Your performance, contact details and badges.",
+      "fallbackDescription": "The staff record linked to your account.",
+      "editProfile": "Edit profile"
+    },
+    "stats": {
+      "totalSales": "Total sales",
+      "totalSalesHint": "{count, plural, =1 {# closed deal} other {# closed deals}}",
+      "customers": "Customers",
+      "customersHint": "{count} active",
+      "listings": "Listings",
+      "listingsHint": "{count} active",
+      "monthlyCommission": "This month's commission · {rate}",
+      "monthlyCommissionHint": "{count, plural, =1 {# deal} other {# deals}} this month",
+      "month": "This month",
+      "monthHint": "{count, plural, =1 {# deal} other {# deals}}"
+    },
+    "account": {
+      "title": "Account details",
+      "phone": "Phone",
+      "email": "Email",
+      "code": "Staff code",
+      "joined": "You joined the team on {date}. Only your office manager can change your role and commission rate."
+    }
+  },
+  "agentField": {
+    "label": "Agent",
+    "hintSelf": "You were assigned by default; you can hand it over to a teammate.",
+    "placeholder": "Select an agent",
+    "unassigned": "Unassigned",
+    "noRecord": "No team member record found",
+    "lockedHint": "Only managers can change this field"
+  },
+  "upload": {
+    "avatar": {
+      "label": "Profile photo",
+      "upload": "Upload photo",
+      "hint": "JPG, PNG or WebP · up to {size}. If left empty, the initials are shown.",
+      "progressAria": "Uploading photo for {name}",
+      "error": "Photo could not be uploaded"
+    },
+    "cover": {
+      "label": "Cover image",
+      "select": "Choose cover",
+      "alt": "Cover preview",
+      "error": "Cover could not be uploaded"
+    },
+    "change": "Change",
+    "remove": "Remove",
+    "errors": {
+      "unexpected": "Something unexpected went wrong.",
+      "unsupportedImage": "“{name}” is in an unsupported format. Upload a JPG, PNG or WebP.",
+      "unsupportedDocument": "“{name}” is in an unsupported format. Upload a PDF, Word file or image.",
+      "tooLarge": "“{name}” is too large ({size}). You can upload up to {limit}.",
+      "emptyFile": "“{name}” appears to be empty.",
+      "sessionExpired": "Your session has ended. Refresh the page and try again.",
+      "stillTooLarge": "“{name}” is still {size} after compression — the limit is {limit}.",
+      "serverLimit": "“{name}” exceeded the server limit (up to {limit}).",
+      "forbidden": "You are not allowed to upload this file.",
+      "httpFailed": "Upload failed (HTTP {status}).",
+      "connection": "Connection error — the upload could not finish.",
+      "aborted": "Upload cancelled."
+    }
+  }
+}

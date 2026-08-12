@@ -1,7 +1,9 @@
+import { getFormatter, getTranslations } from "next-intl/server";
 import { Award, Lock } from "lucide-react";
 
 import type { Badge as BadgeType } from "@/lib/badges";
 import { earnedCount } from "@/lib/badges";
+import { formatPercent } from "@/i18n/numbers";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -17,7 +19,11 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
  * Rozetler SAKLANMIYOR, mevcut veriden hesaplanıyor — gerekçe `lib/badges.ts`
  * başlığında.
  */
-export function AgentBadges({ badges }: { badges: BadgeType[] }) {
+export async function AgentBadges({ badges }: { badges: BadgeType[] }) {
+  const [t, format] = await Promise.all([
+    getTranslations("agents.badges"),
+    getFormatter(),
+  ]);
   const earned = earnedCount(badges);
 
   return (
@@ -26,7 +32,7 @@ export function AgentBadges({ badges }: { badges: BadgeType[] }) {
         <div className="flex items-center justify-between gap-2">
           <h3 className="flex items-center gap-2 text-[15px] font-semibold text-foreground">
             <Award className="size-4 text-muted-foreground" />
-            Rozetler
+            {t("title")}
           </h3>
           <span className="text-[12.5px] tabular-nums text-muted-foreground">
             {earned} / {badges.length}
@@ -66,24 +72,34 @@ export function AgentBadges({ badges }: { badges: BadgeType[] }) {
                       badge.earned ? "text-foreground" : "text-muted-foreground",
                     )}
                   >
-                    {badge.label}
+                    {t(`item.${badge.id}.label`)}
                   </span>
 
+                  {/* İki ilerleme biçimi: "3 / 20" dilden bağımsız ve
+                      olduğu gibi basılıyor, oran ise `Intl`den geçiyor —
+                      hem ondalık ayracı hem yüzde işaretinin yeri dile
+                      göre değişiyor. */}
                   {badge.progress && (
                     <span className="text-[11px] tabular-nums text-muted-foreground">
                       {badge.progress}
                     </span>
                   )}
+                  {badge.progressRatio !== undefined && (
+                    <span className="text-[11px] tabular-nums text-muted-foreground">
+                      {formatPercent(format, badge.progressRatio)}
+                    </span>
+                  )}
                 </div>
               </TooltipTrigger>
-              <TooltipContent>{badge.description}</TooltipContent>
+              <TooltipContent>
+                {t(`item.${badge.id}.description`)}
+              </TooltipContent>
             </Tooltip>
           ))}
         </div>
 
         <p className="text-[11.5px] leading-relaxed text-muted-foreground">
-          Rozetler ayrı bir yerde saklanmaz; ilan, müşteri ve satış
-          kayıtlarınızdan anlık hesaplanır.
+          {t("hint")}
         </p>
       </CardContent>
     </Card>

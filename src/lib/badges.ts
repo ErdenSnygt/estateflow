@@ -29,52 +29,67 @@ import type { AgentPerformance } from "@/lib/data/agents";
  * açmıyor. Bu yüzden testten de geçebiliyor (`badges.test.ts`).
  */
 
+/**
+ * Rozet kimliği — AYNI ZAMANDA ÇEVİRİ ANAHTARI (`agents.badges.item.<id>`).
+ *
+ * Faz 25'te `label` ve `description` alanları kalktı: bu dosya saf ve senkron,
+ * yani aktif dili okuyamıyor (`lib/offers.ts` ile aynı sınır). Kimlikler o
+ * fazda Türkçe slug'dan ("ilk-satis") camelCase anahtara çevrildi — React
+ * anahtarı olmanın yanında artık sözlükte de aranıyorlar.
+ */
+export type BadgeId =
+  | "firstSale"
+  | "tenListings"
+  | "twentyCustomers"
+  | "fiveSales"
+  | "tenMillionRevenue";
+
 export type Badge = {
-  id: string;
-  label: string;
-  /** Rozetin neyi ifade ettiği — ipucu olarak gösteriliyor. */
-  description: string;
+  id: BadgeId;
   /** Kazanıldı mı; kazanılmayanlar da soluk halde gösteriliyor. */
   earned: boolean;
-  /** İlerleme metni: "3 / 10" — yalnızca eşikli rozetlerde. */
+  /**
+   * İlerleme metni: "3 / 10" — yalnızca eşikli rozetlerde.
+   *
+   * DİLDEN BAĞIMSIZ olduğu için burada üretilebiliyor: iki sayı ve bir eğik
+   * çizgi, çevrilecek bir sözcük yok.
+   */
   progress?: string;
+  /**
+   * Ciro rozetinin ilerlemesi — ORAN (0.99), yüzde değil.
+   *
+   * `Intl`in yüzde biçimi oran bekliyor ve işareti de kendisi koyuyor
+   * ("%99" · "99%"); bu dosya saf olduğu için biçimlendirme çağıranda
+   * (`i18n/numbers.ts` → `formatPercent`).
+   */
+  progressRatio?: number;
 };
 
 /** Eşik tabanlı rozetlerin ortak kurgusu. */
 type Threshold = {
-  id: string;
-  label: string;
-  description: string;
+  id: BadgeId;
   value: (performance: AgentPerformance) => number;
   target: number;
 };
 
 const THRESHOLDS: Threshold[] = [
   {
-    id: "ilk-satis",
-    label: "İlk Satış",
-    description: "İlk kapanan işleminizi tamamladınız.",
+    id: "firstSale",
     value: (performance) => performance.totalSales,
     target: 1,
   },
   {
-    id: "on-ilan",
-    label: "10 İlan",
-    description: "Portföyünüze on ilan girdi.",
+    id: "tenListings",
     value: (performance) => performance.totalListings,
     target: 10,
   },
   {
-    id: "yirmi-musteri",
-    label: "20 Müşteri",
-    description: "Yirmi müşteri kaydı size atandı.",
+    id: "twentyCustomers",
     value: (performance) => performance.totalCustomers,
     target: 20,
   },
   {
-    id: "bes-satis",
-    label: "5 Satış",
-    description: "Beş işlem kapattınız.",
+    id: "fiveSales",
     value: (performance) => performance.totalSales,
     target: 5,
   },
@@ -82,8 +97,8 @@ const THRESHOLDS: Threshold[] = [
 
 /**
  * Ciro eşiği ayrı tutuluyor: diğerleri "adet", bu "tutar" ve ilerleme metni
- * ham sayı olarak okunmaz (`12500000 / 10000000`). Etiket kısaltmayı çağıran
- * tarafa bırakıyoruz.
+ * ham sayı olarak okunmaz (`12500000 / 10000000`). Bu yüzden yüzdeye
+ * çevriliyor.
  */
 const REVENUE_TARGET = 10_000_000;
 
@@ -94,8 +109,6 @@ export function computeBadges(performance: AgentPerformance): Badge[] {
 
     return {
       id: threshold.id,
-      label: threshold.label,
-      description: threshold.description,
       earned,
       /* Kazanılmış rozette ilerleme göstermek gereksiz gürültü; yalnızca
          hedefe gidenlerde anlamlı. */
@@ -104,14 +117,17 @@ export function computeBadges(performance: AgentPerformance): Badge[] {
   });
 
   badges.push({
-    id: "on-milyon-ciro",
-    label: "10 Mn ₺ Ciro",
-    description: "Toplam satış hacminiz 10 milyon TL'yi aştı.",
+    id: "tenMillionRevenue",
     earned: performance.totalRevenue >= REVENUE_TARGET,
-    progress:
+    /* Tamsayı hesaplanıp yüze bölünüyor: 99'da KIRPMA hedefe ulaşmadan
+       "%100" göstermemek için ve kırpma tamsayı üzerinde daha okunaklı. */
+    progressRatio:
       performance.totalRevenue >= REVENUE_TARGET
         ? undefined
-        : `%${Math.min(99, Math.floor((performance.totalRevenue / REVENUE_TARGET) * 100))}`,
+        : Math.min(
+            99,
+            Math.floor((performance.totalRevenue / REVENUE_TARGET) * 100),
+          ) / 100,
   });
 
   /* Sıralama: kazanılanlar önce. Profil sayfasında göz önce neyin

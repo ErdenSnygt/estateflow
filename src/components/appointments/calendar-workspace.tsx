@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useFormatter, useTranslations } from "next-intl";
 import { CalendarPlus } from "lucide-react";
 import { toast } from "sonner";
 
@@ -78,6 +79,8 @@ export function CalendarWorkspace({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useTranslations("appointments.workspace");
+  const format = useFormatter();
 
   const [dialogMode, setDialogMode] =
     React.useState<AppointmentDialogMode | null>(null);
@@ -156,12 +159,12 @@ export function CalendarWorkspace({
         ...current,
         [appointment.id]: { start: previousStart, end: previousEnd },
       }));
-      toast.error("Randevu taşınamadı", { description: result.error });
+      toast.error(t("moveError"), { description: result.error });
       return;
     }
 
-    toast.success("Randevu taşındı", {
-      description: `${formatDayShort(day)} · ${formatMinutes(startMinutes)} – ${formatMinutes(startMinutes + duration)}`,
+    toast.success(t("moved"), {
+      description: `${formatDayShort(format, day)} · ${formatMinutes(startMinutes)} – ${formatMinutes(startMinutes + duration)}`,
     });
     router.refresh();
   }
@@ -187,7 +190,7 @@ export function CalendarWorkspace({
           className="w-full sm:w-auto"
         >
           <CalendarPlus className="size-4" />
-          Randevu Ekle
+          {t("add")}
         </Button>
       </div>
 
@@ -220,9 +223,7 @@ export function CalendarWorkspace({
           alıyor, yoksa "randevu yok" yanıltıcı olurdu. */}
       {appointments.length === 0 && (
         <p className="text-center text-[12.5px] text-muted-foreground">
-          {hasFilters
-            ? "Bu filtrelerle eşleşen randevu yok. Filtreleri temizleyip tekrar bakın."
-            : "Bu aralıkta randevu yok. Izgarada boş bir saate tıklayarak oluşturabilirsiniz."}
+          {t(hasFilters ? "emptyFiltered" : "empty")}
         </p>
       )}
 

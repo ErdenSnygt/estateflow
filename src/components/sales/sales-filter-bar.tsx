@@ -1,11 +1,14 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { useFilterParams } from "@/hooks/use-filter-params";
 import { SALE_FILTER_KEYS, OFFER_FILTER_KEYS } from "@/lib/sales-filters";
 import {
-  OFFER_SORT_OPTIONS,
-  OFFER_STATUS_OPTIONS,
-  SALE_SORT_OPTIONS,
+  OFFER_SORT_KEYS,
+  OFFER_STATUSES,
+  SALE_SORT_KEYS,
+  SORT_MESSAGE_KEY,
 } from "@/lib/offers";
 import type { AgentOption } from "@/lib/data/agents";
 import { Input } from "@/components/ui/input";
@@ -39,6 +42,8 @@ export function SalesFilterBar({
   /** Boş dizi = danışman filtresi gizli. */
   agentOptions: AgentOption[];
 }) {
+  const t = useTranslations("sales");
+
   const { get, set, clear, activeCount } = useFilterParams([
     ...SALE_FILTER_KEYS,
   ]);
@@ -51,7 +56,7 @@ export function SalesFilterBar({
     >
       <div className="space-y-1.5">
         <Label htmlFor="sale-from" className="text-[11.5px] text-muted-foreground">
-          Başlangıç
+          {t("filters.from")}
         </Label>
         <Input
           id="sale-from"
@@ -64,7 +69,7 @@ export function SalesFilterBar({
 
       <div className="space-y-1.5">
         <Label htmlFor="sale-to" className="text-[11.5px] text-muted-foreground">
-          Bitiş
+          {t("filters.to")}
         </Label>
         <Input
           id="sale-to"
@@ -77,7 +82,9 @@ export function SalesFilterBar({
 
       {agentOptions.length > 0 && (
         <div className="space-y-1.5">
-          <Label className="text-[11.5px] text-muted-foreground">Danışman</Label>
+          <Label className="text-[11.5px] text-muted-foreground">
+            {t("filters.agentLabel")}
+          </Label>
           <Select
             value={fromParam(get("agent"))}
             onValueChange={(value) => set("agent", toParam(value))}
@@ -86,7 +93,7 @@ export function SalesFilterBar({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={ALL}>Tüm danışmanlar</SelectItem>
+              <SelectItem value={ALL}>{t("filters.allAgents")}</SelectItem>
               {agentOptions.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
@@ -98,7 +105,9 @@ export function SalesFilterBar({
       )}
 
       <div className="ml-auto space-y-1.5">
-        <Label className="text-[11.5px] text-muted-foreground">Sıralama</Label>
+        <Label className="text-[11.5px] text-muted-foreground">
+          {t("sort.label")}
+        </Label>
         <Select
           value={get("sort") ?? "recent"}
           onValueChange={(value) =>
@@ -109,9 +118,9 @@ export function SalesFilterBar({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {SALE_SORT_OPTIONS.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
+            {SALE_SORT_KEYS.map((value) => (
+              <SelectItem key={value} value={value}>
+                {t(`sort.${SORT_MESSAGE_KEY[value]}`)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -128,6 +137,8 @@ export function OffersFilterBar({
 }: {
   agentOptions: AgentOption[];
 }) {
+  const t = useTranslations("offers");
+
   const { get, set, clear, activeCount } = useFilterParams([
     ...OFFER_FILTER_KEYS,
   ]);
@@ -139,7 +150,9 @@ export function OffersFilterBar({
       className="items-end gap-3 rounded-xl border border-hairline bg-surface p-3"
     >
       <div className="space-y-1.5">
-        <Label className="text-[11.5px] text-muted-foreground">Durum</Label>
+        <Label className="text-[11.5px] text-muted-foreground">
+          {t("filters.statusLabel")}
+        </Label>
         <Select
           value={fromParam(get("status"))}
           onValueChange={(value) => set("status", toParam(value))}
@@ -148,10 +161,10 @@ export function OffersFilterBar({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL}>Tüm durumlar</SelectItem>
-            {OFFER_STATUS_OPTIONS.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
+            <SelectItem value={ALL}>{t("filters.allStatuses")}</SelectItem>
+            {OFFER_STATUSES.map((value) => (
+              <SelectItem key={value} value={value}>
+                {t(`status.${value}`)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -160,7 +173,9 @@ export function OffersFilterBar({
 
       {agentOptions.length > 0 && (
         <div className="space-y-1.5">
-          <Label className="text-[11.5px] text-muted-foreground">Danışman</Label>
+          <Label className="text-[11.5px] text-muted-foreground">
+            {t("filters.agentLabel")}
+          </Label>
           <Select
             value={fromParam(get("agent"))}
             onValueChange={(value) => set("agent", toParam(value))}
@@ -169,7 +184,7 @@ export function OffersFilterBar({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={ALL}>Tüm danışmanlar</SelectItem>
+              <SelectItem value={ALL}>{t("filters.allAgents")}</SelectItem>
               {agentOptions.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
@@ -181,7 +196,9 @@ export function OffersFilterBar({
       )}
 
       <div className="ml-auto space-y-1.5">
-        <Label className="text-[11.5px] text-muted-foreground">Sıralama</Label>
+        <Label className="text-[11.5px] text-muted-foreground">
+          {t("sort.label")}
+        </Label>
         <Select
           value={get("sort") ?? "recent"}
           onValueChange={(value) =>
@@ -192,9 +209,9 @@ export function OffersFilterBar({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {OFFER_SORT_OPTIONS.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
+            {OFFER_SORT_KEYS.map((value) => (
+              <SelectItem key={value} value={value}>
+                {t(`sort.${SORT_MESSAGE_KEY[value]}`)}
               </SelectItem>
             ))}
           </SelectContent>

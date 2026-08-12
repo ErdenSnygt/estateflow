@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getFormatter, getTranslations } from "next-intl/server";
 import { ArrowRight, CalendarDays } from "lucide-react";
 
 import { getTodayAppointments } from "@/lib/data/appointments";
@@ -24,7 +25,11 @@ import { AppointmentRow } from "@/components/appointments/appointment-row";
  * dashboard'ın en değerli bölgesinde hiçbir şey söylemeyen bir kutu olurdu.
  */
 export async function TodayAppointments() {
-  const appointments = await getTodayAppointments();
+  const [appointments, t, format] = await Promise.all([
+    getTodayAppointments(),
+    getTranslations("dashboard.appointments"),
+    getFormatter(),
+  ]);
   if (appointments.length === 0) return null;
 
   const today = toDateKey(Date.now());
@@ -34,17 +39,20 @@ export async function TodayAppointments() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <CalendarDays className="size-4 text-brand" />
-          Bugünkü Randevular
+          {t("title")}
         </CardTitle>
         <CardDescription>
-          {formatDayLong(today)} · {appointments.length} randevu
+          {t("description", {
+            date: formatDayLong(format, today),
+            count: appointments.length,
+          })}
         </CardDescription>
         <CardAction>
           <Link
             href="/randevular?view=gun"
             className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[12.5px] font-medium text-secondary-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
           >
-            Takvim
+            {t("calendar")}
             <ArrowRight className="size-3.5" />
           </Link>
         </CardAction>

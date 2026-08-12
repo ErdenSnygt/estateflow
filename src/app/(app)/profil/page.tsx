@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getFormatter, getTranslations } from "next-intl/server";
 import { Mail, Phone, Settings, UserRound } from "lucide-react";
 
 import { getCurrentAgent } from "@/lib/auth/server";
 import { getAgentPerformance } from "@/lib/data/agents";
 import { computeBadges } from "@/lib/badges";
-import { formatDate } from "@/lib/format";
+import { formatDate } from "@/i18n/dates";
 import { PageHeader } from "@/components/page-header";
 import { AgentNotice } from "@/components/layout/agent-notice";
 import { Button } from "@/components/ui/button";
@@ -14,9 +15,10 @@ import { AgentCover } from "@/components/agents/agent-cover";
 import { AgentStats } from "@/components/agents/agent-stats";
 import { AgentBadges } from "@/components/agents/agent-badges";
 
-export const metadata: Metadata = {
-  title: "Profilim",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("profile.page");
+  return { title: t("title") };
+}
 
 /**
  * ============================================================================
@@ -44,14 +46,19 @@ export const metadata: Metadata = {
  * Yeni sorgu da yazılmadı: `getAgentPerformance()` Faz 6/8'den beri var.
  */
 export default async function ProfilPage() {
-  const agent = await getCurrentAgent();
+  const [agent, t, tCommon, format] = await Promise.all([
+    getCurrentAgent(),
+    getTranslations("profile"),
+    getTranslations("common"),
+    getFormatter(),
+  ]);
 
   if (!agent) {
     return (
       <div className="space-y-6 pb-4">
         <PageHeader
-          title="Profilim"
-          description="Hesabınıza bağlı personel kaydı."
+          title={t("page.title")}
+          description={t("page.fallbackDescription")}
         />
         <AgentNotice />
       </div>
@@ -64,13 +71,13 @@ export default async function ProfilPage() {
   return (
     <div className="space-y-5 pb-4">
       <PageHeader
-        title="Profilim"
-        description="Performansınız, iletişim bilgileriniz ve rozetleriniz."
+        title={t("page.title")}
+        description={t("page.description")}
         actions={
           <Button asChild>
             <Link href="/ayarlar">
               <Settings className="size-4" />
-              Ayarlar
+              {tCommon("settings")}
             </Link>
           </Button>
         }
@@ -89,34 +96,35 @@ export default async function ProfilPage() {
         <Card>
           <CardContent className="space-y-4 p-5">
             <h3 className="text-[15px] font-semibold text-foreground">
-              Hesap bilgileri
+              {t("account.title")}
             </h3>
 
             <div className="space-y-2 border-t border-hairline pt-4">
               <InfoRow
                 icon={<Phone className="size-3.5" />}
-                label="Telefon"
+                label={t("account.phone")}
                 value={agent.phone || "—"}
               />
               <InfoRow
                 icon={<Mail className="size-3.5" />}
-                label="E-posta"
+                label={t("account.email")}
                 value={agent.email}
               />
               <InfoRow
                 icon={<UserRound className="size-3.5" />}
-                label="Personel kodu"
+                label={t("account.code")}
                 value={agent.id.toUpperCase()}
               />
             </div>
 
             <p className="border-t border-hairline pt-4 text-[12px] leading-relaxed text-muted-foreground">
-              {formatDate(agent.created_at)} tarihinde ekibe katıldınız. Rol ve
-              prim oranınızı yalnızca ofis yöneticiniz değiştirebilir.
+              {t("account.joined", {
+                date: formatDate(format, agent.created_at),
+              })}
             </p>
 
             <Button variant="secondary" className="w-full" asChild>
-              <Link href="/ayarlar">Profili düzenle</Link>
+              <Link href="/ayarlar">{t("page.editProfile")}</Link>
             </Button>
           </CardContent>
         </Card>

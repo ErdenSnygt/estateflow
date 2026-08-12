@@ -2,12 +2,12 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Check, Clock, Loader2, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 
 import type { CommissionStatus } from "@/types/database";
 import {
-  COMMISSION_STATUS_LABELS,
   COMMISSION_STATUS_TONES,
   availableCommissionTransitions,
 } from "@/lib/revenue";
@@ -44,6 +44,7 @@ export function CommissionStatusControl({
   canEdit: boolean;
 }) {
   const router = useRouter();
+  const t = useTranslations("revenue");
   const [isBusy, setIsBusy] = React.useState(false);
 
   const Icon = ICONS[status];
@@ -54,7 +55,7 @@ export function CommissionStatusControl({
       ) : (
         <Icon className="size-3" />
       )}
-      {COMMISSION_STATUS_LABELS[status]}
+      {t(`commissionStatus.${status}`)}
     </Badge>
   );
 
@@ -68,11 +69,13 @@ export function CommissionStatusControl({
     setIsBusy(false);
 
     if (!result.ok) {
-      toast.error("Durum değiştirilemedi", { description: result.error });
+      toast.error(t("control.error"), { description: result.error });
       return;
     }
 
-    toast.success(`Komisyon "${COMMISSION_STATUS_LABELS[next]}" olarak işaretlendi`);
+    toast.success(
+      t("control.marked", { status: t(`commissionStatus.${next}`) }),
+    );
     router.refresh();
   }
 
@@ -81,7 +84,9 @@ export function CommissionStatusControl({
       <DropdownMenuTrigger asChild disabled={isBusy}>
         <button
           type="button"
-          aria-label={`Tahsilat durumu: ${COMMISSION_STATUS_LABELS[status]}. Değiştirmek için tıklayın.`}
+          aria-label={t("control.aria", {
+            status: t(`commissionStatus.${status}`),
+          })}
           className="rounded-md outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
         >
           {badge}
@@ -89,13 +94,13 @@ export function CommissionStatusControl({
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="min-w-[11rem]">
-        <DropdownMenuLabel>Tahsilat durumu</DropdownMenuLabel>
+        <DropdownMenuLabel>{t("control.menuLabel")}</DropdownMenuLabel>
         {options.map((option) => {
           const OptionIcon = ICONS[option];
           return (
             <DropdownMenuItem key={option} onSelect={() => change(option)}>
               <OptionIcon />
-              {COMMISSION_STATUS_LABELS[option]}
+              {t(`commissionStatus.${option}`)}
             </DropdownMenuItem>
           );
         })}

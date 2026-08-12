@@ -1,13 +1,39 @@
 import type { Currency } from "@/types/database";
 
 /**
- * Biçimlendiriciler tek noktada tutulur; locale ve saat dilimi AÇIKÇA verilir.
- * Sunucu ile tarayıcı farklı bölge ayarı çözerse hydration uyuşmazlığı doğar —
- * `Intl` çağrılarında varsayılana asla güvenmeyin.
+ * ============================================================================
+ * BİÇİMLENDİRİCİLER
+ * ============================================================================
+ * Locale ve saat dilimi AÇIKÇA verilir. Sunucu ile tarayıcı farklı bölge
+ * ayarı çözerse hydration uyuşmazlığı doğar — `Intl` çağrılarında varsayılana
+ * asla güvenmeyin.
+ *
+ * -----------------------------------------------------------------------------
+ * FAZ 19: NEDEN BU DOSYA `tr-TR`'DE KALDI
+ * -----------------------------------------------------------------------------
+ * Arayüz iki dilli ama buradaki `LOCALE` sabiti DEĞİŞMEDİ ve bu bir eksiklik
+ * değil, bir karar. İkiye ayrılıyor:
+ *
+ *  · PARA VE SAYI → `tr-TR` KALIYOR. Tutar Türk Lirası ve sözleşmede, tapuda,
+ *    ilan portalında hep "18.450.000" yazıyor. İngilizce arayüzde
+ *    "18,450,000" göstermek aynı sayının iki farklı yazımını üretir; Türkiye'de
+ *    nokta binlik ayracı olduğu için bu bir OKUMA HATASI riski — kullanıcı 18
+ *    milyonu 18 bin sanabilir. Para, arayüz metninden çok VERİYE yakın:
+ *    seed'deki ilan başlıkları gibi çevrilmiyor.
+ *
+ *  · TARİH → BU DOSYADAN ÇIKTI. Ay adları ve gün/ay sırası dilin parçası; bu
+ *    fonksiyonlar ise SENKRON ve hem sunucu hem istemciden çağrılıyordu, yani
+ *    aktif dili kendileri okuyamıyordu (sunucuda `getLocale()` asenkron,
+ *    istemcide `useLocale()` bir kanca). Faz 19–25 boyunca modül modül
+ *    `i18n/dates.ts`e taşındılar ve son tur bitince `formatDate`,
+ *    `formatShortDate`, `formatRelativeTime` buradan SİLİNDİ — çağıranı
+ *    kalmamıştı ve duran bir kopya, yeni bir sayfanın yanlışlıkla sabit
+ *    Türkçe tarih üretmesine davetiye olurdu.
+ *
+ * Geriye kalan her şey (para, sayı, alan) tanım gereği dilden bağımsız.
  */
 
 const LOCALE = "tr-TR";
-const TIME_ZONE = "Europe/Istanbul";
 
 const currencyFormatters: Record<Currency, Intl.NumberFormat> = {
   TRY: new Intl.NumberFormat(LOCALE, {
@@ -55,20 +81,6 @@ const compactNumberFormatter = new Intl.NumberFormat(LOCALE, {
   maximumFractionDigits: 1,
 });
 
-const dateFormatter = new Intl.DateTimeFormat(LOCALE, {
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-  timeZone: TIME_ZONE,
-});
-
-const shortDateFormatter = new Intl.DateTimeFormat(LOCALE, {
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-  timeZone: TIME_ZONE,
-});
-
 /** ₺12.450.000 */
 export function formatCurrency(value: number, currency: Currency = "TRY") {
   return currencyFormatters[currency].format(value);
@@ -92,48 +104,7 @@ export function formatNumberCompact(value: number) {
   return compactNumberFormatter.format(value);
 }
 
-/** 20 Temmuz 2026 */
-export function formatDate(value: string | null) {
-  if (!value) return "—";
-  return dateFormatter.format(new Date(value));
-}
-
-/** 20 Tem 2026 */
-export function formatShortDate(value: string | null) {
-  if (!value) return "—";
-  return shortDateFormatter.format(new Date(value));
-}
-
 /** 145 m² */
 export function formatArea(value: number) {
   return `${numberFormatter.format(value)} m²`;
-}
-
-const relativeFormatter = new Intl.RelativeTimeFormat(LOCALE, {
-  numeric: "auto",
-});
-
-/**
- * "3 dakika önce" · "dün" · "12 Tem 2026"
- *
- * `reference` zorunludur ve bilinçlidir. Faz 5'e kadar sebebi mock verinin
- * sabit bir ana göre üretilmesiydi; artık veri gerçek ve çağıranlar buraya
- * `Date.now()` geçiriyor. Parametre yine de kalıyor: varsayılan olsaydı bir
- * istemci bileşeni onu render sırasında okur, sunucudaki değerden şaşar ve
- * hydration uyuşmazlığı üretirdi. Zaman kaynağını çağıran seçsin.
- */
-export function formatRelativeTime(value: string, reference: number) {
-  const diffMs = Date.parse(value) - reference;
-  const minutes = Math.round(diffMs / 60_000);
-
-  if (Math.abs(minutes) < 1) return "az önce";
-  if (Math.abs(minutes) < 60) return relativeFormatter.format(minutes, "minute");
-
-  const hours = Math.round(minutes / 60);
-  if (Math.abs(hours) < 24) return relativeFormatter.format(hours, "hour");
-
-  const days = Math.round(hours / 24);
-  if (Math.abs(days) < 7) return relativeFormatter.format(days, "day");
-
-  return shortDateFormatter.format(new Date(value));
 }

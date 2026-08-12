@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getFormatter, getTranslations } from "next-intl/server";
 import { Handshake } from "lucide-react";
 
 import { getOffersList } from "@/lib/data/sales";
@@ -10,7 +11,8 @@ import {
   countActiveOfferFilters,
   parseOfferFilters,
 } from "@/lib/sales-filters";
-import { formatCurrency, formatShortDate } from "@/lib/format";
+import { formatCurrency } from "@/lib/format";
+import { formatDate } from "@/i18n/dates";
 import type { SearchParamsInput } from "@/lib/search-params";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
@@ -20,9 +22,10 @@ import { OffersFilterBar } from "@/components/sales/sales-filter-bar";
 import { OfferStatusBadge } from "@/components/offers/offer-status-badge";
 import { OfferActions } from "@/components/offers/offer-actions";
 
-export const metadata: Metadata = {
-  title: "Teklifler",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("offers.page");
+  return { title: t("title") };
+}
 
 type PageProps = { searchParams: Promise<SearchParamsInput> };
 
@@ -31,10 +34,12 @@ export default async function TekliflerPage({ searchParams }: PageProps) {
   const filters = parseOfferFilters(params);
 
   /* Üçü de paralel — gerekçe `/satislar` sayfasında. */
-  const [currentAgent, offers, agents] = await Promise.all([
+  const [currentAgent, offers, agents, t, format] = await Promise.all([
     getCurrentAgent(),
     getOffersList(filters),
     getAgentOptions(),
+    getTranslations("offers.page"),
+    getFormatter(),
   ]);
 
   const agentOptions = canViewStaff(currentAgent?.role) ? agents : [];
@@ -45,8 +50,8 @@ export default async function TekliflerPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-6 pb-4">
       <PageHeader
-        title="Teklifler"
-        description="Gelen teklifleri buradan yanıtlayın. Kabul edilen teklif satışı tek adımda kapatır."
+        title={t("title")}
+        description={t("description")}
         actions={<SalesTabs />}
       />
 
@@ -56,27 +61,19 @@ export default async function TekliflerPage({ searchParams }: PageProps) {
         /* Filtre boşluğu ile gerçek boşluk ayrı — gerekçe `/satislar`da. */
         <EmptyState
           icon={Handshake}
-          badge={hasFilters ? "Sonuç yok" : "Boş"}
-          title={
-            hasFilters
-              ? "Bu filtrelerle eşleşen teklif yok"
-              : "Henüz teklif yok"
-          }
-          description={
-            hasFilters
-              ? "Durum ya da danışman filtresini kaldırıp tekrar deneyin."
-              : "Teklifler ilan detayındaki “Teklif Al” ya da müşteri detayındaki “Teklif Ver” düğmesiyle oluşturulur."
-          }
+          badge={t(hasFilters ? "noResultBadge" : "emptyBadge")}
+          title={t(hasFilters ? "noResultTitle" : "emptyTitle")}
+          description={t(hasFilters ? "noResultBody" : "emptyBody")}
         />
       ) : (
         <>
           <Card>
             <CardContent className="flex flex-wrap items-baseline justify-between gap-3 p-4">
               <span className="text-[13px] text-muted-foreground">
-                {offers.length} teklif
+                {t("count", { count: offers.length })}
               </span>
               <span className="text-[13px] text-warning">
-                {pending} tanesi yanıt bekliyor
+                {t("pending", { count: pending })}
               </span>
             </CardContent>
           </Card>
@@ -97,14 +94,14 @@ export default async function TekliflerPage({ searchParams }: PageProps) {
                         </Link>
                       ) : (
                         <span className="text-[14.5px] font-semibold text-muted-foreground">
-                          İlan silinmiş
+                          {t("deletedListing")}
                         </span>
                       )}
                     </div>
 
                     <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12.5px] text-muted-foreground">
                       <span className="tabular-nums">
-                        {formatShortDate(offer.created_at)}
+                        {formatDate(format, offer.created_at, "short")}
                       </span>
                       {offer.customer && (
                         <>
@@ -134,7 +131,9 @@ export default async function TekliflerPage({ searchParams }: PageProps) {
                           {/* Liste fiyatıyla kıyas: teklifin ne kadar altında
                               olduğu tek bakışta görünsün. */}
                           <span>
-                            liste {formatCurrency(offer.listing.price)}
+                            {t("listPrice", {
+                              amount: formatCurrency(offer.listing.price),
+                            })}
                           </span>
                         </>
                       )}
@@ -149,7 +148,9 @@ export default async function TekliflerPage({ searchParams }: PageProps) {
                       offerId={offer.id}
                       status={offer.status}
                       amount={offer.amount}
-                      listingTitle={offer.listing?.title ?? "İlan"}
+                      listingTitle={
+                        offer.listing?.title ?? t("fallbackListing")
+                      }
                     />
                   </div>
                 </CardContent>

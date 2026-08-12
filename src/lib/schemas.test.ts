@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  customerFormSchema,
+  createCustomerFormSchema,
   toCustomerInput,
   type CustomerFormValues,
 } from "@/lib/customers-schema";
 import {
-  listingFormSchema,
+  createListingFormSchema,
   toListingInput,
   type ListingFormValues,
 } from "@/lib/listings-schema";
@@ -33,8 +33,17 @@ const validCustomer: CustomerFormValues = {
   status: "sicak",
   assigned_agent_id: "agt-1",
   notes: "Kadıköy tarafında 3+1 arıyor.",
-  avatar_url: "",
 };
+
+/**
+ * Müşteri şeması da Faz 21'de fabrikaya döndü; `listingFormSchema` ile aynı
+ * gerekçeyle kimlik `t` kullanılıyor (aşağıdaki başlığa bakın): mesaj yerine
+ * ANAHTAR dönüyor, testler dile bağımsız kalıyor.
+ */
+const customerFormSchema = createCustomerFormSchema((key) => key, {
+  budgetMin: "budgetMinName",
+  budgetMax: "budgetMaxName",
+});
 
 describe("customerFormSchema", () => {
   it("geçerli kaydı kabul eder", () => {
@@ -65,8 +74,9 @@ describe("customerFormSchema", () => {
     });
     expect(result.success).toBe(false);
     if (!result.success) {
-      const message = result.error.issues[0].message;
-      expect(message).toContain("zorunludur");
+      /* Kimlik `t` yüzünden mesaj yerine ANAHTAR geliyor; asıl korunan şey
+         "boş alan `required` üretir, `positive` değil" kuralı. */
+      expect(result.error.issues[0].message).toBe("required");
     }
   });
 
@@ -91,20 +101,17 @@ describe("customerFormSchema", () => {
     }
   });
 
-  it("avatar boş bırakılabilir ama doluysa URL olmalı", () => {
-    expect(
-      customerFormSchema.safeParse({ ...validCustomer, avatar_url: "" }).success,
-    ).toBe(true);
-    expect(
-      customerFormSchema.safeParse({
-        ...validCustomer,
-        avatar_url: "https://cdn.example.com/a.webp",
-      }).success,
-    ).toBe(true);
-    expect(
-      customerFormSchema.safeParse({ ...validCustomer, avatar_url: "foto.jpg" })
-        .success,
-    ).toBe(false);
+  it("şemada portre alanı YOK", () => {
+    /* Faz 19: müşteri fotoğrafı kaldırıldı. Zod nesnesi bilinmeyen anahtarları
+       sessizce düşürdüğü için gövdeye eklenen bir `avatar_url` doğrulamayı
+       geçer ama çıktıya girmez — asıl güvence `toCustomerInput`ta ve orada
+       ayrıca test ediliyor. */
+    const parsed = customerFormSchema.safeParse({
+      ...validCustomer,
+      avatar_url: "https://cdn.example.com/a.webp",
+    });
+    expect(parsed.success).toBe(true);
+    expect(parsed.success && "avatar_url" in parsed.data).toBe(false);
   });
 });
 
@@ -116,17 +123,12 @@ describe("toCustomerInput", () => {
     expect(typeof input.budget_min).toBe("number");
   });
 
-  it("boş avatarı null yapar", () => {
-    /* Kolon nullable ve arayüz "fotoğraf yok" durumunu null üzerinden ayırt
-       ediyor; boş metin gitseydi baş harf yedeği hiç çalışmazdı. */
+  it("portreyi her zaman null yazar", () => {
+    /* Faz 19: müşteri fotoğrafı kaldırıldı. Formda alan yok, dönüştürücü de
+       kolonu boş bırakıyor — arayüz her yerde baş harf gösteriyor
+       (`components/customers/customer-avatar.tsx`). Bu test, ileride formda
+       yanlışlıkla bir yükleme alanı geri gelirse uyarsın diye duruyor. */
     expect(toCustomerInput(validCustomer).avatar_url).toBeNull();
-  });
-
-  it("dolu avatarı olduğu gibi taşır", () => {
-    const url = "https://cdn.example.com/a.webp";
-    expect(
-      toCustomerInput({ ...validCustomer, avatar_url: url }).avatar_url,
-    ).toBe(url);
   });
 
   it("yeni kayıtta son görüşme tarihi null", () => {
@@ -149,6 +151,21 @@ const validListing: ListingFormValues = {
   room_count: "3",
   images: ["https://cdn.example.com/1.webp"],
 };
+
+/**
+ * ŞEMA ARTIK BİR FABRİKA (Faz 20): doğrulama mesajları çeviriden geliyor.
+ * Test için gerçek sözlük yerine SAHTE bir çevirmen veriliyor — anahtarın
+ * kendisini döndürüyor. Testlerin ilgilendiği şey mesajın metni değil, hangi
+ * ALANIN reddedildiği; anahtar döndürmek bunu okunur da kılıyor
+ * (`issues[0].message === "titleMin"`).
+ *
+ * Yan kazanç: testler dile bağımsız kalıyor. Bir çeviri metni düzeltildiğinde
+ * burada hiçbir şey kırılmıyor.
+ */
+const listingFormSchema = createListingFormSchema((key) => key, {
+  price: "Fiyat",
+  area: "Alan",
+});
 
 describe("listingFormSchema", () => {
   it("geçerli ilanı kabul eder", () => {

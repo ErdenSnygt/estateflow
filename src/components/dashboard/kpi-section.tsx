@@ -1,3 +1,5 @@
+import { getTranslations } from "next-intl/server";
+
 import { getListingStats } from "@/lib/data/listings";
 import { getSalesStats } from "@/lib/data/sales";
 import { getCustomerStats } from "@/lib/data/customers";
@@ -13,51 +15,52 @@ import { KpiCard, type KpiCardProps } from "@/components/dashboard/kpi-card";
  * Satışlar modülü açılınca kendi veri katmanına taşındılar.
  */
 export async function KpiSection() {
-  const [stats, salesStats, customerStats] = await Promise.all([
+  const [stats, salesStats, customerStats, t] = await Promise.all([
     getListingStats(),
     getSalesStats(),
     getCustomerStats(),
+    getTranslations("dashboard.kpi"),
   ]);
 
   const cards: KpiCardProps[] = [
     {
       icon: "listings",
-      label: "Toplam İlan",
+      label: t("totalListings"),
       value: stats.totalListings.value,
       format: "number",
       delta: stats.totalListings.delta,
       trend: stats.totalListings.trend,
-      hint: `${stats.activeListings} ilan yayında`,
+      hint: t("hintPublished", { count: stats.activeListings }),
       accent: 0,
     },
     {
       icon: "customers",
-      label: "Toplam Müşteri",
+      label: t("totalCustomers"),
       value: customerStats.value,
       format: "number",
       delta: customerStats.delta,
       trend: customerStats.trend,
-      hint: "kayıtlı müşteri",
+      hint: t("hintCustomers"),
       accent: 1,
     },
     {
       icon: "revenue",
-      label: "Bu Ay Satış",
+      label: t("monthlySales"),
       value: salesStats.monthlyRevenue.value,
       format: "currency",
       delta: salesStats.monthlyRevenue.delta,
       trend: salesStats.monthlyRevenue.trend,
-      hint: `${formatNumber(salesStats.monthlySales)} işlem kapandı`,
+      hint: t("hintDeals", { count: formatNumber(salesStats.monthlySales) }),
       accent: 2,
     },
     {
       icon: "offers",
-      label: "Bekleyen Teklif",
+      label: t("pendingOffers"),
       value: salesStats.pendingOffers.value,
       format: "number",
       delta: salesStats.pendingOffers.delta,
       trend: salesStats.pendingOffers.trend,
-      hint: "yanıt bekliyor",
+      hint: t("hintOffers"),
       accent: 3,
     },
   ];

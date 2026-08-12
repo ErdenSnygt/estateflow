@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 import { getAgentById } from "@/lib/data/agents";
 import { getManagerAgent } from "@/lib/auth/server";
@@ -13,9 +14,14 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const agent = await getAgentById(id);
+  const [agent, t] = await Promise.all([
+    getAgentById(id),
+    getTranslations("agents"),
+  ]);
   return {
-    title: agent ? `${agent.full_name} · Düzenle` : "Personel bulunamadı",
+    title: agent
+      ? t("form.metaTitle", { name: agent.full_name })
+      : t("detail.notFound"),
   };
 }
 
@@ -31,9 +37,10 @@ export async function generateMetadata({
 export default async function EditAgentPage({ params }: PageProps) {
   const { id } = await params;
 
-  const [manager, agent] = await Promise.all([
+  const [manager, agent, t] = await Promise.all([
     getManagerAgent(),
     getAgentById(id),
+    getTranslations("agents.form"),
   ]);
 
   if (!manager) return <StaffGuard />;
@@ -43,8 +50,8 @@ export default async function EditAgentPage({ params }: PageProps) {
     <div className="space-y-6 pb-4">
       <PageHeader
         backHref={`/personeller/${agent.id}`}
-        backLabel="Personele dön"
-        title="Personeli düzenle"
+        backLabel={t("back")}
+        title={t("title")}
         description={`${agent.id.toUpperCase()} · ${agent.email}`}
       />
 

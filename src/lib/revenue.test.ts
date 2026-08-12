@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  COMMISSION_STATUS_LABELS,
+  COMMISSION_STATUSES,
   DEFAULT_PERIOD,
   PERIOD_OPTIONS,
   availableCommissionTransitions,
@@ -9,7 +9,7 @@ import {
   commissionFor,
   emptyTotals,
   periodDays,
-  periodLabel,
+  periodValue,
   sumCommissions,
 } from "@/lib/revenue";
 
@@ -90,7 +90,10 @@ describe("canTransitionCommission", () => {
   it("aynı duruma geçiş reddedilir", () => {
     const result = canTransitionCommission("collected", "collected");
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.reason).toContain("zaten");
+    if (!result.ok) {
+      expect(result.error).toBe("commissionAlreadyInStatus");
+      expect(result.params).toEqual({ status: "collected" });
+    }
   });
 
   it("tanımsız geçiş reddedilir", () => {
@@ -101,9 +104,7 @@ describe("canTransitionCommission", () => {
     /* Arayüz `availableCommissionTransitions` ile menü çiziyor; sunucu
        `canTransitionCommission` ile doğruluyor. İkisi aynı tablodan
        beslenmezse kullanıcı hata veren bir düğme görür. */
-    for (const from of Object.keys(
-      COMMISSION_STATUS_LABELS,
-    ) as (keyof typeof COMMISSION_STATUS_LABELS)[]) {
+    for (const from of COMMISSION_STATUSES) {
       for (const to of availableCommissionTransitions(from)) {
         expect(canTransitionCommission(from, to).ok).toBe(true);
       }
@@ -127,9 +128,13 @@ describe("dönem seçimi", () => {
     expect(periodDays("")).toBe(fallback);
   });
 
-  it("etiket de aynı yedeği kullanır", () => {
-    expect(periodLabel("90")).toBe("Son 3 ay");
-    expect(periodLabel("uydurma")).toBe(periodLabel(DEFAULT_PERIOD));
+  it("geçerli değeri kendine, geçersizi varsayılana çeviriyor", () => {
+    /* `periodLabel` KALKTI — metin döndüren bir fonksiyon dili bilemez.
+       Yerine gelen `periodValue` çeviri ANAHTARI üretmek için kullanılıyor
+       ve aynı yedeğe düşme kuralını koruyor. */
+    expect(periodValue("90")).toBe("90");
+    expect(periodValue("uydurma")).toBe(DEFAULT_PERIOD);
+    expect(periodValue(undefined)).toBe(DEFAULT_PERIOD);
   });
 
   it("seçenek değerleri benzersiz", () => {

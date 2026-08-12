@@ -159,6 +159,128 @@ export async function getDocumentSummary(): Promise<DocumentSummary> {
   return { total: documents.length, byType, totalBytes };
 }
 
+/* ==========================================================================
+   Müşteri arama (Faz 18)
+   ========================================================================== */
+
+export type CustomerDocumentSummary = {
+  id: string;
+  full_name: string;
+  phone: string;
+  avatar_url: string | null;
+  documentCount: number;
+  lastDocumentAt: string | null;
+};
+
+/**
+ * Evrak sayfasının yeni giriş noktası: müşteri listesi + belge sayıları.
+ *
+ * -----------------------------------------------------------------------------
+ * NEDEN BU SORGU VAR
+ * -----------------------------------------------------------------------------
+ * Faz 12'de `/evraklar` bir ARŞİV LİSTESİYDİ: bütün belgeler tarih sırasına
+ * dizili, üstte filtreler. Sahada sorulan soru bu değil — "hangi belgeler var"
+ * diye kimse merak etmiyor, "Ahmet Bey'in tapusu nerede" diye arıyor. Faz
+ * 18'de varsayılan görünüm bu yüzden müşteri aramasına döndü.
+ *
+ * -----------------------------------------------------------------------------
+ * SAYIM NEDEN JAVASCRIPT'TE
+ * -----------------------------------------------------------------------------
+ * PostgREST gömülü ilişkiyi sayabiliyor (`documents(count)`) ama o sayıya göre
+ * SIRALAYAMIYOR — projede daha önce üç kez karşılaşılan sınır (`getOffersList`,
+ * konuşma özetleri, `data/stats.ts`). Belgesi olan müşterileri üste almak
+ * istediğimiz için sayım burada yapılıyor.
+ *
+ * İki dar sorgu taşınıyor: müşteri kimlik/ad/telefon ve belge → müşteri bağı.
+ * Belge satırının kendisi hiç gelmiyor.
+ */
+export async function getCustomersWithDocuments(
+  search?: string,
+): Promise<CustomerDocumentSummary[]> {
+  const supabase = await createClient();
+
+  let customerQuery = supabase
+    .from("customers")
+    .select("id, full_name, phone, avatar_url");
+
+  /* Ad araması SUNUCUDA: kendi kolonunda, gömülü değil. Telefon da aranıyor
+     çünkü danışman müşteriyi bazen numarasından hatırlıyor. */
+  if (search) {
+    customerQuery = customerQuery.or(
+      `full_name.ilike.%${search}%,phone.ilike.%${search}%`,
+    );
+  }
+
+  const [customerRows, documentRows] = await Promise.all([
+    customerQuery.order("full_name"),
+    supabase
+      .from("documents")
+      .select("related_customer_id, created_at")
+      .not("related_customer_id", "is", null),
+  ]);
+
+  const customers = rows<{
+    id: string;
+    full_name: string;
+    phone: string;
+    avatar_url: string | null;
+  }>(customerRows, "Evrak müşteri listesi");
+
+  const documents = rows<{
+    related_customer_id: string | null;
+    created_at: string;
+  }>(documentRows, "Evrak müşteri sayımı");
+
+  const counts = new Map<string, { count: number; last: string }>();
+  for (const document of documents) {
+    if (!document.related_customer_id) continue;
+    const current = counts.get(document.related_customer_id);
+    counts.set(document.related_customer_id, {
+      count: (current?.count ?? 0) + 1,
+      /* En yeni tarih: liste "son hareket" gösteriyor, sorgu sıralı gelmediği
+         için karşılaştırılarak tutuluyor. */
+      last:
+        current && current.last > document.created_at
+          ? current.last
+          : document.created_at,
+    });
+  }
+
+  return customers
+    .map((customer) => {
+      const entry = counts.get(customer.id);
+      return {
+        ...customer,
+        documentCount: entry?.count ?? 0,
+        lastDocumentAt: entry?.last ?? null,
+      };
+    })
+    /* BELGESİ OLANLAR ÜSTTE, sonra alfabetik. Belgesi olmayan müşteri listeden
+       DÜŞMÜYOR: kullanıcı çoğu zaman oraya ilk belgeyi yüklemeye geliyor. */
+    .sort((a, b) => {
+      if (a.documentCount !== b.documentCount) {
+        return b.documentCount - a.documentCount;
+      }
+      return a.full_name.localeCompare(b.full_name, "tr-TR");
+    });
+}
+
+/** Seçili müşterinin başlık bilgisi — evrak sayfasının üst şeridi için. */
+export async function getCustomerHeader(
+  customerId: string,
+): Promise<{ id: string; full_name: string; phone: string; avatar_url: string | null } | null> {
+  const supabase = await createClient();
+
+  return maybeRow(
+    await supabase
+      .from("customers")
+      .select("id, full_name, phone, avatar_url")
+      .eq("id", customerId)
+      .maybeSingle(),
+    "Evrak müşteri başlığı",
+  );
+}
+
 /** Filtre açılırları — dar sorgular, `data/appointments.ts` ile aynı gerekçe. */
 export async function getDocumentFilterOptions(): Promise<{
   customers: { id: string; label: string }[];

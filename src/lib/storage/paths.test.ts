@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  formatBytes,
-  MAX_UPLOAD_BYTES,
   parseStorageUrl,
   publicUrlFor,
   PUBLIC_BUCKETS,
@@ -14,7 +12,7 @@ import {
  * FAZLA DAR eşleşirse: silme akışı bizim dosyalarımızı tanımaz, ilan silinir
  * ama görselleri bucket'ta kalır — sessiz şişme.
  *
- * FAZLA GENİŞ eşleşirse: seed'den gelen dış adresleri (picsum, pravatar) bizim
+ * FAZLA GENİŞ eşleşirse: seed'den gelen dış adresleri (Unsplash) bizim
  * sanıp silmeye çalışır. Bugün zararsız (o dosyalar bizim değil) ama yarın
  * başka bir bucket eklendiğinde yanlış dosya silinebilir.
  *
@@ -71,11 +69,15 @@ describe("parseStorageUrl — bizim dosyalarımız", () => {
 
 describe("parseStorageUrl — bize ait olmayan adresler", () => {
   it("seed görsellerini tanımaz", () => {
+    expect(
+      parseStorageUrl(
+        "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=1200",
+      ),
+    ).toBeNull();
+    /* Faz 19 öncesi kaynaklar da tanınmamalı: eski bir kayıt hâlâ bu
+       adreslerden birini taşıyor olabilir. */
     expect(parseStorageUrl("https://picsum.photos/seed/1/800/600")).toBeNull();
     expect(parseStorageUrl("https://i.pravatar.cc/300?img=4")).toBeNull();
-    expect(
-      parseStorageUrl("https://fastly.picsum.photos/id/1/800/600.jpg"),
-    ).toBeNull();
   });
 
   it("başka bir Supabase projesini tanımaz", () => {
@@ -116,19 +118,6 @@ describe("parseStorageUrl — bize ait olmayan adresler", () => {
   });
 });
 
-describe("formatBytes", () => {
-  it("bir MB üstünü MB, altını KB gösterir", () => {
-    expect(formatBytes(8 * 1024 * 1024)).toBe("8,0 MB");
-    expect(formatBytes(1.5 * 1024 * 1024)).toBe("1,5 MB");
-    expect(formatBytes(400 * 1024)).toBe("400 KB");
-  });
-
-  it("Türkçe ondalık ayracı kullanır", () => {
-    expect(formatBytes(2.4 * 1024 * 1024)).toContain(",");
-    expect(formatBytes(2.4 * 1024 * 1024)).not.toContain(".");
-  });
-
-  it("yükleme sınırı okunabilir bir değer üretir", () => {
-    expect(formatBytes(MAX_UPLOAD_BYTES)).toBe("8,0 MB");
-  });
-});
+/* `formatBytes` FAZ 25'TE BU MODÜLDEN ÇIKTI → `i18n/numbers.ts`.
+   Ondalık ayracını elle koyuyordu; testleri de `i18n/numbers.test.ts` içine,
+   iki dilde sınanacak şekilde taşındı. */

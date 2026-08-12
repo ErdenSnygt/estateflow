@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { ArrowRight, Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
 
@@ -11,6 +12,7 @@ import { site } from "@/config/site";
 import {
   signInWithPassword,
   signInWithProvider,
+  type AuthError,
   type OAuthProvider,
 } from "@/lib/auth/client";
 import { LogoMark } from "@/components/brand/logo";
@@ -33,6 +35,14 @@ const stagger = {
 
 export function LoginForm() {
   const router = useRouter();
+  const t = useTranslations("auth");
+  const tError = useTranslations("auth.errors");
+
+  /* Anahtarın argümanları anahtara göre değişiyor; birlik hâlinde çağırınca
+     next-intl hepsini birden istiyor. Eşleşmeyi `lib/auth/client.ts` garanti
+     ediyor (`messages.test.ts` de denetliyor). */
+  const authMessage = (error: AuthError) =>
+    error.raw ?? tError(error.key, error.values as never);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [pendingProvider, setPendingProvider] =
     React.useState<OAuthProvider | null>(null);
@@ -66,7 +76,7 @@ export function LoginForm() {
     );
 
     if (!result.ok) {
-      setError(result.error);
+      setError(authMessage(result.error));
       setIsSubmitting(false);
       return;
     }
@@ -85,7 +95,7 @@ export function LoginForm() {
 
     /* Başarılıysa tarayıcı sağlayıcıya gider ve buraya dönülmez. */
     if (!result.ok) {
-      setError(result.error);
+      setError(authMessage(result.error));
       setPendingProvider(null);
     }
   }
@@ -109,7 +119,7 @@ export function LoginForm() {
           {site.name}
         </h1>
         <p className="mt-1.5 text-[13px] text-muted-foreground">
-          Hesabınıza giriş yaparak devam edin
+          {t("subtitle")}
         </p>
       </motion.div>
 
@@ -135,7 +145,7 @@ export function LoginForm() {
           )}
 
           <motion.div variants={fadeUp} className="space-y-2">
-            <Label htmlFor="email">E-posta</Label>
+            <Label htmlFor="email">{t("email")}</Label>
             <div className="relative">
               <Mail className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -143,7 +153,7 @@ export function LoginForm() {
                 name="email"
                 type="email"
                 autoComplete="email"
-                placeholder="ornek@emlakofisi.com"
+                placeholder={t("emailPlaceholder")}
                 className="pl-10"
                 required
               />
@@ -152,12 +162,12 @@ export function LoginForm() {
 
           <motion.div variants={fadeUp} className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="password">Şifre</Label>
+              <Label htmlFor="password">{t("password")}</Label>
               <Link
                 href="#"
                 className="text-[12px] font-medium text-muted-foreground transition-colors hover:text-brand"
               >
-                Şifremi unuttum
+                {t("forgotPassword")}
               </Link>
             </div>
             <div className="relative">
@@ -174,7 +184,7 @@ export function LoginForm() {
               <button
                 type="button"
                 onClick={() => setShowPassword((value) => !value)}
-                aria-label={showPassword ? "Şifreyi gizle" : "Şifreyi göster"}
+                aria-label={t(showPassword ? "hidePassword" : "showPassword")}
                 className={cn(
                   "absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1.5",
                   "text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground",
@@ -204,7 +214,7 @@ export function LoginForm() {
                 "focus-visible:ring-2 focus-visible:ring-ring",
               )}
             />
-            Beni hatırla
+            {t("rememberMe")}
           </motion.label>
 
           <motion.div variants={fadeUp}>
@@ -217,11 +227,11 @@ export function LoginForm() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="size-4 animate-spin" />
-                  Giriş yapılıyor…
+                  {t("signingIn")}
                 </>
               ) : (
                 <>
-                  Giriş yap
+                  {t("signIn")}
                   <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" />
                 </>
               )}
@@ -232,7 +242,7 @@ export function LoginForm() {
           <motion.div variants={fadeUp} className="flex items-center gap-3">
             <span className="h-px flex-1 bg-hairline-strong" />
             <span className="text-[11.5px] uppercase tracking-[0.08em] text-muted-foreground">
-              veya
+              {t("or")}
             </span>
             <span className="h-px flex-1 bg-hairline-strong" />
           </motion.div>
@@ -243,14 +253,16 @@ export function LoginForm() {
               disabled={busy}
               pending={pendingProvider === "google"}
               icon={<GoogleMark className="size-[17px]" />}
-              label="Google ile devam et"
+              label={t("continueWithGoogle")}
+              redirectingLabel={t("redirecting")}
             />
             <ProviderButton
               onClick={() => handleProvider("apple")}
               disabled={busy}
               pending={pendingProvider === "apple"}
               icon={<AppleMark className="size-[19px]" />}
-              label="Apple ile devam et"
+              label={t("continueWithApple")}
+              redirectingLabel={t("redirecting")}
             />
           </motion.div>
         </form>
@@ -261,12 +273,12 @@ export function LoginForm() {
         transition={{ duration: 0.5 }}
         className="mt-6 text-center text-[12.5px] text-muted-foreground"
       >
-        Hesabınız yok mu?{" "}
+        {t("noAccount")}{" "}
         <Link
           href="#"
           className="font-medium text-secondary-foreground transition-colors hover:text-brand"
         >
-          Demo talep edin
+          {t("requestDemo")}
         </Link>
       </motion.p>
     </motion.div>
@@ -288,12 +300,16 @@ function ProviderButton({
   pending,
   icon,
   label,
+  redirectingLabel,
 }: {
   onClick: () => void;
   disabled: boolean;
   pending: boolean;
   icon: React.ReactNode;
   label: string;
+  /* Cevirmen kanca ile geliyor ve bu bilesen ayni dosyada ama BILESEN
+     DISINDA tanimli; prop olarak gecmek en kisa yol. */
+  redirectingLabel: string;
 }) {
   return (
     <button
@@ -313,7 +329,7 @@ function ProviderButton({
       ) : (
         <span className="absolute left-4 flex items-center">{icon}</span>
       )}
-      {pending ? "Yönlendiriliyor…" : label}
+      {pending ? redirectingLabel : label}
     </button>
   );
 }

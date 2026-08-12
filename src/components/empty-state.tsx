@@ -8,8 +8,14 @@ type EmptyStateProps = {
   description: string;
   /** Alt kısımda gösterilecek opsiyonel aksiyon (buton vb.). */
   action?: React.ReactNode;
-  /** Başlığın üstünde görünen küçük rozet. */
-  badge?: string;
+  /**
+   * Başlığın üstünde görünen küçük rozet.
+   *
+   * ZORUNLU (Faz 19). Önceki sürümde varsayılanı `"Yakında"` diye SABİT
+   * TÜRKÇE bir metindi; çağıranların hepsi zaten kendi rozetini geçtiği için
+   * o varsayılan ölüydü ve çeviri geçişinde gözden kaçacak bir metin olarak
+   * duruyordu. Kaldırıldı — metin çağıranın (modül sayfasının) sorumluluğu. */
+  badge: string;
   className?: string;
 };
 
@@ -18,7 +24,7 @@ export function EmptyState({
   title,
   description,
   action,
-  badge = "Yakında",
+  badge,
   className,
 }: EmptyStateProps) {
   return (

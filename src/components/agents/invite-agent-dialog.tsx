@@ -2,11 +2,12 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Check, Copy, KeyRound, Loader2, TriangleAlert, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 import type { AgentRole } from "@/types/database";
-import { AGENT_ROLE_LABELS, AGENT_ROLE_OPTIONS } from "@/lib/agents";
+import { AGENT_ROLES } from "@/lib/agents";
 import { inviteAgent, type InviteResult } from "@/lib/auth/admin-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,19 +48,28 @@ export function InviteAgentDialog({
   canAssignPatron: boolean;
 }) {
   const router = useRouter();
+  const t = useTranslations("agents");
+  const tCommon = useTranslations("common");
   const [isOpen, setIsOpen] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
   const [result, setResult] = React.useState<InviteResult | null>(null);
   const [copied, setCopied] = React.useState(false);
 
+  /* ÖN DOLGU SÖZLÜKTEN, sunucu yedeği DEĞİL. `agents.title` serbest metin ve
+     kullanıcının kaydettiği şey; İngilizce arayüzde çalışan bir yönetici
+     "Real Estate Agent" yazmak ister. Alan tamamen boşaltılırsa devreye giren
+     sunucu varsayılanı (`admin-actions.ts`) ise tek ve sabit bir Türkçe değer
+     — orası veriye ait, burası arayüze. */
+  const defaultTitle = t("invite.defaultTitle");
+
   const [email, setEmail] = React.useState("");
   const [fullName, setFullName] = React.useState("");
-  const [title, setTitle] = React.useState("Gayrimenkul Danışmanı");
+  const [title, setTitle] = React.useState(defaultTitle);
   const [role, setRole] = React.useState<AgentRole>("danisman");
   const [commission, setCommission] = React.useState("2.0");
 
-  const roleOptions = AGENT_ROLE_OPTIONS.filter(
-    (option) => canAssignPatron || option.value !== "patron",
+  const roleOptions = AGENT_ROLES.filter(
+    (value) => canAssignPatron || value !== "patron",
   );
 
   function reset() {
@@ -69,7 +79,7 @@ export function InviteAgentDialog({
     setCopied(false);
     setEmail("");
     setFullName("");
-    setTitle("Gayrimenkul Danışmanı");
+    setTitle(defaultTitle);
     setRole("danisman");
     setCommission("2.0");
   }
@@ -79,8 +89,8 @@ export function InviteAgentDialog({
 
     const rate = Number(commission) / 100;
     if (!Number.isFinite(rate) || rate < 0 || rate > 1) {
-      toast.error("Geçersiz prim oranı", {
-        description: "0 ile 100 arasında bir yüzde girin.",
+      toast.error(t("form.invalidRate"), {
+        description: t("form.invalidRateHint"),
       });
       return;
     }
@@ -96,7 +106,7 @@ export function InviteAgentDialog({
     setIsSaving(false);
 
     if (!outcome.ok) {
-      toast.error("Personel davet edilemedi", { description: outcome.error });
+      toast.error(t("invite.error"), { description: outcome.error });
       return;
     }
 
@@ -111,8 +121,8 @@ export function InviteAgentDialog({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error("Panoya kopyalanamadı", {
-        description: "Şifreyi elle seçip kopyalayın.",
+      toast.error(t("invite.copyError"), {
+        description: t("invite.copyErrorHint"),
       });
     }
   }
@@ -122,7 +132,7 @@ export function InviteAgentDialog({
       <DialogTrigger asChild>
         <Button>
           <UserPlus className="size-4" />
-          Yeni Personel Davet Et
+          {t("invite.trigger")}
         </Button>
       </DialogTrigger>
 
@@ -131,9 +141,9 @@ export function InviteAgentDialog({
           /* --- Sonuç: tek seferlik şifre --- */
           <>
             <DialogHeader>
-              <DialogTitle>Personel oluşturuldu</DialogTitle>
+              <DialogTitle>{t("invite.resultTitle")}</DialogTitle>
               <DialogDescription>
-                {result.email} adresiyle bir hesap açıldı.
+                {t("invite.resultDescription", { email: result.email })}
               </DialogDescription>
             </DialogHeader>
 
@@ -141,15 +151,18 @@ export function InviteAgentDialog({
               <div className="flex items-start gap-3 rounded-lg border border-warning/30 bg-warning-soft px-3.5 py-3">
                 <TriangleAlert className="mt-0.5 size-4 shrink-0 text-warning" />
                 <p className="text-[12.5px] leading-relaxed text-secondary-foreground">
-                  Bu şifre <strong className="text-foreground">yalnızca bir kez</strong>{" "}
-                  gösteriliyor ve hiçbir yere kaydedilmedi. Bu pencereyi
-                  kapattığınızda geri getirilemez — şimdi kopyalayıp personele
-                  iletin.
+                  {/* Vurgu cümlenin ORTASINDA ve yeri dile göre değişiyor;
+                      bu yüzden iki parçaya bölünmeden `t.rich` ile. */}
+                  {t.rich("invite.warning", {
+                    b: (chunks) => (
+                      <strong className="text-foreground">{chunks}</strong>
+                    ),
+                  })}
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label>Geçici şifre</Label>
+                <Label>{t("invite.passwordLabel")}</Label>
                 <div className="flex items-center gap-2">
                   <code className="min-w-0 flex-1 truncate rounded-lg border border-hairline bg-surface-inset px-3 py-2.5 font-mono text-[14px] tracking-wide text-foreground">
                     {result.temporaryPassword}
@@ -158,7 +171,7 @@ export function InviteAgentDialog({
                     type="button"
                     variant="secondary"
                     onClick={copyPassword}
-                    aria-label="Şifreyi kopyala"
+                    aria-label={t("invite.copyAria")}
                   >
                     {copied ? (
                       <Check className="size-4 text-success" />
@@ -168,69 +181,67 @@ export function InviteAgentDialog({
                   </Button>
                 </div>
                 <p className="text-[12px] text-muted-foreground">
-                  Personel bu şifreyle giriş yaptıktan sonra Ayarlar üzerinden
-                  değiştirmeli.
+                  {t("invite.passwordHint")}
                 </p>
               </div>
             </div>
 
             <DialogFooter>
-              <Button onClick={reset}>Kapat</Button>
+              <Button onClick={reset}>{tCommon("close")}</Button>
             </DialogFooter>
           </>
         ) : (
           /* --- Form --- */
           <form onSubmit={submit}>
             <DialogHeader>
-              <DialogTitle>Yeni personel davet et</DialogTitle>
+              <DialogTitle>{t("invite.formTitle")}</DialogTitle>
               <DialogDescription>
-                Hesap hemen oluşturulur ve size bir geçici şifre verilir.
+                {t("invite.formDescription")}
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="invite-name">Ad soyad</Label>
+                <Label htmlFor="invite-name">{t("form.nameLabel")}</Label>
                 <Input
                   id="invite-name"
                   value={fullName}
                   onChange={(event) => setFullName(event.target.value)}
-                  placeholder="Örn. Ayşe Yılmaz"
+                  placeholder={t("invite.namePlaceholder")}
                   autoComplete="off"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="invite-email">E-posta</Label>
+                <Label htmlFor="invite-email">{t("form.emailLabel")}</Label>
                 <Input
                   id="invite-email"
                   type="email"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
-                  placeholder="ornek@emlakofisi.com"
+                  placeholder={t("invite.emailPlaceholder")}
                   autoComplete="off"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="invite-title">Unvan</Label>
+                <Label htmlFor="invite-title">{t("form.titleLabel")}</Label>
                 <Input
                   id="invite-title"
                   value={title}
                   onChange={(event) => setTitle(event.target.value)}
-                  placeholder="Gayrimenkul Danışmanı"
+                  placeholder={defaultTitle}
                 />
                 <p className="text-[12px] text-muted-foreground">
-                  Kartlarda görünen serbest metin. Yetkiyi aşağıdaki rol
-                  belirler.
+                  {t("invite.titleHint")}
                 </p>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label>Yetki rolü</Label>
+                  <Label>{t("form.roleLabel")}</Label>
                   <Select
                     value={role}
                     onValueChange={(value) => setRole(value as AgentRole)}
@@ -239,27 +250,29 @@ export function InviteAgentDialog({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {roleOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
+                      {roleOptions.map((value) => (
+                        <SelectItem key={value} value={value}>
+                          {t(`role.${value}`)}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   {role === "danisman" && (
                     <p className="text-[12px] text-muted-foreground">
-                      Yalnızca kendi ilan ve müşterilerini görür.
+                      {t("invite.roleHintAgent")}
                     </p>
                   )}
                   {role !== "danisman" && (
                     <p className="text-[12px] text-warning">
-                      {AGENT_ROLE_LABELS[role]} tüm portföyü görür ve düzenler.
+                      {t("invite.roleHintManager", { role: t(`role.${role}`) })}
                     </p>
                   )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="invite-commission">Prim oranı (%)</Label>
+                  <Label htmlFor="invite-commission">
+                    {t("form.commissionLabel")}
+                  </Label>
                   <Input
                     id="invite-commission"
                     type="number"
@@ -275,18 +288,18 @@ export function InviteAgentDialog({
 
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={reset}>
-                Vazgeç
+                {tCommon("cancel")}
               </Button>
               <Button type="submit" disabled={isSaving}>
                 {isSaving ? (
                   <>
                     <Loader2 className="size-4 animate-spin" />
-                    Oluşturuluyor…
+                    {t("invite.submitting")}
                   </>
                 ) : (
                   <>
                     <KeyRound className="size-4" />
-                    Hesabı oluştur
+                    {t("invite.submit")}
                   </>
                 )}
               </Button>

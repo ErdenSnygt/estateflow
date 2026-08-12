@@ -13,11 +13,22 @@ import type { AgentRole } from "@/types/database";
 
 /* --- Yetki rolleri -------------------------------------------------------- */
 
-export const AGENT_ROLE_LABELS: Record<AgentRole, string> = {
-  patron: "Patron",
-  ofis_muduru: "Ofis Müdürü",
-  danisman: "Danışman",
-};
+/**
+ * Rozette ve açılırda bu sırayla; etiketler sözlükte (`agents.role.*`).
+ *
+ * DEĞERLER TÜRKÇE KALIYOR ve kalmalı: `agents.role` bir Postgres enum'u
+ * (`0002_agents_auth_link.sql`) ve RLS politikaları bu değerleri metin olarak
+ * karşılaştırıyor. Görünen ad ile saklanan değer arasındaki ayrım,
+ * `lib/calendar.ts` içindeki takvim görünümleriyle aynı ayrım.
+ *
+ * İngilizce karşılıklar sözlükte ofis hiyerarşisine göre seçildi:
+ * patron → Owner, ofis_muduru → Office Manager, danisman → Agent.
+ */
+export const AGENT_ROLES = [
+  "patron",
+  "ofis_muduru",
+  "danisman",
+] as const satisfies readonly AgentRole[];
 
 /** Badge variant adlarıyla eşleşir; yetki yükseldikçe vurgu artar. */
 export const AGENT_ROLE_TONES: Record<AgentRole, "brand" | "warning" | "neutral"> =
@@ -26,10 +37,6 @@ export const AGENT_ROLE_TONES: Record<AgentRole, "brand" | "warning" | "neutral"
     ofis_muduru: "warning",
     danisman: "neutral",
   };
-
-export const AGENT_ROLE_OPTIONS = (
-  Object.keys(AGENT_ROLE_LABELS) as AgentRole[]
-).map((value) => ({ value, label: AGENT_ROLE_LABELS[value] }));
 
 /* --- Yetki soruları ------------------------------------------------------- */
 

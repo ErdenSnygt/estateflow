@@ -3,6 +3,7 @@ import type {
   AppointmentType,
   CustomerEventType,
 } from "@/types/database";
+import type { ActionErrorKey } from "@/lib/actions/result";
 
 /**
  * ============================================================================
@@ -17,17 +18,42 @@ import type {
    Kategoriler
    ========================================================================== */
 
-export const APPOINTMENT_TYPE_LABELS: Record<AppointmentType, string> = {
+/** Açılırlarda, filtrelerde ve renk anahtarında bu sırayla çiziliyor. */
+export const APPOINTMENT_TYPES = [
+  "ev_gezme",
+  "telefon_gorusmesi",
+  "ofis_gorusmesi",
+  "sozlesme_imzalama",
+  "diger",
+] as const satisfies readonly AppointmentType[];
+
+/**
+ * ============================================================================
+ * TÜRKÇE ETİKETLER — EKRAN İÇİN DEĞİL, KAYIT İÇİN
+ * ============================================================================
+ * Faz 21'de arayüz etiketleri sözlüğe taşındı (`appointments.type.*`) ama bu
+ * iki eşleme KALDI ve dışa aktarılmıyor. Sebebi, ürettikleri metnin ekranda
+ * değil VERİTABANINDA yaşaması:
+ *
+ *  · `appointmentTitle` başlığı boş bırakılan randevuya bir ad veriyor ve o ad
+ *    `appointments.title` kolonuna, aktivite akışına ve bildirime YAZILIYOR.
+ *  · `timelineDescription` müşterinin görüşme geçmişine satır yazıyor.
+ *
+ * Kaydedilmiş metin, yazıldıktan sonra okuyanın diline göre değişemez —
+ * seed'deki ilan başlıkları gibi veri sayılıyor. İngilizce arayüzde açılan bir
+ * randevunun başlığını "Viewing" yazıp Türkçe arayüzde öyle göstermek,
+ * veritabanında iki dilin karışması demekti.
+ *
+ * DURUM etiketleri artık burada YOK: onları yalnızca `canTransition` hata
+ * metni için tutuyorduk, o da Faz 22'de anahtara döndü ve çeviriye taşındı.
+ */
+const STORED_TYPE_LABELS: Record<AppointmentType, string> = {
   ev_gezme: "Ev gezme",
   telefon_gorusmesi: "Telefon görüşmesi",
   ofis_gorusmesi: "Ofis görüşmesi",
   sozlesme_imzalama: "Sözleşme imzalama",
   diger: "Diğer",
 };
-
-export const APPOINTMENT_TYPE_OPTIONS = (
-  Object.keys(APPOINTMENT_TYPE_LABELS) as AppointmentType[]
-).map((value) => ({ value, label: APPOINTMENT_TYPE_LABELS[value] }));
 
 /**
  * Kategori renkleri.
@@ -81,24 +107,31 @@ export const APPOINTMENT_TYPE_PALETTE: Record<
   },
 };
 
-/** Randevu başlığı boş bırakılırsa kategori adı başlık olur. */
+/**
+ * Randevu başlığı boş bırakılırsa kategori adı başlık olur.
+ *
+ * YALNIZCA SUNUCUDAN çağrılıyor (`lib/actions/appointments.ts`) ve çıktısı
+ * kaydediliyor — o yüzden Türkçe. Formdaki yer tutucu aynı metni gösteriyor
+ * ama oraya çeviriden geliyor; ikisi bilerek ayrı.
+ */
 export function appointmentTitle(
   title: string,
   type: AppointmentType,
 ): string {
   const trimmed = title.trim();
-  return trimmed.length > 0 ? trimmed : APPOINTMENT_TYPE_LABELS[type];
+  return trimmed.length > 0 ? trimmed : STORED_TYPE_LABELS[type];
 }
 
 /* ==========================================================================
    Durum
    ========================================================================== */
 
-export const APPOINTMENT_STATUS_LABELS: Record<AppointmentStatus, string> = {
-  planlandi: "Planlandı",
-  tamamlandi: "Tamamlandı",
-  iptal: "İptal edildi",
-};
+/** Filtre açılırında bu sırayla çiziliyor. */
+export const APPOINTMENT_STATUSES = [
+  "planlandi",
+  "tamamlandi",
+  "iptal",
+] as const satisfies readonly AppointmentStatus[];
 
 export const APPOINTMENT_STATUS_TONES: Record<
   AppointmentStatus,
@@ -110,10 +143,6 @@ export const APPOINTMENT_STATUS_TONES: Record<
      iptali sıradan bir iş akışı olayı. */
   iptal: "neutral",
 };
-
-export const APPOINTMENT_STATUS_OPTIONS = (
-  Object.keys(APPOINTMENT_STATUS_LABELS) as AppointmentStatus[]
-).map((value) => ({ value, label: APPOINTMENT_STATUS_LABELS[value] }));
 
 /**
  * Durum geçişleri.
@@ -130,7 +159,21 @@ const TRANSITIONS: Record<AppointmentStatus, readonly AppointmentStatus[]> = {
   iptal: ["planlandi"],
 };
 
-export type TransitionCheck = { ok: true } | { ok: false; reason: string };
+/**
+ * Geçiş reddi ARTIK METİN DEĞİL ANAHTAR taşıyor.
+ *
+ * Bu fonksiyon saf ve senkron; çeviriyi kendisi yapamaz (dil isteğe bağlı,
+ * `getTranslations` asenkron). `params` içindeki değerler DURUM DEĞERLERİ —
+ * çağıran action onları kendi sözlüğünden etikete çevirip `fail`e veriyor.
+ * Gerekçenin tamamı `lib/actions/result.ts` başlığında.
+ */
+export type TransitionCheck =
+  | { ok: true }
+  | {
+      ok: false;
+      error: ActionErrorKey;
+      params: Record<string, AppointmentStatus>;
+    };
 
 export function canTransition(
   from: AppointmentStatus,
@@ -139,13 +182,15 @@ export function canTransition(
   if (from === to) {
     return {
       ok: false,
-      reason: `Randevu zaten "${APPOINTMENT_STATUS_LABELS[to].toLocaleLowerCase("tr-TR")}" durumunda.`,
+      error: "appointmentAlreadyInStatus",
+      params: { status: to },
     };
   }
   if (!TRANSITIONS[from].includes(to)) {
     return {
       ok: false,
-      reason: `"${APPOINTMENT_STATUS_LABELS[from]}" durumundaki bir randevu "${APPOINTMENT_STATUS_LABELS[to].toLocaleLowerCase("tr-TR")}" yapılamaz.`,
+      error: "appointmentTransitionNotAllowed",
+      params: { from, to },
     };
   }
   return { ok: true };

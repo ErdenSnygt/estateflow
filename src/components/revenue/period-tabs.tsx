@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 import { PERIOD_OPTIONS, DEFAULT_PERIOD } from "@/lib/revenue";
 import { cn } from "@/lib/utils";
@@ -16,6 +17,7 @@ import { cn } from "@/lib/utils";
 export function PeriodTabs({ current }: { current: string }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const t = useTranslations("revenue.period");
 
   function hrefFor(value: string) {
     const next = new URLSearchParams(searchParams.toString());
@@ -31,7 +33,7 @@ export function PeriodTabs({ current }: { current: string }) {
   return (
     <div
       role="tablist"
-      aria-label="Dönem"
+      aria-label={t("aria")}
       className="flex items-center gap-1 rounded-lg border border-hairline bg-surface-inset p-1"
     >
       {PERIOD_OPTIONS.map((option) => {
@@ -51,7 +53,7 @@ export function PeriodTabs({ current }: { current: string }) {
                 : "text-muted-foreground hover:text-foreground",
             )}
           >
-            {option.label}
+            {t(option.value)}
           </Link>
         );
       })}

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
 import { getNotifications } from "@/lib/data/notifications";
 import { getCurrentAgent } from "@/lib/auth/server";
@@ -6,9 +7,10 @@ import { PageHeader } from "@/components/page-header";
 import { AgentNotice } from "@/components/layout/agent-notice";
 import { NotificationList } from "@/components/notifications/notification-list";
 
-export const metadata: Metadata = {
-  title: "Bildirimler",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("notifications.page");
+  return { title: t("title") };
+}
 
 /**
  * Kişisel gelen kutusu.
@@ -19,16 +21,17 @@ export const metadata: Metadata = {
  * kutusunda ekibin bildirimleri belirmiyor.
  */
 export default async function BildirimlerPage() {
-  const [agent, notifications] = await Promise.all([
+  const [agent, notifications, t] = await Promise.all([
     getCurrentAgent(),
     getNotifications(),
+    getTranslations("notifications.page"),
   ]);
 
   return (
     <div className="space-y-6 pb-4">
       <PageHeader
-        title="Bildirimler"
-        description="Size atanan müşteriler, portföyünüzdeki hareketler ve gelen mesajlar."
+        title={t("title")}
+        description={t("description")}
       />
 
       {/* Personel kaydına bağlanmamış kullanıcıya boş liste göstermek

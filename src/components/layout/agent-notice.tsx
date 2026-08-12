@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { ShieldAlert } from "lucide-react";
 
 import { useSessionUser } from "@/components/layout/session-provider";
@@ -18,6 +19,7 @@ import { useSessionUser } from "@/components/layout/session-provider";
  */
 export function AgentNotice() {
   const user = useSessionUser();
+  const t = useTranslations("notices");
 
   if (user.agentId) return null;
 
@@ -26,12 +28,10 @@ export function AgentNotice() {
       <ShieldAlert className="mt-0.5 size-4 shrink-0 text-warning" />
       <div className="min-w-0 space-y-1">
         <p className="text-[13.5px] font-medium text-foreground">
-          Hesabınız henüz bir personel kaydına bağlı değil
+          {t("noAgentTitle")}
         </p>
         <p className="text-[12.5px] leading-relaxed text-muted-foreground">
-          Bu yüzden ilan, müşteri ve rapor listeleri boş görünüyor — veriler
-          silinmedi, yetkiniz bulunmuyor. Ofis yöneticinizin sizi Personeller
-          modülünden ekibe eklemesi gerekiyor.
+          {t("noAgentBody")}
         </p>
       </div>
     </div>

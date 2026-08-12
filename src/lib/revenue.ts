@@ -1,4 +1,5 @@
 import type { CommissionStatus } from "@/types/database";
+import type { ActionErrorKey } from "@/lib/actions/result";
 
 /**
  * ============================================================================
@@ -24,11 +25,12 @@ import type { CommissionStatus } from "@/types/database";
    Tahsilat durumu
    ========================================================================== */
 
-export const COMMISSION_STATUS_LABELS: Record<CommissionStatus, string> = {
-  pending: "Bekliyor",
-  collected: "Tahsil edildi",
-  overdue: "Gecikti",
-};
+/** Menüde bu sırayla; etiketler `revenue.commissionStatus.*`. */
+export const COMMISSION_STATUSES = [
+  "pending",
+  "collected",
+  "overdue",
+] as const satisfies readonly CommissionStatus[];
 
 export const COMMISSION_STATUS_TONES: Record<
   CommissionStatus,
@@ -40,10 +42,6 @@ export const COMMISSION_STATUS_TONES: Record<
      akışı olayı değil, takip edilmesi gereken bir aksaklık. */
   overdue: "danger",
 };
-
-export const COMMISSION_STATUS_OPTIONS = (
-  Object.keys(COMMISSION_STATUS_LABELS) as CommissionStatus[]
-).map((value) => ({ value, label: COMMISSION_STATUS_LABELS[value] }));
 
 /**
  * Durum geçişleri.
@@ -62,20 +60,32 @@ const TRANSITIONS: Record<CommissionStatus, readonly CommissionStatus[]> = {
   collected: ["pending"],
 };
 
+/**
+ * Geçiş reddi ARTIK METİN DEĞİL ANAHTAR taşıyor.
+ *
+ * Bu fonksiyon saf ve senkron; çeviriyi kendisi yapamaz (dil isteğe bağlı,
+ * `getTranslations` asenkron). `params` içindeki değerler DURUM DEĞERLERİ —
+ * çağıran action onları kendi sözlüğünden etikete çevirip `fail`e veriyor.
+ * Gerekçenin tamamı `lib/actions/result.ts` başlığında.
+ */
 export function canTransitionCommission(
   from: CommissionStatus,
   to: CommissionStatus,
-): { ok: true } | { ok: false; reason: string } {
+):
+  | { ok: true }
+  | { ok: false; error: ActionErrorKey; params: Record<string, CommissionStatus> } {
   if (from === to) {
     return {
       ok: false,
-      reason: `Komisyon zaten "${COMMISSION_STATUS_LABELS[to].toLocaleLowerCase("tr-TR")}" durumunda.`,
+      error: "commissionAlreadyInStatus",
+      params: { status: to },
     };
   }
   if (!TRANSITIONS[from].includes(to)) {
     return {
       ok: false,
-      reason: `"${COMMISSION_STATUS_LABELS[from]}" durumundan bu geçiş yapılamaz.`,
+      error: "commissionTransitionNotAllowed",
+      params: { status: from },
     };
   }
   return { ok: true };
@@ -161,11 +171,16 @@ export function sumCommissions(
  * Gün sayısı olarak duruyor, "ay" olarak değil: ay uzunlukları değişken ve
  * karşılaştırmalı bir grafikte 28 ile 31 günlük kovalar yanıltıcı olur.
  */
+/* ETİKETLER SÖZLÜKTE (`revenue.period.*`) — anahtar olarak gün sayısının
+   kendisi kullanılıyor ("30", "90", …). Sayısal bir JSON anahtarı ilk
+   bakışta tuhaf ama alternatifi ikinci bir eşleme tablosuydu; değer zaten
+   URL'de görünen şey (`?d=90`) ve iki yerde aynı kalması okunurluk
+   kazandırıyor. */
 export const PERIOD_OPTIONS = [
-  { value: "30", label: "Son 30 gün", days: 30 },
-  { value: "90", label: "Son 3 ay", days: 90 },
-  { value: "180", label: "Son 6 ay", days: 180 },
-  { value: "365", label: "Son 1 yıl", days: 365 },
+  { value: "30", days: 30 },
+  { value: "90", days: 90 },
+  { value: "180", days: 180 },
+  { value: "365", days: 365 },
 ] as const;
 
 export type PeriodValue = (typeof PERIOD_OPTIONS)[number]["value"];
@@ -178,9 +193,14 @@ export function periodDays(value: string | undefined): number {
   return (match ?? PERIOD_OPTIONS.find((o) => o.value === DEFAULT_PERIOD)!).days;
 }
 
-export function periodLabel(value: string | undefined): string {
+/**
+ * Geçerli dönem değeri — çeviri anahtarı üretmek için.
+ *
+ * `periodLabel` KALKTI: metin döndüren bir fonksiyon dili bilemez. Yerine
+ * çağıran `t(`period.${periodValue(raw)}`)` diyor; geçersiz değerin
+ * varsayılana düşme kuralı burada korunuyor.
+ */
+export function periodValue(value: string | undefined): PeriodValue {
   const match = PERIOD_OPTIONS.find((option) => option.value === value);
-  return (
-    match ?? PERIOD_OPTIONS.find((o) => o.value === DEFAULT_PERIOD)!
-  ).label;
+  return match ? match.value : DEFAULT_PERIOD;
 }

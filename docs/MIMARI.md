@@ -44,6 +44,12 @@ Kurulum adımları README'de; burada yalnızca *neden* var.
 - **Faz 15** — **Cila ve yayına hazırlık**: tutarlılık denetimi, eksik
   iskelet/hata sınırları, bundle bölme, erişilebilirlik ölçümü, seed'in
   tamamlanması ve belgelerin ayrılması (aşağıda).
+- **Faz 19** — **Görsel gerçekçiliği**: ilan fotoğrafları kategoriye göre elle
+  seçildi (rastgele görsel servisi kaldırıldı), müşteri portreleri tamamen
+  kalktı — arayüz baş harf gösteriyor (aşağıda).
+- **Faz 18** — **Mesajlaşma → iş notları**: müşteri sohbeti kaldırıldı, yerine
+  kayda bağlı ekip içi soru/atama/not modeli geldi; atama notu sorumluyu
+  gerçekten devrediyor. Evraklar müşteri arama odaklı hâle geldi (aşağıda).
 
 Uygulamada artık mock veri yoktur; her şey Supabase'den gelir. Yüklenen
 fotoğraflar Supabase Storage'da durur.
@@ -632,10 +638,12 @@ bozuk bir arayüz üretir. Altyapı hazır duruyor (`@custom-variant light`),
 `forcedTheme` kaldırılmadı — çünkü kaldırmak, çalışmayan bir geçişi açmak
 olurdu.
 
-**Dil.** Arayüz metinleri bileşenlerin içinde düz yazılı. Dil seçimi önce bir
-çeviri katmanı (i18n) ve tüm metinlerin oradan okunması demek; sözlük olmadan
-açılır menü tek seçenek gösterirdi. İkisi de Ayarlar'da görünür ama açıkça
-"Yakında" etiketli.
+**Dil.** Bu paragraf Faz 19'a kadar temayla aynı gerekçeyi paylaşıyordu:
+metinler bileşenlerin içinde düz yazılıydı, sözlük yoktu. Faz 19–25 arasında
+çeviri katmanı kuruldu ve **tamamlandı** — arayüz Türkçe ve İngilizce
+çalışıyor, seçim navbar'daki küre simgesinden yapılıyor. Ayrıntı README'deki
+"Çok dillilik" bölümünde. Ayarlar'daki "Yakında" rozeti bu yüzden bölümden
+kalktı; tema hâlâ beklemede ve bunu artık kendi açıklaması söylüyor.
 
 Aynı dürüstlük kuralı **2FA** ve **API anahtarları** için de geçerli. Supabase
 TOTP'yi destekliyor ama bir aç/kapa anahtarı olarak sunulamıyor: QR okutma,
@@ -737,7 +745,7 @@ altyapıyı paylaşıyorlar: **dosya işlemleri** (Storage) ve **canlı güncell
 
 | Dosya | İş |
 | ----- | -- |
-| [`lib/messaging.ts`](src/lib/messaging.ts) | Üç modülün ortak sözlüğü: şablonlar, belge türleri, bildirim etiketleri ve adres çözümü |
+| [`lib/documents.ts`](src/lib/documents.ts) · [`lib/notifications.ts`](src/lib/notifications.ts) | Sözlükler. Faz 18'e kadar tek bir `lib/messaging.ts` içindeydiler |
 | [`lib/storage/signed.ts`](src/lib/storage/signed.ts) | İmzalı URL üretimi (`server-only`) |
 | [`lib/storage/upload-document.ts`](src/lib/storage/upload-document.ts) | Private bucket'a sıkıştırmasız yükleme |
 | [`lib/actions/notify.ts`](src/lib/actions/notify.ts) | Bildirim yazan ortak yardımcı — server action **değil** |
@@ -852,36 +860,192 @@ başkalarının bildirimlerini ağdan geçirmek olurdu. Abonelikler bileşen
 kaldırılırken kapatılıyor — kapatılmasaydı her gezinmede bir soket birikir ve
 aynı olay birden çok kez işlenirdi.
 
-### Mesaj merkezi: mobilde iki ayrı ekran, JavaScript'siz
+### Mesaj merkezi Faz 18'de kaldırıldı
 
-Faz 9 deseni. 375 px'de iki panel yan yana sığmıyor, ama hangi panelin
-görüneceğini belirleyen şey **zaten URL'de**:
+Bu bölümde iki panelli mesaj merkezinin (mobilde saf CSS ile ayrılan liste/akış
+düzeni, `dvh` yüksekliği, müşteri başına tek konuşma, hazır şablonlar) tasarımı
+anlatılıyordu. **Tamamı kaldırıldı** — gerekçesi bir sonraki başlıkta.
 
-```
-?k yok  →  mobilde liste,    masaüstünde liste + boş durum
-?k var  →  mobilde konuşma,  masaüstünde liste + konuşma
-```
+Kalıcı olan tek fikir, ayrımın URL'de tutulmasıydı: `?k=` bileşen durumu değil
+arama parametresiydi ve bu sayede bağlantı paylaşılabiliyor, geri tuşu
+çalışıyor, veri sunucuda çekilebiliyordu. Aynı fikir yeni panoda da geçerli
+(`?f=` sekme, `?t=` tür, `?q=` arama, `?n=` vurgu).
 
-Ayrım bu yüzden saf CSS (`hidden md:block`). `useMediaQuery` ile yapılsaydı
-sunucu her zaman `false` döndüğü için ilk boyamada yanlış panel çizilir,
-hydration'dan sonra yerine oturur ve kullanıcı bir kare titreme görürdü —
-Faz 9'da sidebar genişliğinde yaşanan sorunun aynısı.
+## Faz 18 — mesajlaşma yerine iş notları
 
-Yükseklik `dvh` ile sabitleniyor: panellerin kendi içinde kayması gerekiyor
-(liste ayrı, akış ayrı) ve mobil tarayıcılarda adres çubuğu gizlenip
-görünürken `vh` sabit kaldığı için yazma alanı alt gezinme çubuğunun altında
-kayboluyordu.
+Faz 12'de kurulan `conversations` + `messages` ikilisi kaldırıldı; yerine tek
+bir `work_notes` tablosu geldi (`0012_work_notes.sql`).
 
-**Konuşma müşteri başına tek.** Alternatif "danışman × müşteri" ikilisiydi; o
-zaman müşteri devredildiğinde yazışma ikiye bölünür ve yeni danışman geçmişi
-göremezdi. Yazışma müşterinin kendisine ait, `agent_id` yalnızca "şu an kim
-yürütüyor" bilgisi — RLS de bu yüzden hem `agent_id` hem `owns_customer()`
-üzerinden erişim veriyor.
+| Dosya | İş |
+| ----- | -- |
+| [`lib/work-notes.ts`](src/lib/work-notes.ts) | Sözlük + saf kurallar: türler, durumlar, sekmeler, @mention jetonu |
+| [`lib/data/work-notes.ts`](src/lib/data/work-notes.ts) | Pano, kayda bağlı listeler, rozet sayacı, form seçenekleri |
+| [`lib/actions/work-notes.ts`](src/lib/actions/work-notes.ts) | Not yazma, **devir**, çözme/yeniden açma, silme |
+| [`components/work-notes/`](src/components/work-notes) | Kart, form, filtre çubuğu, ikon, detay bölümü |
 
-**Şablonlarda değişken yok.** `{{musteri_adi}}` gibi yer tutucular cazip ama
-bir doldurma motoru, eksik değişkende ne olacağı kararı ve önizleme
-gerektirir. Şablon kutuya düz metin olarak ekleniyor (üstüne yazmıyor, sonuna
-ekliyor); danışman göndermeden önce zaten okuyup kişiselleştiriyor.
+### Neden sohbet modeli çalışmıyordu
+
+Sohbetin **bir tarafı hiç var olmadı.** Müşteriler uygulamaya girmiyor; girmeleri
+için hesap, davet akışı ve ayrı bir arayüz gerekirdi — hiçbiri yok, olması da
+planlanmadı. Danışman "gönder"e bastığında mesaj hiçbir yere ulaşmıyordu.
+
+Şemanın kendi yorum satırı bunu zaten söylüyordu: *"Müşteri tarafında gerçek bir
+istemci YOK; `'customer'` yönü, gelen bir mesajın elle kaydedilmesi ve seed
+verisi için."* Yani tasarım, kendi boşluğunu belgeleyip yoluna devam etmişti.
+
+"Gelen mesajı elle kaydetmek" ise bir yazışma kopyalama işi ve sahada kimse
+yapmaz. Ortaya çıkan şey **görünen ama işlemeyen bir özellikti** — demoda
+çalışıyormuş gibi göründüğü için de fark edilmesi zor olanı.
+
+### Yerine gelen model
+
+Bir emlak ofisinde uygulama içinde gerçekten yürüyen iletişim ekip içi olanı ve
+her zaman **bir kayda bağlı**: bir müşteriye ya da bir ilana. `work_notes` bu
+yüzden bir sohbet dizisi değil, kayda iliştirilmiş notlar kümesi.
+
+| Tür | Ne | Durum |
+| --- | -- | ----- |
+| `question` | Cevap bekleyen talep | `open` → `resolved` |
+| `assignment` | Sorumluluk devri | `open` → kabul edildi |
+| `note` | Bilgi notu | **`null`** — takip edilmiyor |
+
+`status` kolonu **nullable** ve bunu bir CHECK kısıtı zorluyor
+(`work_notes_status_matches_type`). "Fiyatta esnek değil" notu çözülecek bir şey
+değil; ona zorla bir durum vermek panodaki "Çözülmüş" sekmesini ya bütün notları
+toplayan ya da hiçbirini toplamayan bir filtreye çevirirdi.
+
+**@mention bir kolon, metin değil.** Metindeki "@Mehmet" yalnızca okuyanın gözü
+için; kaydedilen `mentioned_agent_id`. Ayrıştırmaya güvenmek iki "Mehmet"te
+çöker, isim değişince eski notları kırar ve sidebar rozeti bir metin araması
+yapamaz. Form bu yüzden serbest metin değil bir açılır kullanıyor — seçim metne
+de yansıyor (`withMention`), ikisi birden doğru kalıyor.
+
+**Yanıt ayrı bir tablo değil**, aynı tablo (`parent_note_id`). Ayrı bir
+`work_note_replies`, aynı alanları (yazar, içerik, ek, zaman) ikinci kez
+tanımlamak olurdu. Yanıt her zaman `note` türünde: bir soruyu cevaplamak panoya
+ikinci bir açık madde eklememeli.
+
+### Atama gerçekten devrediyor
+
+`note_type = 'assignment'` yazıldığında server action `assigned_agent_id` /
+`agent_id` alanını değiştiriyor. Alternatif — atamayı metin olarak bırakmak —
+zararsız görünüyor ama değil: kayıt hâlâ eski danışmanı gösterirken duran bir
+"ben üstleniyorum" notu **yalan söyler.** İki doğruluk kaynağı doğar. Bu tam
+olarak kaldırılan `messages` tablosunun hatası.
+
+Sıra bu yüzden **önce devir, sonra kayıt**: devir başarısızsa hiçbir şey
+yazılmıyor. Devralan formdan seçilen kişi, seçilmezse notu yazan — tek form iki
+senaryoyu karşılıyor ("sana veriyorum" / "ben üstleniyorum"). İkincisinde not
+açık kalmıyor, çünkü kabul edecek kimse yok.
+
+**İki RLS engeli aşılmak zorundaydı:**
+
+1. `customers_scoped` / `listings_scoped` `WITH CHECK` tarafında da "sahibi ben
+   olmalıyım" diyordu ve `WITH CHECK` güncelleme *sonrası* satıra bakıyor —
+   yani bir danışman kendi müşterisini başkasına devredemiyordu. Yeni
+   `customers_handoff` / `listings_handoff` politikaları dar: `USING` hâlâ "şu an
+   sahibi benim", yalnızca `WITH CHECK` gevşiyor. Kazanılan tek yeni yetki,
+   sahip olunan kaydı elden çıkarmak.
+2. `notifications_write` yalnızca yöneticiye başkasına yazma izni veriyordu;
+   @mention sadece yöneticiler için çalışırdı. Gevşetildi — asıl kapı zaten
+   uygulamada: `notify()` bir server action değil, istemciden çağrılamıyor.
+
+### Rozet anlam değiştirdi
+
+Sidebar'daki "Mesajlar" rozeti artık "okunmamış mesaj" değil **sana yönelik açık
+iş** sayıyor. Okundu damgası diye bir kolon yok ve olmasına gerek de yok: notu
+okumak işi bitirmiyor, kapatmak bitiriyor. Realtime aboneliği de `messages`
+yerine `work_notes`u dinliyor, filtre `mentioned_agent_id=eq.<ben>`.
+
+### Evraklar müşteri arama odaklı
+
+Aynı fazda `/evraklar` varsayılan görünümü değişti: arşiv listesi yerine **büyük
+bir müşteri arama kutusu** ve belge sayılı müşteri kartları. Gözlem basit —
+sahada kimse "hangi belgeler var" diye sormuyor, "Ahmet Bey'in tapusu nerede"
+diye arıyor.
+
+Üç görünüm var ve ayrımı URL'de: varsayılan (arama), `?customer=<id>` (o
+müşterinin belgeleri + yükleme) ve `?arsiv=1` (eski tam liste). **Arşiv
+kaldırılmadı**: bir kayda bağlanmamış belgeler var (`related_customer_id`
+nullable) ve onlara ulaşan tek yol o liste.
+
+Müşteri ve ilan detayındaki evrak kartı da değişti — eskiden salt okunur bir
+özetti, artık yükleme ve indirme yapılabiliyor. Eski gerekçe bundle'dı (indirme
+imzalı URL istiyor, o da istemci bileşeni demek); aynı fazda detay sayfalarına
+iş notları geldiği ve onlar zaten istemci bileşeni olduğu için o maliyet
+paylaşılan parçalar üzerinden ödendi.
+
+## Faz 19 — görsellerin gerçekçiliği
+
+İki demo verisi kusuru düzeltildi. İkisi de veri katmanını değil yalnızca
+seed'i ve sunum bileşenlerini ilgilendiriyordu ama uygulamanın tamamının
+inandırıcılığını düşürüyorlardı.
+
+### İlan fotoğrafları: rastgele servis → elle seçilmiş havuz
+
+Önceki sürüm `picsum.photos/seed/<ilan-id>/1200/800` kullanıyordu. Adres ilan
+kimliğinden türediği için görsel **kararlıydı** (aynı ilan hep aynı fotoğrafı
+gösteriyordu) — ama picsum'un bir kategori kavramı yok. Sonuç: "1+1 Dubleks"
+ilanının kapağında kahve çekirdeği, "1.620 m² Arsa" ilanında dizüstü
+bilgisayar.
+
+Bir emlak uygulamasında bu tek bakışta fark ediliyor ve geri kalan her şeyi de
+şüpheli hâle getiriyor.
+
+`source.unsplash.com/?apartment` gibi anahtar kelimeli servisler bunu çözerdi
+ama o uç 2024'te kapandı (503). Bu yüzden havuzlar elle kuruldu: adaylar
+Unsplash CDN'inden çekilip **içerikleri gözle doğrulandı**, kategoriye
+uymayanlar elendi.
+
+| Kategori | Havuz | İçerik |
+| -------- | ----- | ------ |
+| `satilik` + `kiralik` | 38 | Ağırlıklı **iç mekân**: salon, mutfak, yatak odası, banyo |
+| `villa` | 21 | Bina ve bahçe — villada karakter binanın kendisi |
+| `ofis` | 13 | Açık ofis, toplantı odası, cam cepheli bina |
+| `arsa` | 6 | Tarla, çitli parsel, kuşbakışı yerleşim |
+
+**Daire havuzu neden iç mekân ağırlıklı:** bir apartman dairesinin dış cephesi
+ayırt edici değil — kırk ilan aynı beton bloğu gösterirdi. Alıcının baktığı şey
+salon ve mutfak. Villa ve ofiste tersi geçerli.
+
+**Arsa havuzu neden en dar:** boş parsel fotoğrafı stok arşivlerde nadir ve
+aramalar hızla manzara fotoğrafına dönüyor. Orman, plaj ve karlı dağ kareleri
+bilerek elendi — onlar da en az kahve çekirdeği kadar alakasız olurdu. Altı
+görsel, altı arsa ilanı için yeterli ve her birinin kapağı farklı.
+
+**Kapak benzersiz:** `imagesFor()` havuza ilan indeksinden giriyor, yani aynı
+kategorideki ardışık ilanlar farklı kapaklarla açılıyor. Liste sayfasında yan
+yana duran iki kartın aynı fotoğrafı göstermesi, veriyi sahte gösteren
+şeylerden biri.
+
+### Müşteri portreleri tamamen kaldırıldı
+
+Seed, kayıtların yaklaşık üçte ikisine `i.pravatar.cc` üzerinden rastgele
+portre yazıyordu; `CustomerAvatar` da fotoğraf varsa onu, yoksa baş harfleri
+çiziyordu.
+
+İki sebeple kaldırıldı:
+
+1. **Gerçekçi değil.** Bir emlak ofisi müşterisinin vesikalığını sisteme
+   girmiyor — elinde adı ve telefonu var. Stok portreler olmayan bir veriyi
+   varmış gibi gösteriyordu.
+2. **Yanlış izlenim.** Rastgele kadın/erkek fotoğrafları listeyi bir sosyal ağ
+   görünümüne çeviriyor, kaydın kendisinden (bütçe, durum, son görüşme) dikkati
+   alıyordu.
+
+Kaldırma **komple**: seed `null` yazıyor, müşteri formundaki yükleme alanı
+gitti, `CustomerAvatar` artık `src` prop'u bile almıyor. Baş harfler isimden
+türetiliyor ve Türkçe büyütme kullanılıyor — `toUpperCase()` "i" harfini "I"
+yapardı, doğrusu "İ".
+
+**`AgentAvatar` DOKUNULMADI.** Personel fotoğrafında veri gerçek: danışman
+kendi profil fotoğrafını Ayarlar'dan yüklüyor ve o fotoğraf müşteriye
+gösterilen bir şey.
+
+`customers.avatar_url` kolonu şemada duruyor ama uygulama artık yazmıyor.
+Düşürülmedi çünkü `updateCustomer` içindeki temizlik dalı hâlâ işe yarıyor:
+özellik kaldırılmadan önce yüklenmiş bir dosya varsa, kayıt düzenlendiğinde
+bucket'tan siliniyor. Kolonu atmak o dosyaları kalıcı olarak yetim bırakırdı.
 
 ## Randevular (takvim)
 
@@ -1662,8 +1826,8 @@ Yeni bölüm eklerken:
   kullanım kaydı; kendi başına bir modül
 - **E-posta değiştirme** — `agents.email` ile `auth.users.email` ayrı yaşıyor;
   değişim Supabase'in doğrulama akışını gerektiriyor
-- **Açık tema ve dil** — token'ların ikinci seti ve i18n katmanı gerekiyor
-  (gerekçe "Ayarlar ve Profil" bölümünde)
+- **Açık tema** — token'ların ikinci seti gerekiyor (gerekçe "Ayarlar ve
+  Profil" bölümünde). *Dil bu listeden çıktı: Faz 19–25'te tamamlandı.*
 - **Buton metni kontrastı** — beyaz metin `--brand` üzerinde 3.7:1; düzeltmek
   buton dolgusu için ayrı bir token açmayı gerektiriyor (ölçüm Faz 15'te)
 - **Görsel kırpma / sıralama sürükleyerek** — kapak seçimi yıldız düğmesiyle

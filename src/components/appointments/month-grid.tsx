@@ -1,13 +1,14 @@
 "use client";
 
 import * as React from "react";
+import { useFormatter } from "next-intl";
 
 import type { AppointmentItem } from "@/lib/data/appointments";
 import { APPOINTMENT_TYPE_PALETTE } from "@/lib/appointments";
 import {
-  WEEKDAY_SHORT,
   dayNumber,
   formatMinutes,
+  formatWeekdayShort,
   isSameMonth,
   minutesOfDay,
   monthGrid,
@@ -52,6 +53,7 @@ export function MonthGrid({
   /** Hücreye tıklanınca o günün günlük görünümüne geçiş. */
   onSelectDay: (date: DateKey) => void;
 }) {
+  const format = useFormatter();
   const [openId, setOpenId] = React.useState<string | null>(null);
 
   const weeks = React.useMemo(() => monthGrid(date), [date]);
@@ -71,12 +73,15 @@ export function MonthGrid({
     <div className="overflow-hidden rounded-xl border border-hairline bg-surface">
       {/* --- Gün adları --- */}
       <div className="grid grid-cols-7 border-b border-hairline bg-surface-inset">
-        {WEEKDAY_SHORT.map((label) => (
+        {/* Gün adları SABİT BİR DİZİDEN DEĞİL, ızgaranın ilk satırından
+            türetiliyor: o satır her zaman pazartesi–pazar ve biçimlendirici
+            adları aktif dilde veriyor (`lib/calendar.ts` → Faz 21). */}
+        {weeks[0].map((day) => (
           <div
-            key={label}
+            key={day}
             className="py-2 text-center text-[11.5px] uppercase tracking-[0.06em] text-muted-foreground"
           >
-            {label}
+            {formatWeekdayShort(format, day)}
           </div>
         ))}
       </div>

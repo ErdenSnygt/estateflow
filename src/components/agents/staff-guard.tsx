@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { ShieldX } from "lucide-react";
 
 import { EmptyState } from "@/components/empty-state";
@@ -13,13 +14,15 @@ import { EmptyState } from "@/components/empty-state";
  * gerektiğinde yöneticiden istemeyi mümkün kılıyor. Gizli menü, keşfedilmemiş
  * yetki demek.
  */
-export function StaffGuard() {
+export async function StaffGuard() {
+  const t = await getTranslations("agents.guard");
+
   return (
     <EmptyState
       icon={ShieldX}
-      badge="Yetki gerekiyor"
-      title="Bu sayfayı görüntüleme yetkiniz yok"
-      description="Personel listesi ve performans bilgileri yalnızca patron ve ofis müdürü rolündeki kullanıcılara açıktır. Erişim gerekiyorsa ofis yöneticinizle görüşün."
+      badge={t("badge")}
+      title={t("title")}
+      description={t("description")}
     />
   );
 }

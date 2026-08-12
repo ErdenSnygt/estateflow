@@ -1,5 +1,5 @@
 -- =============================================================================
--- Emlak CRM — `documents` bucket'ı (PRIVATE)
+-- EstateFlow — `documents` bucket'ı (PRIVATE)
 -- =============================================================================
 -- Faz 12. Faz 7'de iki public bucket açılmıştı (`listings`, `avatars`); bu
 -- üçüncüsü bilinçli olarak FARKLI kuruluyor.

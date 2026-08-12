@@ -1,8 +1,8 @@
 import type { AppointmentStatus, AppointmentType } from "@/types/database";
 import type { AppointmentFilters } from "@/lib/data/appointments";
 import {
-  APPOINTMENT_STATUS_LABELS,
-  APPOINTMENT_TYPE_LABELS,
+  APPOINTMENT_STATUSES,
+  APPOINTMENT_TYPES,
 } from "@/lib/appointments";
 import {
   CALENDAR_VIEWS,
@@ -44,12 +44,12 @@ export function parseAppointmentFilters(
     type: oneOf<AppointmentType>(
       params,
       "type",
-      Object.keys(APPOINTMENT_TYPE_LABELS) as AppointmentType[],
+      [...APPOINTMENT_TYPES],
     ),
     status: oneOf<AppointmentStatus>(
       params,
       "status",
-      Object.keys(APPOINTMENT_STATUS_LABELS) as AppointmentStatus[],
+      [...APPOINTMENT_STATUSES],
     ),
     agent: single(params, "agent"),
   };

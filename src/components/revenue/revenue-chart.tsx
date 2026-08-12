@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useFormatter, useTranslations } from "next-intl";
 
 import type { RevenuePoint } from "@/lib/data/revenue";
 import { buildTicks, niceMax } from "@/lib/chart";
 import { formatCurrency, formatCurrencyCompact } from "@/lib/format";
+import { formatMonthKey } from "@/i18n/dates";
 import { cn } from "@/lib/utils";
 
 /**
@@ -31,6 +33,8 @@ const INNER_H = H - PAD.top - PAD.bottom;
 const BASELINE = PAD.top + INNER_H;
 
 export function RevenueChart({ data }: { data: RevenuePoint[] }) {
+  const t = useTranslations("revenue");
+  const format = useFormatter();
   const [active, setActive] = useState<number | null>(null);
 
   const max = niceMax(Math.max(...data.map((point) => point.commission), 0));
@@ -51,7 +55,7 @@ export function RevenueChart({ data }: { data: RevenuePoint[] }) {
           viewBox={`0 0 ${W} ${H}`}
           className="w-full"
           role="img"
-          aria-label="Aylık komisyon geliri ve tahsilat"
+          aria-label={t("chart.aria")}
           onMouseLeave={() => setActive(null)}
         >
           {/* Izgara + y ekseni */}
@@ -137,7 +141,7 @@ export function RevenueChart({ data }: { data: RevenuePoint[] }) {
                       : "fill-[var(--text-muted)]",
                   )}
                 >
-                  {point.label}
+                  {formatMonthKey(format, point.month)}
                 </text>
               </g>
             );
@@ -151,13 +155,17 @@ export function RevenueChart({ data }: { data: RevenuePoint[] }) {
             role="status"
           >
             <p className="text-[11.5px] text-muted-foreground">
-              {activeData.label}
+              {formatMonthKey(format, activeData.month)}
             </p>
             <p className="mt-0.5 text-[13px] font-medium tabular-nums text-foreground">
-              {formatCurrency(activeData.commission)} komisyon
+              {t("chart.tooltipTotal", {
+                amount: formatCurrency(activeData.commission),
+              })}
             </p>
             <p className="text-[12px] tabular-nums text-success">
-              {formatCurrency(activeData.collected)} tahsil edildi
+              {t("chart.tooltipCollected", {
+                amount: formatCurrency(activeData.collected),
+              })}
             </p>
           </div>
         )}
@@ -165,8 +173,8 @@ export function RevenueChart({ data }: { data: RevenuePoint[] }) {
 
       {/* Gösterge */}
       <div className="mt-3 flex flex-wrap items-center gap-4 px-1">
-        <LegendItem color="var(--chart-1)" label="Toplam komisyon" faded />
-        <LegendItem color="var(--chart-3)" label="Tahsil edilen" />
+        <LegendItem color="var(--chart-1)" label={t("chart.legendTotal")} faded />
+        <LegendItem color="var(--chart-3)" label={t("chart.legendCollected")} />
       </div>
     </div>
   );

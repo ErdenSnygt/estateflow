@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { ArrowRight } from "lucide-react";
 
 import {
@@ -25,35 +26,37 @@ import { RecentActivity } from "@/components/dashboard/recent-activity";
  * mock gecikme (ve gerçek sorgu süresi) üst üste binerdi.
  */
 export async function InsightsSection() {
-  const [categories, statuses, totals, activity] = await Promise.all([
+  const [categories, statuses, totals, activity, t, tNav] = await Promise.all([
     getListingsByCategory(),
     getListingsByStatus(),
     getPortfolioTotals(),
     getRecentActivity(7),
+    getTranslations("dashboard"),
+    getTranslations("nav"),
   ]);
 
   const figures = [
     {
-      label: "Satılık portföy değeri",
+      label: t("portfolio.salesValue"),
       value: formatCurrencyCompact(totals.salesValue),
     },
     {
-      label: "Aylık kira potansiyeli",
+      label: t("portfolio.rentValue"),
       value: formatCurrencyCompact(totals.monthlyRentValue),
     },
     {
-      label: "Ort. m² fiyatı (arsa hariç)",
+      label: t("portfolio.averagePricePerSqm"),
       value: formatCurrency(totals.averagePricePerSqm),
     },
-    { label: "Toplam alan", value: formatArea(totals.totalArea) },
+    { label: t("portfolio.totalArea"), value: formatArea(totals.totalArea) },
   ];
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
       <Card className="lg:col-span-2">
         <CardHeader>
-          <CardTitle>Portföy Dağılımı</CardTitle>
-          <CardDescription>Kategori, yayın durumu ve değer özeti</CardDescription>
+          <CardTitle>{t("portfolio.title")}</CardTitle>
+          <CardDescription>{t("portfolio.description")}</CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-5 pt-2">
@@ -61,7 +64,7 @@ export async function InsightsSection() {
 
           <div className="space-y-3 border-t border-hairline pt-4">
             <p className="text-[12.5px] font-medium text-secondary-foreground">
-              Yayın durumu
+              {t("portfolio.statusTitle")}
             </p>
             <StatusBreakdown data={statuses} />
           </div>
@@ -86,14 +89,14 @@ export async function InsightsSection() {
 
       <Card className="lg:col-span-3">
         <CardHeader>
-          <CardTitle>Son Aktiviteler</CardTitle>
-          <CardDescription>Ekibin son hareketleri</CardDescription>
+          <CardTitle>{t("activity.title")}</CardTitle>
+          <CardDescription>{t("activity.description")}</CardDescription>
           <CardAction>
             <Link
               href="/ilanlar"
               className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[12.5px] font-medium text-secondary-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
             >
-              İlanlar
+              {tNav("listings.label")}
               <ArrowRight className="size-3.5" />
             </Link>
           </CardAction>

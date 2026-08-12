@@ -7,7 +7,6 @@ import {
   DOCUMENT_EXTENSIONS,
   MAX_DOCUMENT_BYTES,
   PRIVATE_BUCKET,
-  formatBytes,
 } from "@/lib/storage/paths";
 
 /**
@@ -40,19 +39,19 @@ function validate(file: File) {
       file.type as (typeof ACCEPTED_DOCUMENT_TYPES)[number],
     )
   ) {
-    throw new UploadError(
-      `"${file.name}" desteklenmeyen bir biçimde. PDF, Word veya görsel yükleyin.`,
-    );
+    throw new UploadError("unsupportedDocument", { name: file.name });
   }
 
   if (file.size > MAX_DOCUMENT_BYTES) {
-    throw new UploadError(
-      `"${file.name}" çok büyük (${formatBytes(file.size)}). En fazla ${formatBytes(MAX_DOCUMENT_BYTES)} yükleyebilirsiniz.`,
-    );
+    throw new UploadError("tooLarge", {
+      name: file.name,
+      bytes: file.size,
+      limitBytes: MAX_DOCUMENT_BYTES,
+    });
   }
 
   if (file.size === 0) {
-    throw new UploadError(`"${file.name}" boş görünüyor.`);
+    throw new UploadError("emptyFile", { name: file.name });
   }
 }
 
@@ -79,9 +78,7 @@ export async function uploadDocument(
   } = await supabase.auth.getSession();
 
   if (!session) {
-    throw new UploadError(
-      "Oturumunuz sonlanmış. Sayfayı yenileyip tekrar deneyin.",
-    );
+    throw new UploadError("sessionExpired");
   }
 
   const extension = DOCUMENT_EXTENSIONS[file.type] ?? "bin";
@@ -110,27 +107,35 @@ export async function uploadDocument(
         return;
       }
 
-      let message = `Yükleme başarısız (HTTP ${request.status}).`;
+      let error = new UploadError("httpFailed", {
+        status: String(request.status),
+      });
       try {
         const body = JSON.parse(request.responseText) as { message?: string };
         if (/exceeded the maximum allowed size/i.test(body.message ?? "")) {
-          message = `"${file.name}" sunucu sınırını aştı (en fazla ${formatBytes(MAX_DOCUMENT_BYTES)}).`;
+          error = new UploadError("serverLimit", {
+            name: file.name,
+            limitBytes: MAX_DOCUMENT_BYTES,
+          });
         } else if (/mime type/i.test(body.message ?? "")) {
-          message = `"${file.name}" desteklenmeyen bir biçimde.`;
+          error = new UploadError("unsupportedDocument", { name: file.name });
         } else if (request.status === 403) {
-          message = "Bu dosyayı yükleme yetkiniz yok.";
+          error = new UploadError("forbidden");
         } else if (body.message) {
-          message = body.message;
+          error = new UploadError(
+            "httpFailed",
+            { status: String(request.status) },
+            body.message,
+          );
         }
       } catch {
-        // Gövde JSON değilse genel mesaj kalır.
+        // Gövde JSON değilse genel hata kalır.
       }
-      reject(new UploadError(message));
+      reject(error);
     };
 
-    request.onerror = () =>
-      reject(new UploadError("Bağlantı hatası — yükleme tamamlanamadı."));
-    request.onabort = () => reject(new UploadError("Yükleme iptal edildi."));
+    request.onerror = () => reject(new UploadError("connection"));
+    request.onabort = () => reject(new UploadError("aborted"));
 
     request.send(file);
   });

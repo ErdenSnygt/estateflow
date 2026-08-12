@@ -31,7 +31,7 @@ import {
 export async function removeStorageObjects(urls: string[]): Promise<void> {
   if (urls.length === 0) return;
 
-  /* Dış adresler (seed'den gelen picsum / pravatar görselleri) burada elenir:
+  /* Dış adresler (seed'den gelen Unsplash görselleri) burada elenir:
      `parseStorageUrl` bizim bucket'ımızda olmayan her şeye null döner. */
   const byBucket = new Map<StorageBucket, string[]>();
 

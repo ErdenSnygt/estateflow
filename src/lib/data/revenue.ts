@@ -108,10 +108,14 @@ export const getCommissionRows = cache(async function getCommissionRows(
    ========================================================================== */
 
 export type RevenuePoint = {
-  /** "2026-04" */
+  /**
+   * "2026-04" — grafiğin ekseninde gösterilen ay.
+   *
+   * ETİKET YOK (Faz 25): burada bir `label: "Nis"` alanı vardı ve o alan sabit
+   * Türkçe ay adlarından geliyordu. Veri katmanı aktif dili bilmiyor; anahtarı
+   * taşıyor, `i18n/dates.ts` içindeki `formatMonthKey` onu çeviriyor.
+   */
   month: string;
-  /** "Nis" */
-  label: string;
   /** Toplam komisyon (TRY). */
   commission: number;
   /** Yalnızca tahsil edilen — grafikte ikinci seri. */
@@ -137,11 +141,6 @@ export type RevenueOverview = {
   series: RevenuePoint[];
   rows: CommissionRow[];
 };
-
-const MONTH_SHORT = [
-  "Oca", "Şub", "Mar", "Nis", "May", "Haz",
-  "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara",
-] as const;
 
 /**
  * Gelirler sayfasının tamamını besleyen tek çağrı.
@@ -174,7 +173,6 @@ export async function getRevenueOverview(
       const calendarMonth = date.getUTCMonth();
       return {
         month: `${date.getUTCFullYear()}-${String(calendarMonth + 1).padStart(2, "0")}`,
-        label: MONTH_SHORT[calendarMonth],
         commission: 0,
         collected: 0,
         volume: 0,

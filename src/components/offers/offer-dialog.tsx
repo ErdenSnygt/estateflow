@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Handshake, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -38,6 +39,12 @@ import {
  * İkisi de aynı `createOffer` action'ını çağırıyor: iki ayrı action olsaydı
  * iki ayrı doğrulama ve iki ayrı `agent_id` kuralı doğardı. Danışman
  * gönderilmiyor — sunucu onu ilandan okuyor.
+ *
+ * ÇEVİRİ: iki giriş noktası, sözlükte İKİ AYRI ANAHTAR. `listing ? a : b`
+ * koşulu metnin kendisinde değil, anahtar seçiminde duruyor — "Teklif Al" ve
+ * "Teklif Ver" İngilizce'de de ayrı cümleler ("Record offer" gelen teklifi
+ * kaydetmek, "Place offer" verilen teklifi kaydetmek). Tek bir "New offer"
+ * anahtarı Türkçe'deki bu ayrımı silerdi.
  */
 
 type Option = { id: string; label: string; hint?: string };
@@ -63,6 +70,8 @@ export function OfferDialog({
   suggestedAmount?: number;
 }) {
   const router = useRouter();
+  const t = useTranslations("offers");
+  const tCommon = useTranslations("common");
   const [isOpen, setIsOpen] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
   const [amount, setAmount] = React.useState(
@@ -86,14 +95,14 @@ export function OfferDialog({
 
     const value = Number(amount);
     if (!Number.isFinite(value) || value <= 0) {
-      toast.error("Geçersiz tutar", {
-        description: "Teklif tutarı 0'dan büyük bir sayı olmalıdır.",
+      toast.error(t("invalidAmountTitle"), {
+        description: t("invalidAmountBody"),
       });
       return;
     }
     if (!listingId || !customerId) {
-      toast.error("Eksik bilgi", {
-        description: listing ? "Müşteri seçin." : "İlan seçin.",
+      toast.error(t("missingTitle"), {
+        description: listing ? t("missingCustomer") : t("missingListing"),
       });
       return;
     }
@@ -103,12 +112,12 @@ export function OfferDialog({
     setIsSaving(false);
 
     if (!result.ok) {
-      toast.error("Teklif kaydedilemedi", { description: result.error });
+      toast.error(t("errorTitle"), { description: result.error });
       return;
     }
 
-    toast.success("Teklif kaydedildi", {
-      description: `${formatCurrency(value)} · yanıt bekliyor`,
+    toast.success(t("successTitle"), {
+      description: t("successBody", { amount: formatCurrency(value) }),
     });
     reset();
     router.refresh();
@@ -120,7 +129,7 @@ export function OfferDialog({
         {trigger ?? (
           <Button variant="outline">
             <Handshake className="size-4" />
-            {listing ? "Teklif Al" : "Teklif Ver"}
+            {listing ? t("triggerListing") : t("triggerCustomer")}
           </Button>
         )}
       </DialogTrigger>
@@ -129,12 +138,12 @@ export function OfferDialog({
         <form onSubmit={submit}>
           <DialogHeader>
             <DialogTitle>
-              {listing ? "Bu ilana teklif al" : "Bu müşteri için teklif ver"}
+              {listing ? t("titleListing") : t("titleCustomer")}
             </DialogTitle>
             <DialogDescription>
               {listing
-                ? `${listing.title} için gelen teklifi kaydedin.`
-                : `${customer?.full_name} adına verilen teklifi kaydedin.`}
+                ? t("descriptionListing", { title: listing.title })
+                : t("descriptionCustomer", { name: customer?.full_name ?? "" })}
             </DialogDescription>
           </DialogHeader>
 
@@ -142,7 +151,7 @@ export function OfferDialog({
             {/* Sabit taraf — bilgi olarak gösteriliyor, seçilmiyor. */}
             <div className="rounded-lg border border-hairline bg-surface-inset px-3 py-2.5">
               <p className="text-[11.5px] text-muted-foreground">
-                {listing ? "İlan" : "Müşteri"}
+                {listing ? t("listingLabel") : t("customerLabel")}
               </p>
               <p className="mt-0.5 truncate text-[13.5px] font-medium text-foreground">
                 {listing ? listing.title : customer?.full_name}
@@ -152,7 +161,7 @@ export function OfferDialog({
             {/* Seçilen taraf */}
             <div className="space-y-2">
               <Label htmlFor="offer-counterpart">
-                {listing ? "Teklifi veren müşteri" : "Teklif verilen ilan"}
+                {listing ? t("counterpartCustomer") : t("counterpartListing")}
               </Label>
 
               {hasOptions ? (
@@ -162,7 +171,9 @@ export function OfferDialog({
                 >
                   <SelectTrigger id="offer-counterpart">
                     <SelectValue
-                      placeholder={listing ? "Müşteri seçin" : "İlan seçin"}
+                      placeholder={
+                        listing ? t("selectCustomer") : t("selectListing")
+                      }
                     />
                   </SelectTrigger>
                   <SelectContent>
@@ -176,15 +187,13 @@ export function OfferDialog({
                 </Select>
               ) : (
                 <p className="rounded-lg border border-dashed border-hairline-strong px-3 py-2.5 text-[12.5px] text-muted-foreground">
-                  {listing
-                    ? "Bu ilanla ilgilenen kayıtlı müşteri yok. Önce müşteri detayından ilgi ekleyin."
-                    : "Bu müşterinin ilgilendiği ilan yok. Önce ilgilendiği ilanları ekleyin."}
+                  {listing ? t("noCustomers") : t("noListings")}
                 </p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="offer-amount">Teklif tutarı (₺)</Label>
+              <Label htmlFor="offer-amount">{t("amountLabel")}</Label>
               <Input
                 id="offer-amount"
                 type="number"
@@ -197,7 +206,9 @@ export function OfferDialog({
               />
               {suggestedAmount ? (
                 <p className="text-[12px] text-muted-foreground">
-                  Liste fiyatı {formatCurrency(suggestedAmount)}.
+                  {t("listPriceHint", {
+                    amount: formatCurrency(suggestedAmount),
+                  })}
                 </p>
               ) : null}
             </div>
@@ -205,16 +216,16 @@ export function OfferDialog({
 
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={reset}>
-              Vazgeç
+              {tCommon("cancel")}
             </Button>
             <Button type="submit" disabled={isSaving || !hasOptions}>
               {isSaving ? (
                 <>
                   <Loader2 className="size-4 animate-spin" />
-                  Kaydediliyor…
+                  {t("saving")}
                 </>
               ) : (
-                "Teklifi kaydet"
+                t("submit")
               )}
             </Button>
           </DialogFooter>

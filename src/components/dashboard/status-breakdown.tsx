@@ -1,9 +1,11 @@
 "use client";
 
+import { useFormatter, useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 
 import type { StatusBreakdown as StatusBreakdownItem } from "@/lib/data/listings";
-import { STATUS_LABELS, STATUS_TONES } from "@/lib/listings";
+import { STATUS_TONES } from "@/lib/listings";
+import { formatPercent } from "@/i18n/numbers";
 
 /** Rozet tonlarını çubuk zeminine çevirir — kart ile liste aynı dili konuşsun. */
 const TONE_BG: Record<(typeof STATUS_TONES)[keyof typeof STATUS_TONES], string> =
@@ -15,20 +17,28 @@ const TONE_BG: Record<(typeof STATUS_TONES)[keyof typeof STATUS_TONES], string> 
   };
 
 export function StatusBreakdown({ data }: { data: StatusBreakdownItem[] }) {
+  const t = useTranslations();
+  const format = useFormatter();
+
   return (
     <div className="space-y-3">
       {data.map((item, index) => {
-        const percent = Math.round(item.share * 100);
+        const percent = formatPercent(format, item.share);
 
         return (
           <div key={item.status} className="space-y-1.5">
             <div className="flex items-baseline justify-between gap-2">
               <span className="text-[13px] text-secondary-foreground">
-                {STATUS_LABELS[item.status]}
+                {t(`listings.status.${item.status}`)}
               </span>
+              {/* Yüzde işaretini `Intl` koyuyor (Türkçe'de sayının önünde,
+                  İngilizce'de arkasında); sözlükte yalnızca `{percent}` var.
+                  Gerekçe `i18n/numbers.ts` başlığında. */}
               <span className="text-[12px] tabular-nums text-muted-foreground">
-                <span className="font-medium text-foreground">{item.count}</span>{" "}
-                ilan · %{percent}
+                {t("dashboard.portfolio.statusShare", {
+                  count: item.count,
+                  percent,
+                })}
               </span>
             </div>
 

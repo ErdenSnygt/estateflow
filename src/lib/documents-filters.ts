@@ -1,6 +1,6 @@
 import type { DocumentType } from "@/types/database";
 import type { DocumentFilters } from "@/lib/data/documents";
-import { DOCUMENT_TYPE_LABELS } from "@/lib/messaging";
+import { DOCUMENT_TYPES } from "@/lib/documents";
 import { oneOf, single, type SearchParamsInput } from "@/lib/search-params";
 import { sanitizeSearch } from "@/lib/data/query";
 
@@ -20,7 +20,7 @@ export function parseDocumentFilters(
     type: oneOf<DocumentType>(
       params,
       "type",
-      Object.keys(DOCUMENT_TYPE_LABELS) as DocumentType[],
+      [...DOCUMENT_TYPES],
     ),
     customer: single(params, "customer"),
     listing: single(params, "listing"),

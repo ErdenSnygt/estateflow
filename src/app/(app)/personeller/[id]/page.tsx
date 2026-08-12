@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getFormatter, getTranslations } from "next-intl/server";
 import {
   Building2,
   Coins,
@@ -17,7 +18,9 @@ import { getAgentById, getAgentPerformance } from "@/lib/data/agents";
 import { getListings } from "@/lib/data/listings";
 import { getCustomers } from "@/lib/data/customers";
 import { getManagerAgent } from "@/lib/auth/server";
-import { formatCurrency, formatCurrencyCompact, formatDate } from "@/lib/format";
+import { formatCurrency, formatCurrencyCompact } from "@/lib/format";
+import { formatRate } from "@/i18n/numbers";
+import { formatDate } from "@/i18n/dates";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AgentAvatar } from "@/components/agents/agent-avatar";
@@ -37,8 +40,11 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const agent = await getAgentById(id);
-  return { title: agent ? agent.full_name : "Personel bulunamadı" };
+  const [agent, t] = await Promise.all([
+    getAgentById(id),
+    getTranslations("agents.detail"),
+  ]);
+  return { title: agent ? agent.full_name : t("notFound") };
 }
 
 /** Detay sayfasında gösterilecek en fazla kayıt — sayfanın tamamı bir özet. */
@@ -57,17 +63,21 @@ export default async function AgentDetailPage({ params }: PageProps) {
      sorguları zaten danışman filtresi alıyor, sayfa yalnızca onu geçiriyor.
      `getListings`e `agent` alanı bu faz için eklendi; `getCustomers` onu
      Faz 4'ten beri taşıyordu. */
-  const [performance, listings, customers] = await Promise.all([
+  const [performance, listings, customers, t, format] = await Promise.all([
     getAgentPerformance(agent.id),
     getListings({ agent: agent.id }),
     getCustomers({ agent: agent.id }),
+    getTranslations("agents.detail"),
+    getFormatter(),
   ]);
+
+  const tCommon = await getTranslations("common");
 
   return (
     <div className="space-y-6 pb-4">
       <PageHeader
         backHref="/personeller"
-        backLabel="Personellere dön"
+        backLabel={t("back")}
         title={agent.full_name}
         description={`${agent.id.toUpperCase()} · ${agent.title}`}
         actions={
@@ -75,7 +85,7 @@ export default async function AgentDetailPage({ params }: PageProps) {
             <Button variant="secondary" asChild>
               <Link href={`/personeller/${agent.id}/duzenle`}>
                 <Pencil className="size-4" />
-                Düzenle
+                {tCommon("edit")}
               </Link>
             </Button>
             {/* Kendi hesabını pasifleştirme düğmesi hiç gösterilmiyor;
@@ -100,9 +110,12 @@ export default async function AgentDetailPage({ params }: PageProps) {
         <div className="flex items-start gap-3 rounded-xl border border-hairline bg-surface-inset px-4 py-3">
           <UserRoundX className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
           <p className="text-[13px] leading-relaxed text-secondary-foreground">
-            Bu personel <strong className="text-foreground">pasif</strong>{" "}
-            durumda: giriş yapabilir ama hiçbir veriye erişemez. Aşağıdaki
-            ilanlar, müşteriler ve satış geçmişi olduğu gibi korunuyor.
+            {/* "pasif" cümlenin ortasında ve yeri dile göre değişiyor. */}
+            {t.rich("inactiveNotice", {
+              b: (chunks) => (
+                <strong className="text-foreground">{chunks}</strong>
+              ),
+            })}
           </p>
         </div>
       )}
@@ -116,33 +129,37 @@ export default async function AgentDetailPage({ params }: PageProps) {
           <div className="grid gap-4 sm:grid-cols-3">
             <SummaryTile
               icon={<TrendingUp className="size-4" />}
-              label="Toplam satış"
+              label={t("totalSales")}
               value={formatCurrencyCompact(performance.totalRevenue)}
-              hint={`${performance.totalSales} kapanan işlem`}
+              hint={t("totalSalesHint", { count: performance.totalSales })}
             />
             <SummaryTile
               icon={<Building2 className="size-4" />}
-              label="Aktif ilan"
+              label={t("activeListings")}
               value={String(performance.activeListings)}
-              hint={`${performance.totalListings} ilan portföyde`}
+              hint={t("activeListingsHint", {
+                count: performance.totalListings,
+              })}
             />
             <SummaryTile
               icon={<Users className="size-4" />}
-              label="Aktif müşteri"
+              label={t("activeCustomers")}
               value={String(performance.activeCustomers)}
-              hint={`${performance.totalCustomers} müşteri atanmış`}
+              hint={t("activeCustomersHint", {
+                count: performance.totalCustomers,
+              })}
             />
           </div>
 
           {/* --- İlanlar --- */}
           <section className="space-y-3">
             <SectionHeading
-              title="Portföyündeki ilanlar"
+              title={t("listingsTitle")}
               count={listings.length}
             />
 
             {listings.length === 0 ? (
-              <EmptyRow text="Bu personele atanmış ilan yok." />
+              <EmptyRow text={t("listingsEmpty")} />
             ) : (
               <div className="space-y-3">
                 {listings.slice(0, PREVIEW_LIMIT).map((listing) => (
@@ -151,7 +168,9 @@ export default async function AgentDetailPage({ params }: PageProps) {
                 {listings.length > PREVIEW_LIMIT && (
                   <MoreLink
                     href="/ilanlar"
-                    text={`${listings.length - PREVIEW_LIMIT} ilan daha`}
+                    text={t("moreListings", {
+                      count: listings.length - PREVIEW_LIMIT,
+                    })}
                   />
                 )}
               </div>
@@ -161,12 +180,12 @@ export default async function AgentDetailPage({ params }: PageProps) {
           {/* --- Müşteriler --- */}
           <section className="space-y-3">
             <SectionHeading
-              title="Atanmış müşteriler"
+              title={t("customersTitle")}
               count={customers.length}
             />
 
             {customers.length === 0 ? (
-              <EmptyRow text="Bu personele atanmış müşteri yok." />
+              <EmptyRow text={t("customersEmpty")} />
             ) : (
               <div className="space-y-3">
                 <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
@@ -177,7 +196,9 @@ export default async function AgentDetailPage({ params }: PageProps) {
                 {customers.length > PREVIEW_LIMIT && (
                   <MoreLink
                     href={`/musteriler?agent=${agent.id}`}
-                    text={`${customers.length - PREVIEW_LIMIT} müşteri daha`}
+                    text={t("moreCustomers", {
+                      count: customers.length - PREVIEW_LIMIT,
+                    })}
                   />
                 )}
               </div>
@@ -225,14 +246,12 @@ export default async function AgentDetailPage({ params }: PageProps) {
 
               <p className="flex items-center gap-1.5 border-t border-hairline pt-4 text-[12.5px] text-muted-foreground">
                 <UserRound className="size-3.5" />
-                {formatDate(agent.created_at)} tarihinde eklendi
+                {t("joinedAt", { date: formatDate(format, agent.created_at) })}
               </p>
 
               {/* Hesap bağı — bağlanmamış personel giriş yapamaz. */}
               <p className="text-[12.5px] text-muted-foreground">
-                {agent.user_id
-                  ? "Bu personelin bir giriş hesabı var."
-                  : "Bu personel henüz bir giriş hesabına bağlanmamış."}
+                {t(agent.user_id ? "hasAccount" : "noAccount")}
               </p>
             </CardContent>
           </Card>
@@ -240,23 +259,24 @@ export default async function AgentDetailPage({ params }: PageProps) {
           {/* --- Bu ay --- */}
           <Card>
             <CardHeader>
-              <CardTitle>Bu ay</CardTitle>
+              <CardTitle>{t("monthTitle")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 p-5 pt-2">
               <StatLine
-                label={`${performance.monthlySales} kapanan işlem`}
+                label={t("monthDeals", { count: performance.monthlySales })}
                 value={formatCurrency(performance.monthlyRevenue)}
               />
               <div className="border-t border-hairline pt-3">
                 <StatLine
                   icon={<Coins className="size-3.5" />}
-                  label={`Prim · %${(agent.commission_rate * 100).toFixed(1)}`}
+                  label={t("commissionLabel", {
+                    rate: formatRate(format, agent.commission_rate),
+                  })}
                   value={formatCurrency(performance.monthlyCommission)}
                   emphasis
                 />
                 <p className="mt-2 text-[12px] leading-relaxed text-muted-foreground">
-                  Prim, ay içinde kapanan işlemlerin toplamı ile personelin
-                  komisyon oranının çarpımıdır.
+                  {t("commissionHint")}
                 </p>
               </div>
             </CardContent>

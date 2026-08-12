@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -24,6 +25,8 @@ import { AvatarUpload } from "@/components/storage/avatar-upload";
  */
 export function CompanyForm({ settings }: { settings: CompanySettings | null }) {
   const router = useRouter();
+  const t = useTranslations("settings.company");
+  const tCommon = useTranslations("common");
   const [isSaving, setIsSaving] = React.useState(false);
 
   const [name, setName] = React.useState(settings?.name ?? "");
@@ -50,61 +53,59 @@ export function CompanyForm({ settings }: { settings: CompanySettings | null }) 
     setIsSaving(false);
 
     if (!result.ok) {
-      toast.error("Şirket bilgileri kaydedilemedi", {
-        description: result.error,
-      });
+      toast.error(t("saveError"), { description: result.error });
       return;
     }
 
-    toast.success("Şirket bilgileri güncellendi");
+    toast.success(t("saved"));
     router.refresh();
   }
 
   return (
     <form onSubmit={submit} className="space-y-5">
       <div className="space-y-2">
-        <Label>Logo</Label>
+        <Label>{t("logoLabel")}</Label>
         <AvatarUpload
           value={logoUrl}
           onChange={setLogoUrl}
-          name={name || "Şirket"}
+          name={name || t("fallbackName")}
         />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="company-name">Şirket adı</Label>
+          <Label htmlFor="company-name">{t("nameLabel")}</Label>
           <Input
             id="company-name"
             value={name}
             onChange={(event) => setName(event.target.value)}
-            placeholder="Örn. Şahenk Gayrimenkul"
+            placeholder={t("namePlaceholder")}
           />
         </div>
 
         <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="company-address">Adres</Label>
+          <Label htmlFor="company-address">{t("addressLabel")}</Label>
           <Textarea
             id="company-address"
             value={address}
             onChange={(event) => setAddress(event.target.value)}
-            placeholder="Mahalle, cadde, no, ilçe/il"
+            placeholder={t("addressPlaceholder")}
             rows={2}
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="company-tax-office">Vergi dairesi</Label>
+          <Label htmlFor="company-tax-office">{t("taxOfficeLabel")}</Label>
           <Input
             id="company-tax-office"
             value={taxOffice}
             onChange={(event) => setTaxOffice(event.target.value)}
-            placeholder="Örn. Kadıköy"
+            placeholder={t("taxOfficePlaceholder")}
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="company-tax-number">Vergi numarası</Label>
+          <Label htmlFor="company-tax-number">{t("taxNumberLabel")}</Label>
           <Input
             id="company-tax-number"
             value={taxNumber}
@@ -116,24 +117,24 @@ export function CompanyForm({ settings }: { settings: CompanySettings | null }) 
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="company-phone">Telefon</Label>
+          <Label htmlFor="company-phone">{t("phoneLabel")}</Label>
           <Input
             id="company-phone"
             value={phone}
             onChange={(event) => setPhone(event.target.value)}
-            placeholder="0216 000 00 00"
+            placeholder={t("phonePlaceholder")}
             inputMode="tel"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="company-email">E-posta</Label>
+          <Label htmlFor="company-email">{t("emailLabel")}</Label>
           <Input
             id="company-email"
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            placeholder="info@ornek.com"
+            placeholder={t("emailPlaceholder")}
           />
         </div>
       </div>
@@ -143,10 +144,10 @@ export function CompanyForm({ settings }: { settings: CompanySettings | null }) 
           {isSaving ? (
             <>
               <Loader2 className="size-4 animate-spin" />
-              Kaydediliyor…
+              {tCommon("saving")}
             </>
           ) : (
-            "Şirket bilgilerini kaydet"
+            t("submit")
           )}
         </Button>
       </div>

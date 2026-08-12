@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -27,6 +28,9 @@ import { CoverUpload } from "@/components/settings/cover-upload";
  */
 export function ProfileForm({ agent }: { agent: Agent }) {
   const router = useRouter();
+  const t = useTranslations("settings.profile");
+  const tUpload = useTranslations("upload");
+  const tCommon = useTranslations("common");
   const [isSaving, setIsSaving] = React.useState(false);
 
   const [fullName, setFullName] = React.useState(agent.full_name);
@@ -56,18 +60,18 @@ export function ProfileForm({ agent }: { agent: Agent }) {
     setIsSaving(false);
 
     if (!result.ok) {
-      toast.error("Profil kaydedilemedi", { description: result.error });
+      toast.error(t("saveError"), { description: result.error });
       return;
     }
 
-    toast.success("Profil güncellendi");
+    toast.success(t("saved"));
     router.refresh();
   }
 
   return (
     <form onSubmit={submit} className="space-y-5">
       <div className="space-y-2">
-        <Label>Profil fotoğrafı</Label>
+        <Label>{tUpload("avatar.label")}</Label>
         <AvatarUpload
           value={avatarUrl}
           onChange={setAvatarUrl}
@@ -77,53 +81,53 @@ export function ProfileForm({ agent }: { agent: Agent }) {
       </div>
 
       <div className="space-y-2">
-        <Label>Kapak görseli</Label>
+        <Label>{tUpload("cover.label")}</Label>
         <CoverUpload value={coverUrl} onChange={setCoverUrl} />
         <p className="text-[11.5px] text-muted-foreground">
-          Profil sayfanızın üst şeridinde görünür. Geniş bir görsel seçin.
+          {t("coverHint")}
         </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="profile-name">Ad soyad</Label>
+          <Label htmlFor="profile-name">{t("nameLabel")}</Label>
           <Input
             id="profile-name"
             value={fullName}
             onChange={(event) => setFullName(event.target.value)}
-            placeholder="Ad Soyad"
+            placeholder={t("namePlaceholder")}
           />
           <p className="text-[11.5px] text-muted-foreground">
-            Baş harfler (avatar yedeği) bu addan türetilir.
+            {t("nameHint")}
           </p>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="profile-title">Unvan</Label>
+          <Label htmlFor="profile-title">{t("titleLabel")}</Label>
           <Input
             id="profile-title"
             value={title}
             onChange={(event) => setTitle(event.target.value)}
-            placeholder="Örn. Kıdemli Portföy Danışmanı"
+            placeholder={t("titlePlaceholder")}
           />
           <p className="text-[11.5px] text-muted-foreground">
-            Görünen unvan; yetki seviyeniz ayrı bir alandır.
+            {t("titleHint")}
           </p>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="profile-phone">Telefon</Label>
+          <Label htmlFor="profile-phone">{t("phoneLabel")}</Label>
           <Input
             id="profile-phone"
             value={phone}
             onChange={(event) => setPhone(event.target.value)}
-            placeholder="0532 000 00 00"
+            placeholder={t("phonePlaceholder")}
             inputMode="tel"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="profile-email">E-posta</Label>
+          <Label htmlFor="profile-email">{t("emailLabel")}</Label>
           <Input
             id="profile-email"
             value={agent.email}
@@ -132,8 +136,7 @@ export function ProfileForm({ agent }: { agent: Agent }) {
             aria-describedby="profile-email-hint"
           />
           <p id="profile-email-hint" className="text-[11.5px] text-muted-foreground">
-            E-posta aynı zamanda giriş kimliğiniz; değiştirilmesi doğrulama
-            akışı gerektiriyor ve şu an kapsam dışı.
+            {t("emailHint")}
           </p>
         </div>
       </div>
@@ -143,10 +146,10 @@ export function ProfileForm({ agent }: { agent: Agent }) {
           {isSaving ? (
             <>
               <Loader2 className="size-4 animate-spin" />
-              Kaydediliyor…
+              {tCommon("saving")}
             </>
           ) : (
-            "Değişiklikleri kaydet"
+            t("submit")
           )}
         </Button>
       </div>

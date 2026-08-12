@@ -91,7 +91,7 @@ export async function updateListing(
     .maybeSingle();
 
   if (readError) return fail(toMessage(readError));
-  if (!current) return fail("İlan bulunamadı; başka biri silmiş olabilir.");
+  if (!current) return fail("listingDeletedMeanwhile");
 
   const { error } = await supabase
     .from("listings")

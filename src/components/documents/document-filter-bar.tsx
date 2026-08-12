@@ -1,9 +1,10 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 
 import { useFilterParams } from "@/hooks/use-filter-params";
-import { DOCUMENT_TYPE_OPTIONS } from "@/lib/messaging";
+import { DOCUMENT_TYPES } from "@/lib/documents";
 import { DOCUMENT_FILTER_KEYS } from "@/lib/documents-filters";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,6 +36,9 @@ export function DocumentFilterBar({
   customerOptions: { id: string; label: string }[];
   listingOptions: { id: string; label: string }[];
 }) {
+  const t = useTranslations("documents");
+  const tCommon = useTranslations("common");
+
   const { get, set, clear, activeCount } = useFilterParams([
     ...DOCUMENT_FILTER_KEYS,
   ]);
@@ -61,19 +65,21 @@ export function DocumentFilterBar({
     >
       <div className="space-y-1.5">
         <Label htmlFor="document-search" className="text-[11.5px] text-muted-foreground">
-          Ara
+          {tCommon("search")}
         </Label>
         <Input
           id="document-search"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
-          placeholder="Belge başlığı…"
+          placeholder={t("filterBar.searchPlaceholder")}
           className="w-[200px]"
         />
       </div>
 
       <div className="space-y-1.5">
-        <Label className="text-[11.5px] text-muted-foreground">Belge türü</Label>
+        <Label className="text-[11.5px] text-muted-foreground">
+          {t("filterBar.typeLabel")}
+        </Label>
         <Select
           value={fromParam(get("type"))}
           onValueChange={(value) => set("type", toParam(value))}
@@ -82,10 +88,10 @@ export function DocumentFilterBar({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL}>Tüm türler</SelectItem>
-            {DOCUMENT_TYPE_OPTIONS.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
+            <SelectItem value={ALL}>{t("filterBar.allTypes")}</SelectItem>
+            {DOCUMENT_TYPES.map((value) => (
+              <SelectItem key={value} value={value}>
+                {t(`type.${value}`)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -93,7 +99,9 @@ export function DocumentFilterBar({
       </div>
 
       <div className="space-y-1.5">
-        <Label className="text-[11.5px] text-muted-foreground">Müşteri</Label>
+        <Label className="text-[11.5px] text-muted-foreground">
+          {t("filterBar.customerLabel")}
+        </Label>
         <Select
           value={fromParam(get("customer"))}
           onValueChange={(value) => set("customer", toParam(value))}
@@ -102,7 +110,7 @@ export function DocumentFilterBar({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL}>Tüm müşteriler</SelectItem>
+            <SelectItem value={ALL}>{t("filterBar.allCustomers")}</SelectItem>
             {customerOptions.map((option) => (
               <SelectItem key={option.id} value={option.id}>
                 {option.label}
@@ -113,7 +121,9 @@ export function DocumentFilterBar({
       </div>
 
       <div className="space-y-1.5">
-        <Label className="text-[11.5px] text-muted-foreground">İlan</Label>
+        <Label className="text-[11.5px] text-muted-foreground">
+          {t("filterBar.listingLabel")}
+        </Label>
         <Select
           value={fromParam(get("listing"))}
           onValueChange={(value) => set("listing", toParam(value))}
@@ -122,7 +132,7 @@ export function DocumentFilterBar({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL}>Tüm ilanlar</SelectItem>
+            <SelectItem value={ALL}>{t("filterBar.allListings")}</SelectItem>
             {listingOptions.map((option) => (
               <SelectItem key={option.id} value={option.id}>
                 {option.label}

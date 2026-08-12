@@ -4,76 +4,142 @@ import type { ListingInsert } from "@/types/database";
 import { isResidential } from "@/lib/listings";
 
 /**
- * İlan formunun doğrulama şeması.
- *
+ * ============================================================================
+ * İLAN FORMUNUN DOĞRULAMA ŞEMASI
+ * ============================================================================
  * Sayısal alanlar bilerek `string` tutulur: HTML input'ları zaten string
  * döndürür ve `z.coerce` kullanıldığında boş alan 0'a dönüşüp "zorunlu"
  * hatası yerine yanıltıcı bir mesaj üretir. Sunucuya gönderilmeden önce
  * `toListingInput` ile sayıya çevrilir.
+ *
+ * -----------------------------------------------------------------------------
+ * FAZ 20: ŞEMA ARTIK BİR FABRİKA
+ * -----------------------------------------------------------------------------
+ * Önceki sürüm modül düzeyinde tek bir `listingFormSchema` sabitiydi ve hata
+ * mesajları Türkçe olarak içine gömülüydü. Mesajlar çeviriye taşınınca bu
+ * mümkün olmadı: şema modül yüklenirken kuruluyor, çeviri ise isteğe
+ * (kullanıcının diline) bağlı.
+ *
+ * Çözüm, şemayı bir çeviri fonksiyonu alan FABRİKAYA çevirmek. Form onu
+ * `useMemo` içinde kuruyor; dil değişirse şema da yeniden kuruluyor ve
+ * doğrulama mesajları yeni dilde çıkıyor.
+ *
+ * Alternatif, hata mesajı yerine ANAHTAR döndürüp çeviriyi `FormMessage`
+ * içinde yapmaktı. O da çalışırdı ama `{label}` gibi değişken taşıyan
+ * mesajlarda (bkz. `numericField`) anahtarın yanında parametreleri de
+ * taşımak gerekirdi — zod'un `message` alanı düz metin.
  */
 
-const numericField = (label: string) =>
+/**
+ * Fabrikanın beklediği çeviri fonksiyonu.
+ *
+ * `useTranslations("listings.validation")` ve `getTranslations(...)` çıktısı
+ * bu şekle uyuyor. GENİŞ TUTULDU (kendi tipimiz, next-intl'inki değil):
+ * `schemas.test.ts` şemayı sahte bir `t` ile kurabilsin diye — test için
+ * next-intl sağlayıcısı ayağa kaldırmak gerekmiyor.
+ */
+export type ValidationKey =
+  | "titleMin"
+  | "titleMax"
+  | "descriptionMin"
+  | "descriptionMax"
+  | "cityRequired"
+  | "districtRequired"
+  | "addressRequired"
+  | "agentRequired"
+  | "required"
+  | "numberOnly"
+  | "positive"
+  | "roomsRequired"
+  | "imagesRequired";
+
+export type ValidationTranslator = (
+  key: ValidationKey,
+  values?: Record<string, string | number>,
+) => string;
+
+const numericField = (t: ValidationTranslator, label: string) =>
   z
     .string()
-    .min(1, `${label} zorunludur.`)
-    .refine((value) => Number.isFinite(Number(value)), "Yalnızca sayı girin.")
-    .refine((value) => Number(value) > 0, `${label} 0'dan büyük olmalıdır.`);
+    .min(1, t("required", { label }))
+    .refine((value) => Number.isFinite(Number(value)), t("numberOnly"))
+    .refine((value) => Number(value) > 0, t("positive", { label }));
 
-export const listingFormSchema = z
-  .object({
-    title: z
-      .string()
-      .trim()
-      .min(10, "Başlık en az 10 karakter olmalıdır.")
-      .max(120, "Başlık en fazla 120 karakter olabilir."),
-    description: z
-      .string()
-      .trim()
-      .min(30, "Açıklama en az 30 karakter olmalıdır.")
-      .max(2000, "Açıklama en fazla 2000 karakter olabilir."),
-    category: z.enum(["satilik", "kiralik", "arsa", "villa", "ofis"]),
-    status: z.enum(["aktif", "pasif", "taslak", "satildi"]),
+/**
+ * Şemayı aktif dilin mesajlarıyla kurar.
+ *
+ * `labels` ayrı geçiliyor: "Fiyat zorunludur." cümlesindeki alan adı, formun
+ * etiketiyle (`listings.form.priceLabel`) aynı olmalı — doğrulama sözlüğünde
+ * ikinci bir kopyasını tutmak, ikisinin birbirinden sapmasına açık kapı
+ * bırakırdı.
+ */
+export function createListingFormSchema(
+  t: ValidationTranslator,
+  labels: { price: string; area: string },
+) {
+  return z
+    .object({
+      title: z
+        .string()
+        .trim()
+        .min(10, t("titleMin"))
+        .max(120, t("titleMax")),
+      description: z
+        .string()
+        .trim()
+        .min(30, t("descriptionMin"))
+        .max(2000, t("descriptionMax")),
+      category: z.enum(["satilik", "kiralik", "arsa", "villa", "ofis"]),
+      status: z.enum(["aktif", "pasif", "taslak", "satildi"]),
 
-    city: z.string().min(1, "Şehir seçin."),
-    district: z.string().min(1, "İlçe seçin."),
-    address: z.string().trim().min(5, "Açık adres girin."),
+      city: z.string().min(1, t("cityRequired")),
+      district: z.string().min(1, t("districtRequired")),
+      address: z.string().trim().min(5, t("addressRequired")),
 
-    /* Faz 5'te eklendi: `listings.agent_id` NOT NULL. Alan formda yokken
-       elle eklenen her ilan danışmansız kalıyordu. */
-    agent_id: z.string().min(1, "Portföy danışmanı seçin."),
+      /* Faz 5'te eklendi: `listings.agent_id` NOT NULL. Alan formda yokken
+         elle eklenen her ilan danışmansız kalıyordu. */
+      agent_id: z.string().min(1, t("agentRequired")),
 
-    price: numericField("Fiyat"),
-    currency: z.enum(["TRY", "USD", "EUR"]),
-    area_sqm: numericField("Alan"),
-    /** Konut dışı kategorilerde boş bırakılabilir. */
-    room_count: z.string(),
+      price: numericField(t, labels.price),
+      currency: z.enum(["TRY", "USD", "EUR"]),
+      area_sqm: numericField(t, labels.area),
+      /** Konut dışı kategorilerde boş bırakılabilir. */
+      room_count: z.string(),
 
-    images: z.array(z.string()),
-  })
-  .superRefine((data, ctx) => {
-    if (isResidential(data.category)) {
-      const rooms = Number(data.room_count);
-      if (!data.room_count || !Number.isFinite(rooms) || rooms < 1) {
+      images: z.array(z.string()),
+    })
+    .superRefine((data, ctx) => {
+      if (isResidential(data.category)) {
+        const rooms = Number(data.room_count);
+        if (!data.room_count || !Number.isFinite(rooms) || rooms < 1) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["room_count"],
+            message: t("roomsRequired"),
+          });
+        }
+      }
+
+      // Yayına alınan ilanın görselsiz olması portallarda reddedilme sebebidir.
+      if (data.status === "aktif" && data.images.length === 0) {
         ctx.addIssue({
           code: "custom",
-          path: ["room_count"],
-          message: "Konut ilanlarında oda sayısı zorunludur.",
+          path: ["images"],
+          message: t("imagesRequired"),
         });
       }
-    }
+    });
+}
 
-    // Yayına alınan ilanın görselsiz olması portallarda reddedilme sebebidir.
-    if (data.status === "aktif" && data.images.length === 0) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["images"],
-        message:
-          "Aktif ilanlar için en az bir görsel gerekir. Görsel eklemeden kaydetmek isterseniz durumu Taslak seçin.",
-      });
-    }
-  });
-
-export type ListingFormValues = z.infer<typeof listingFormSchema>;
+/**
+ * Form değerlerinin tipi.
+ *
+ * Şema artık bir fabrika olduğu için tip de ondan türetiliyor. Mesajlar tipi
+ * etkilemiyor — hangi dille kurulursa kurulsun şekil aynı.
+ */
+export type ListingFormValues = z.infer<
+  ReturnType<typeof createListingFormSchema>
+>;
 
 /** Form değerlerini veritabanı şekline çevirir. */
 export function toListingInput(values: ListingFormValues): ListingInsert {

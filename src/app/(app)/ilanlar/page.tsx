@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { Plus } from "lucide-react";
 
 import type { SearchParamsInput } from "@/lib/listings-filters";
@@ -10,16 +11,20 @@ import { ListingsFilterBar } from "@/components/listings/listings-filter-bar";
 import { ListingResults } from "@/components/listings/listing-results";
 import { ListingGridSkeleton } from "@/components/listings/listing-card-skeleton";
 
-export const metadata: Metadata = {
-  title: "İlanlar",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("listings");
+  return { title: t("title") };
+}
 
 export default async function IlanlarPage({
   searchParams,
 }: {
   searchParams: Promise<SearchParamsInput>;
 }) {
-  const params = await searchParams;
+  const [params, t] = await Promise.all([
+    searchParams,
+    getTranslations("listings"),
+  ]);
 
   /* Suspense anahtarı filtrelerle birlikte değişsin ki her filtre
      değişiminde iskelet yeniden görünsün — yoksa yalnızca ilk yüklemede
@@ -37,13 +42,13 @@ export default async function IlanlarPage({
   return (
     <div className="space-y-6 pb-4">
       <PageHeader
-        title="İlanlar"
-        description="Portföyünüzdeki tüm gayrimenkulleri filtreleyin, düzenleyin ve yayın durumlarını takip edin."
+        title={t("title")}
+        description={t("description")}
         actions={
           <Button asChild>
             <Link href="/ilanlar/yeni">
               <Plus className="size-4" />
-              Yeni ilan
+              {t("new")}
             </Link>
           </Button>
         }

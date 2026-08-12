@@ -1,20 +1,24 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  DOCUMENT_TYPE_LABELS,
+  DOCUMENT_TYPES,
   DOCUMENT_TYPE_TONES,
-  MESSAGE_TEMPLATES,
-  NOTIFICATION_TYPE_LABELS,
   attachmentKindFor,
   guessDocumentType,
-  notificationHref,
   titleFromFileName,
-} from "@/lib/messaging";
+} from "@/lib/documents";
+import {
+  NOTIFICATION_TYPES,
+  notificationHref,
+} from "@/lib/notifications";
 import { parseDocumentFilters } from "@/lib/documents-filters";
 
 /**
- * Faz 12'nin saf fonksiyonları. Vitest kapsamı Faz 8'de çizildiği gibi:
- * veritabanı gerektirmeyen mantık test ediliyor, RLS ve sorgular değil.
+ * Faz 12'nin saf fonksiyonları.
+ *
+ * Dosya Faz 18'de `messaging.test.ts`ten devraldı: `lib/messaging.ts` üçe
+ * bölündü (evrak / bildirim / iş notu) ve testleri de öyle. İş notlarının
+ * kendi dosyası var — `work-notes.test.ts`.
  */
 
 describe("guessDocumentType", () => {
@@ -83,8 +87,14 @@ describe("notificationHref", () => {
     expect(notificationHref("customer", "mus-1")).toBe("/musteriler/mus-1");
     expect(notificationHref("listing", "iln-1")).toBe("/ilanlar/iln-1");
     expect(notificationHref("sale", "iln-1")).toBe("/satislar");
-    expect(notificationHref("conversation", "abc")).toBe("/mesajlar?k=abc");
     expect(notificationHref("appointment", "xyz")).toBe("/randevular");
+  });
+
+  it("iş notu, panoda o notu vurgulayan adrese gider", () => {
+    /* Notun tek başına bir detay sayfası YOK ve olmamalı — bir not, bağlamı
+       olmadan okunacak bir şey değil (`0012_work_notes.sql`). Bildirim bu
+       yüzden panoya, "Tüm ekip" sekmesine ve `?n=` vurgusuna gidiyor. */
+    expect(notificationHref("work_note", "abc")).toBe("/mesajlar?f=all&n=abc");
   });
 
   it("eksik bağda null döner", () => {
@@ -97,24 +107,19 @@ describe("notificationHref", () => {
   });
 });
 
-describe("sözlükler eksiksiz", () => {
-  it("her belge türünün etiketi ve tonu var", () => {
-    for (const type of Object.keys(DOCUMENT_TYPE_LABELS)) {
-      expect(DOCUMENT_TYPE_LABELS[type as never]).toBeTruthy();
-      expect(DOCUMENT_TYPE_TONES[type as never]).toBeTruthy();
+describe("yapı eksiksiz", () => {
+  /* Faz 23: etiket denetimleri `messages.test.ts`e taşındı (iki dil için
+     birden). Burada yalnızca yapı kaldı. */
+
+  it("her belge türünün bir tonu var", () => {
+    for (const type of DOCUMENT_TYPES) {
+      expect(DOCUMENT_TYPE_TONES[type]).toBeTruthy();
     }
   });
 
-  it("beş bildirim türünün de etiketi var", () => {
-    expect(Object.keys(NOTIFICATION_TYPE_LABELS)).toHaveLength(5);
-  });
-
-  it("şablonların kimliği benzersiz ve metni dolu", () => {
-    const ids = MESSAGE_TEMPLATES.map((template) => template.id);
-    expect(new Set(ids).size).toBe(ids.length);
-    for (const template of MESSAGE_TEMPLATES) {
-      expect(template.text.trim().length).toBeGreaterThan(10);
-    }
+  it("yedi bildirim türü var", () => {
+    /* Faz 18'de `message_received` kalktı, üç iş notu türü geldi: 5 → 7. */
+    expect(NOTIFICATION_TYPES).toHaveLength(7);
   });
 });
 

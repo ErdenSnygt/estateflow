@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { LockKeyhole, LogOut } from "lucide-react";
 
 import { signOut } from "@/lib/auth/client";
@@ -19,6 +20,7 @@ import { Button } from "@/components/ui/button";
  */
 export function DeactivatedNotice({ name }: { name: string }) {
   const router = useRouter();
+  const t = useTranslations();
 
   async function handleSignOut() {
     await signOut();
@@ -34,22 +36,20 @@ export function DeactivatedNotice({ name }: { name: string }) {
         </div>
 
         <h1 className="mt-6 text-[20px] font-semibold tracking-[-0.02em] text-foreground">
-          Hesabınız pasif durumda
+          {t("notices.deactivatedTitle")}
         </h1>
 
         <p className="mt-3 text-[14px] leading-relaxed text-secondary-foreground">
-          {name}, ofis yöneticiniz hesabınızı pasifleştirmiş. Geçmiş kayıtlarınız
-          — ilanlarınız, müşterileriniz ve satışlarınız — silinmedi, olduğu gibi
-          duruyor; ancak erişiminiz kapalı.
+          {t("notices.deactivatedBody", { name })}
         </p>
 
         <p className="mt-2 text-[13px] text-muted-foreground">
-          Bunun bir hata olduğunu düşünüyorsanız ofis yöneticinizle görüşün.
+          {t("notices.deactivatedHint")}
         </p>
 
         <Button variant="secondary" className="mt-7" onClick={handleSignOut}>
           <LogOut className="size-4" />
-          Çıkış yap
+          {t("common.signOut")}
         </Button>
       </div>
     </div>

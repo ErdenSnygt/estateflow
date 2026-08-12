@@ -17,23 +17,49 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase/env";
  * istemci olur.
  */
 
-export type AuthResult = { ok: true } | { ok: false; error: string };
+/**
+ * ============================================================================
+ * GİRİŞ HATALARI — METİN DEĞİL, ANAHTAR
+ * ============================================================================
+ * Faz 25: bu dosya da `lib/actions/result.ts` ve `lib/storage/upload.ts` ile
+ * aynı sınırda — saf bir istemci modülü, aktif dili okuyamıyor. Hata artık
+ * `auth.errors.*` altındaki bir anahtar; metni `login-form.tsx` üretiyor.
+ *
+ * `raw` alanı yine `RawActionError`in karşılığı: Supabase'in tanımadığımız
+ * bir hatası için uydurma bir çeviri yerine ham metin.
+ */
+export type AuthErrorKey =
+  | "invalidCredentials"
+  | "emailNotConfirmed"
+  | "rateLimit"
+  | "providerDisabled"
+  | "providerDisabledDetail";
 
-/** Supabase'in İngilizce hata mesajlarını arayüz diline çevirir. */
-function toMessage(message: string): string {
+export type AuthError = {
+  key: AuthErrorKey;
+  /** `providerDisabledDetail` için sağlayıcı adı. */
+  values?: Record<string, string>;
+  /** Sözlükte karşılığı olmayan Supabase metni. */
+  raw?: string;
+};
+
+export type AuthResult = { ok: true } | { ok: false; error: AuthError };
+
+/** Supabase'in İngilizce hata mesajlarını sözlük anahtarına eşler. */
+function toAuthError(message: string): AuthError {
   if (/invalid login credentials/i.test(message)) {
-    return "E-posta veya şifre hatalı.";
+    return { key: "invalidCredentials" };
   }
   if (/email not confirmed/i.test(message)) {
-    return "E-posta adresiniz henüz doğrulanmamış.";
+    return { key: "emailNotConfirmed" };
   }
   if (/rate limit|too many/i.test(message)) {
-    return "Çok fazla deneme yapıldı, biraz sonra tekrar deneyin.";
+    return { key: "rateLimit" };
   }
   if (/provider is not enabled/i.test(message)) {
-    return "Bu giriş yöntemi Supabase panelinde henüz etkinleştirilmemiş.";
+    return { key: "providerDisabled" };
   }
-  return message;
+  return { key: "invalidCredentials", raw: message };
 }
 
 export async function signInWithPassword(
@@ -43,7 +69,7 @@ export async function signInWithPassword(
   const supabase = createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
-  return error ? { ok: false, error: toMessage(error.message) } : { ok: true };
+  return error ? { ok: false, error: toAuthError(error.message) } : { ok: true };
 }
 
 export type OAuthProvider = "google" | "apple";
@@ -99,7 +125,10 @@ export async function signInWithProvider(
   if (!(await isProviderEnabled(provider))) {
     return {
       ok: false,
-      error: `${PROVIDER_LABELS[provider]} girişi Supabase panelinde henüz etkinleştirilmemiş. Authentication > Providers altından Client ID ve Secret ile açmanız gerekiyor.`,
+      error: {
+        key: "providerDisabledDetail",
+        values: { provider: PROVIDER_LABELS[provider] },
+      },
     };
   }
 
@@ -113,7 +142,7 @@ export async function signInWithProvider(
     options: { redirectTo: callback.toString() },
   });
 
-  return error ? { ok: false, error: toMessage(error.message) } : { ok: true };
+  return error ? { ok: false, error: toAuthError(error.message) } : { ok: true };
 }
 
 export async function signOut(): Promise<void> {

@@ -4,7 +4,6 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase/env";
 import {
   ACCEPTED_MIME_TYPES,
   MAX_UPLOAD_BYTES,
-  formatBytes,
   publicUrlFor,
   type PublicBucket,
 } from "@/lib/storage/paths";
@@ -43,7 +42,59 @@ import {
 /** 0 → 1 arası oran. */
 export type UploadProgress = (ratio: number) => void;
 
-export class UploadError extends Error {}
+/**
+ * ============================================================================
+ * YÜKLEME HATALARI — METİN DEĞİL, ANAHTAR
+ * ============================================================================
+ * Faz 25'e kadar bu sınıf hazır Türkçe cümleler taşıyordu ve çağıran taraf
+ * onları doğrudan `toast`a basıyordu. Sorun `lib/actions/result.ts` ile
+ * AYNI sorundu: burası saf bir modül, aktif dili okuyamıyor.
+ *
+ * Çözüm de aynı: hata bir ANAHTAR ve argümanları taşıyor, metni bileşen
+ * üretiyor (`upload.errors.*`). `raw` alanı da `RawActionError`in
+ * karşılığı — Supabase'in sözlükte karşılığı olmayan ham mesajı için.
+ */
+export type UploadErrorKey =
+  | "unsupportedImage"
+  | "unsupportedDocument"
+  | "tooLarge"
+  | "emptyFile"
+  | "sessionExpired"
+  | "stillTooLarge"
+  | "serverLimit"
+  | "forbidden"
+  | "httpFailed"
+  | "connection"
+  | "aborted";
+
+/**
+ * Hata metnine girecek argümanlar.
+ *
+ * BOYUTLAR HAM BAYT ve bu bilinçli: `formatBytes` de dil bilmek zorunda
+ * (Faz 25'te ondalık ayracı için `Intl`e geçti) ve bu modül saf. Sayıyı
+ * taşıyıp biçimi çağırana bırakmak, `TransitionCheck`in durum değerlerini
+ * taşıyıp etiketi action'a bırakmasıyla aynı ayrım.
+ */
+export type UploadErrorParams = {
+  name?: string;
+  status?: string;
+  /** Dosyanın boyutu — bayt. */
+  bytes?: number;
+  /** İzin verilen üst sınır — bayt. */
+  limitBytes?: number;
+};
+
+export class UploadError extends Error {
+  constructor(
+    readonly key: UploadErrorKey,
+    readonly params: UploadErrorParams = {},
+    /** Sunucudan gelen, çevrilemeyen metin; varsa anahtarın önüne geçer. */
+    readonly raw?: string,
+  ) {
+    /* `message` yalnızca yığın izinde görünüyor; kullanıcıya gitmiyor. */
+    super(raw ?? key);
+  }
+}
 
 /* ==========================================================================
    Sıkıştırma
@@ -104,26 +155,26 @@ const EXTENSIONS: Record<string, string> = {
 
 function validate(file: File) {
   if (!ACCEPTED_MIME_TYPES.includes(file.type as (typeof ACCEPTED_MIME_TYPES)[number])) {
-    throw new UploadError(
-      `"${file.name}" desteklenmeyen bir biçimde. JPG, PNG veya WebP yükleyin.`,
-    );
+    throw new UploadError("unsupportedImage", { name: file.name });
   }
 
   /* Sıkıştırma ÖNCESİ sınır bilinçli olarak yüksek: 8 MB'lık asıl sınır
      sıkıştırılmış dosya için geçerli, ama 100 MB'lık bir dosyayı tarayıcıda
      çözmeye çalışmak sekmeyi kilitler. */
   if (file.size > MAX_UPLOAD_BYTES * 5) {
-    throw new UploadError(
-      `"${file.name}" çok büyük (${formatBytes(file.size)}). En fazla ${formatBytes(MAX_UPLOAD_BYTES)} yükleyebilirsiniz.`,
-    );
+    throw new UploadError("tooLarge", {
+      name: file.name,
+      bytes: file.size,
+      limitBytes: MAX_UPLOAD_BYTES,
+    });
   }
 }
 
 /**
  * Dosyayı yükler ve kalıcı public URL'ini döner.
  *
- * Hata durumunda `UploadError` fırlatır — mesajı doğrudan kullanıcıya
- * gösterilebilir.
+ * Hata durumunda `UploadError` fırlatır; çağıran taraf onun ANAHTARINI
+ * `upload.errors.*` altında çeviriyor.
  */
 /**
  * Yalnızca PUBLIC bucket'lar: bu fonksiyon görselleri sıkıştırıp kalıcı bir
@@ -152,16 +203,18 @@ export async function uploadImage(
   } = await supabase.auth.getSession();
 
   if (!session) {
-    throw new UploadError("Oturumunuz sonlanmış. Sayfayı yenileyip tekrar deneyin.");
+    throw new UploadError("sessionExpired");
   }
 
   const blob = await compress(file);
   const type = blob.type || file.type;
 
   if (blob.size > MAX_UPLOAD_BYTES) {
-    throw new UploadError(
-      `"${file.name}" sıkıştırıldıktan sonra bile ${formatBytes(blob.size)} — sınır ${formatBytes(MAX_UPLOAD_BYTES)}.`,
-    );
+    throw new UploadError("stillTooLarge", {
+      name: file.name,
+      bytes: blob.size,
+      limitBytes: MAX_UPLOAD_BYTES,
+    });
   }
 
   const path = `${crypto.randomUUID()}.${EXTENSIONS[type] ?? "jpg"}`;
@@ -194,27 +247,38 @@ export async function uploadImage(
       /* Storage hatayı JSON olarak döner; en sık karşılaşılan ikisi bucket
          sınırlarından geliyor ve kullanıcıya ham İngilizce mesaj göstermek
          yerine ne olduğunu söylüyoruz. */
-      let message = `Yükleme başarısız (HTTP ${request.status}).`;
+      let error = new UploadError("httpFailed", {
+        status: String(request.status),
+      });
       try {
         const body = JSON.parse(request.responseText) as { message?: string };
         if (/exceeded the maximum allowed size/i.test(body.message ?? "")) {
-          message = `"${file.name}" sunucu sınırını aştı (en fazla ${formatBytes(MAX_UPLOAD_BYTES)}).`;
+          error = new UploadError("serverLimit", {
+            name: file.name,
+            limitBytes: MAX_UPLOAD_BYTES,
+          });
         } else if (/mime type/i.test(body.message ?? "")) {
-          message = `"${file.name}" desteklenmeyen bir biçimde. JPG, PNG veya WebP yükleyin.`;
+          error = new UploadError("unsupportedImage", { name: file.name });
         } else if (request.status === 403) {
-          message = "Bu dosyayı yükleme yetkiniz yok.";
+          error = new UploadError("forbidden");
         } else if (body.message) {
-          message = body.message;
+          /* Sözlükte karşılığı olmayan bir Storage hatası: ham metin
+             gösteriliyor. Yanlış bir çeviri uydurmaktansa İngilizce ama
+             DOĞRU bir cümle. */
+          error = new UploadError(
+            "httpFailed",
+            { status: String(request.status) },
+            body.message,
+          );
         }
       } catch {
-        // Gövde JSON değilse yukarıdaki genel mesaj kalır.
+        // Gövde JSON değilse yukarıdaki genel hata kalır.
       }
-      reject(new UploadError(message));
+      reject(error);
     };
 
-    request.onerror = () =>
-      reject(new UploadError("Bağlantı hatası — yükleme tamamlanamadı."));
-    request.onabort = () => reject(new UploadError("Yükleme iptal edildi."));
+    request.onerror = () => reject(new UploadError("connection"));
+    request.onabort = () => reject(new UploadError("aborted"));
 
     request.send(blob);
   });

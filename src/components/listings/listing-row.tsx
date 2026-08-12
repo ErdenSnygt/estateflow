@@ -1,21 +1,25 @@
 import Image from "next/image";
 import Link from "next/link";
+import { useFormatter, useTranslations } from "next-intl";
 import { Eye, Heart, MapPin, Maximize2 } from "lucide-react";
 
 import type { Listing } from "@/types/database";
 import {
-  CATEGORY_LABELS,
   formatListingPrice,
   formatRooms,
   isResidential,
 } from "@/lib/listings";
-import { formatArea, formatNumber, formatShortDate } from "@/lib/format";
+import { formatArea, formatNumber } from "@/lib/format";
+import { formatDate } from "@/i18n/dates";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ListingStatusBadge } from "@/components/listings/listing-status-badge";
 
 /** Liste görünümündeki yatay ilan satırı — daha çok alan bilgisi sığar. */
 export function ListingRow({ listing }: { listing: Listing }) {
+  const t = useTranslations("listings");
+  const format = useFormatter();
+
   return (
     <Link
       href={`/ilanlar/${listing.id}`}
@@ -39,7 +43,7 @@ export function ListingRow({ listing }: { listing: Listing }) {
                 <div className="flex items-center gap-2">
                   <ListingStatusBadge status={listing.status} />
                   <Badge variant="outline">
-                    {CATEGORY_LABELS[listing.category]}
+                    {t(`category.${listing.category}`)}
                   </Badge>
                 </div>
                 <h3 className="truncate text-[14.5px] font-semibold text-foreground">
@@ -54,7 +58,7 @@ export function ListingRow({ listing }: { listing: Listing }) {
               </div>
 
               <p className="shrink-0 text-[17px] font-semibold tracking-[-0.02em] text-foreground">
-                {formatListingPrice(listing)}
+                {formatListingPrice(listing, t("perMonth"))}
               </p>
             </div>
 
@@ -75,7 +79,7 @@ export function ListingRow({ listing }: { listing: Listing }) {
                 {formatNumber(listing.favorites_count)}
               </span>
               <span className="ml-auto">
-                {formatShortDate(listing.published_at)}
+                {formatDate(format, listing.published_at, "short")}
               </span>
             </div>
           </div>

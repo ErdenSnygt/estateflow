@@ -1,4 +1,5 @@
 import type { OfferStatus } from "@/types/database";
+import type { ActionErrorKey } from "@/lib/actions/result";
 
 /**
  * ============================================================================
@@ -14,14 +15,15 @@ import type { OfferStatus } from "@/types/database";
  * yerlerde yazılsaydı arayüz olmayan bir düğmeyi gösterirdi.
  */
 
-/* --- Etiketler ------------------------------------------------------------ */
+/* --- Durumlar ------------------------------------------------------------- */
 
-export const OFFER_STATUS_LABELS: Record<OfferStatus, string> = {
-  pending: "Bekliyor",
-  accepted: "Kabul edildi",
-  rejected: "Reddedildi",
-  expired: "Süresi doldu",
-};
+/** Filtre açılırında bu sırayla çiziliyor; etiketler `offers.status.*`. */
+export const OFFER_STATUSES = [
+  "pending",
+  "accepted",
+  "rejected",
+  "expired",
+] as const satisfies readonly OfferStatus[];
 
 export const OFFER_STATUS_TONES: Record<
   OfferStatus,
@@ -32,10 +34,6 @@ export const OFFER_STATUS_TONES: Record<
   rejected: "danger",
   expired: "neutral",
 };
-
-export const OFFER_STATUS_OPTIONS = (
-  Object.keys(OFFER_STATUS_LABELS) as OfferStatus[]
-).map((value) => ({ value, label: OFFER_STATUS_LABELS[value] }));
 
 /* --- Durum geçişleri ------------------------------------------------------ */
 
@@ -55,9 +53,17 @@ const TRANSITIONS: Record<OfferStatus, readonly OfferStatus[]> = {
   expired: [],
 };
 
+/**
+ * Geçiş reddi ARTIK METİN DEĞİL ANAHTAR taşıyor.
+ *
+ * Bu fonksiyon saf ve senkron; çeviriyi kendisi yapamaz (dil isteğe bağlı,
+ * `getTranslations` asenkron). `params` içindeki değerler DURUM DEĞERLERİ —
+ * çağıran action onları kendi sözlüğünden etikete çevirip `fail`e veriyor.
+ * Gerekçenin tamamı `lib/actions/result.ts` başlığında.
+ */
 export type TransitionCheck =
   | { ok: true }
-  | { ok: false; reason: string };
+  | { ok: false; error: ActionErrorKey; params: Record<string, OfferStatus> };
 
 /** Bir teklifin `from` durumundan `to` durumuna geçmesi geçerli mi. */
 export function canTransition(
@@ -65,17 +71,11 @@ export function canTransition(
   to: OfferStatus,
 ): TransitionCheck {
   if (from === to) {
-    return {
-      ok: false,
-      reason: `Teklif zaten "${OFFER_STATUS_LABELS[to].toLocaleLowerCase("tr-TR")}" durumunda.`,
-    };
+    return { ok: false, error: "offerAlreadyInStatus", params: { status: to } };
   }
 
   if (!TRANSITIONS[from].includes(to)) {
-    return {
-      ok: false,
-      reason: `"${OFFER_STATUS_LABELS[from]}" durumundaki bir teklif değiştirilemez.`,
-    };
+    return { ok: false, error: "offerTerminal", params: { status: from } };
   }
 
   return { ok: true };
@@ -104,18 +104,37 @@ export function closesSale(to: OfferStatus): boolean {
 
 /* --- Sıralama ------------------------------------------------------------- */
 
-export const OFFER_SORT_OPTIONS = [
-  { value: "recent", label: "En yeni" },
-  { value: "amount-desc", label: "Tutar (yüksekten)" },
-  { value: "amount-asc", label: "Tutar (düşükten)" },
+/**
+ * Sıralama ANAHTARLARI — etiketler sözlükte (`offers.sort.*`, `sales.sort.*`).
+ *
+ * Değerler tire içeriyor (`amount-desc`) ama sözlükte camelCase duruyorlar;
+ * dönüşüm `lib/listings.ts` ve `lib/customers.ts` ile aynı desende, tek yerde.
+ *
+ * İKİ AYRI DİZİ, aynı içerik: teklif ve satış listeleri bugün aynı üç seçeneği
+ * paylaşıyor ama ayrı URL anahtarlarında yaşıyorlar ve birinin seçenekleri
+ * değişirse diğerini sürüklememeli.
+ */
+export const OFFER_SORT_KEYS = [
+  "recent",
+  "amount-desc",
+  "amount-asc",
 ] as const;
 
-export type OfferSortKey = (typeof OFFER_SORT_OPTIONS)[number]["value"];
+export type OfferSortKey = (typeof OFFER_SORT_KEYS)[number];
 
-export const SALE_SORT_OPTIONS = [
-  { value: "recent", label: "En yeni" },
-  { value: "amount-desc", label: "Tutar (yüksekten)" },
-  { value: "amount-asc", label: "Tutar (düşükten)" },
+export const SALE_SORT_KEYS = [
+  "recent",
+  "amount-desc",
+  "amount-asc",
 ] as const;
 
-export type SaleSortKey = (typeof SALE_SORT_OPTIONS)[number]["value"];
+export type SaleSortKey = (typeof SALE_SORT_KEYS)[number];
+
+/** Sözlükteki anahtar adı — iki liste de aynı üçlüyü kullanıyor. */
+export type SortMessageKey = "recent" | "amountDesc" | "amountAsc";
+
+export const SORT_MESSAGE_KEY: Record<OfferSortKey, SortMessageKey> = {
+  recent: "recent",
+  "amount-desc": "amountDesc",
+  "amount-asc": "amountAsc",
+};

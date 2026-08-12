@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useFormatter, useTranslations } from "next-intl";
 import {
   Building2,
   Check,
@@ -18,9 +19,7 @@ import { toast } from "sonner";
 
 import type { AppointmentItem } from "@/lib/data/appointments";
 import {
-  APPOINTMENT_STATUS_LABELS,
   APPOINTMENT_STATUS_TONES,
-  APPOINTMENT_TYPE_LABELS,
   APPOINTMENT_TYPE_PALETTE,
 } from "@/lib/appointments";
 import {
@@ -65,6 +64,9 @@ export function AppointmentPopover({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const t = useTranslations("appointments");
+  const tCommon = useTranslations("common");
+  const format = useFormatter();
   const [isBusy, setIsBusy] = React.useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = React.useState(false);
 
@@ -81,13 +83,13 @@ export function AppointmentPopover({
     setIsBusy(false);
 
     if (!result.ok) {
-      toast.error("Randevu güncellenemedi", { description: result.error });
+      toast.error(t("popover.statusError"), { description: result.error });
       return;
     }
 
-    toast.success(APPOINTMENT_STATUS_LABELS[next], {
+    toast.success(t(`status.${next}`), {
       description: result.data.timelineAdded
-        ? "Müşterinin görüşme geçmişine de işlendi."
+        ? t("popover.timelineAdded")
         : undefined,
     });
     close();
@@ -105,11 +107,11 @@ export function AppointmentPopover({
     setIsBusy(false);
 
     if (!result.ok) {
-      toast.error("Randevu silinemedi", { description: result.error });
+      toast.error(t("popover.deleteError"), { description: result.error });
       return;
     }
 
-    toast.success("Randevu silindi");
+    toast.success(t("popover.deleted"));
     close();
     router.refresh();
   }
@@ -133,21 +135,21 @@ export function AppointmentPopover({
               {appointment.title}
             </p>
             <p className="mt-0.5 text-[12px] text-muted-foreground">
-              {APPOINTMENT_TYPE_LABELS[appointment.appointment_type]}
+              {t(`type.${appointment.appointment_type}`)}
             </p>
           </div>
           <Badge
             variant={APPOINTMENT_STATUS_TONES[appointment.status]}
             className="shrink-0"
           >
-            {APPOINTMENT_STATUS_LABELS[appointment.status]}
+            {t(`status.${appointment.status}`)}
           </Badge>
         </div>
 
         {/* --- Ayrıntılar --- */}
         <div className="space-y-2.5 p-4">
           <p className="text-[13px] font-medium tabular-nums text-foreground">
-            {formatDayLong(toDateKey(appointment.start_time))}
+            {formatDayLong(format, toDateKey(appointment.start_time))}
             <span className="mx-1.5 text-muted-foreground">·</span>
             {formatTimeRange(appointment.start_time, appointment.end_time)}
           </p>
@@ -197,7 +199,7 @@ export function AppointmentPopover({
             }}
             disabled={isBusy}
           >
-            Düzenle
+            {tCommon("edit")}
           </PanelAction>
 
           {appointment.status === "planlandi" ? (
@@ -208,14 +210,14 @@ export function AppointmentPopover({
                 disabled={isBusy}
                 tone="success"
               >
-                Tamamlandı
+                {t("popover.complete")}
               </PanelAction>
               <PanelAction
                 icon={<X className="size-3.5" />}
                 onClick={() => changeStatus("iptal")}
                 disabled={isBusy}
               >
-                İptal et
+                {t("popover.cancel")}
               </PanelAction>
             </>
           ) : (
@@ -224,7 +226,7 @@ export function AppointmentPopover({
               onClick={() => changeStatus("planlandi")}
               disabled={isBusy}
             >
-              Planlandıya al
+              {t("popover.replan")}
             </PanelAction>
           )}
 
@@ -240,7 +242,7 @@ export function AppointmentPopover({
             disabled={isBusy}
             tone="danger"
           >
-            {isConfirmingDelete ? "Emin misiniz?" : "Sil"}
+            {isConfirmingDelete ? t("popover.confirmDelete") : tCommon("delete")}
           </PanelAction>
         </div>
       </PopoverContent>

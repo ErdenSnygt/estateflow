@@ -2,11 +2,12 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Loader2, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 
 import type { CustomerEventType } from "@/types/database";
-import { CUSTOMER_EVENT_LABELS } from "@/lib/customers";
+import { CUSTOMER_EVENT_TYPES } from "@/lib/customers";
 import { createCustomerEvent } from "@/lib/actions/timeline";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,12 +34,13 @@ import {
  * "created" seçeneği listede yok: kayıt oluşturma olayını uygulama üretir,
  * kullanıcı elle ekleyemez.
  */
-const SELECTABLE = (
-  Object.keys(CUSTOMER_EVENT_LABELS) as CustomerEventType[]
-).filter((type) => type !== "created");
+const SELECTABLE = CUSTOMER_EVENT_TYPES.filter((type) => type !== "created");
 
 export function AddEventForm({ customerId }: { customerId: string }) {
   const router = useRouter();
+  const t = useTranslations("customers.addEvent");
+  const tEvent = useTranslations("customers.event");
+  const tCommon = useTranslations("common");
   const [isOpen, setIsOpen] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
   const [type, setType] = React.useState<CustomerEventType>("called");
@@ -55,9 +57,7 @@ export function AddEventForm({ customerId }: { customerId: string }) {
 
     const trimmed = note.trim();
     if (trimmed.length === 0) {
-      toast.error("Not boş bırakılamaz", {
-        description: "Görüşmede ne konuşulduğunu kısaca yazın.",
-      });
+      toast.error(t("emptyTitle"), { description: t("emptyBody") });
       return;
     }
 
@@ -66,13 +66,11 @@ export function AddEventForm({ customerId }: { customerId: string }) {
     setIsSaving(false);
 
     if (!result.ok) {
-      toast.error("Kayıt eklenemedi", { description: result.error });
+      toast.error(t("errorTitle"), { description: result.error });
       return;
     }
 
-    toast.success("Görüşme kaydedildi", {
-      description: CUSTOMER_EVENT_LABELS[type],
-    });
+    toast.success(t("successTitle"), { description: tEvent(type) });
     reset();
     router.refresh();
   }
@@ -87,7 +85,7 @@ export function AddEventForm({ customerId }: { customerId: string }) {
           onClick={() => setIsOpen(true)}
         >
           <Plus className="size-3.5" />
-          Görüşme kaydı ekle
+          {t("trigger")}
         </Button>
       </div>
     );
@@ -100,21 +98,21 @@ export function AddEventForm({ customerId }: { customerId: string }) {
     >
       <div className="flex items-center justify-between gap-2">
         <h4 className="text-[13.5px] font-semibold text-foreground">
-          Yeni görüşme kaydı
+          {t("title")}
         </h4>
         <Button
           type="button"
           variant="ghost"
           size="sm"
           onClick={reset}
-          aria-label="Vazgeç"
+          aria-label={tCommon("cancel")}
         >
           <X className="size-3.5" />
         </Button>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="event-type">Olay türü</Label>
+        <Label htmlFor="event-type">{t("typeLabel")}</Label>
         <Select
           value={type}
           onValueChange={(value) => setType(value as CustomerEventType)}
@@ -125,7 +123,7 @@ export function AddEventForm({ customerId }: { customerId: string }) {
           <SelectContent>
             {SELECTABLE.map((value) => (
               <SelectItem key={value} value={value}>
-                {CUSTOMER_EVENT_LABELS[value]}
+                {tEvent(value)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -133,32 +131,32 @@ export function AddEventForm({ customerId }: { customerId: string }) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="event-note">Not</Label>
+        <Label htmlFor="event-note">{t("noteLabel")}</Label>
         <Textarea
           id="event-note"
           rows={3}
           maxLength={500}
           value={note}
           onChange={(changed) => setNote(changed.target.value)}
-          placeholder="Örn. Kadıköy'deki 3+1 için ikinci kez görüşüldü, fiyatta 500 B indirim bekliyor."
+          placeholder={t("notePlaceholder")}
         />
         <p className="text-[12px] text-muted-foreground">
-          {note.length} / 500 karakter
+          {t("counter", { count: note.length })}
         </p>
       </div>
 
       <div className="flex justify-end gap-2">
         <Button type="button" variant="ghost" size="sm" onClick={reset}>
-          Vazgeç
+          {tCommon("cancel")}
         </Button>
         <Button type="submit" size="sm" disabled={isSaving}>
           {isSaving ? (
             <>
               <Loader2 className="size-3.5 animate-spin" />
-              Kaydediliyor…
+              {tCommon("saving")}
             </>
           ) : (
-            "Kaydet"
+            tCommon("save")
           )}
         </Button>
       </div>

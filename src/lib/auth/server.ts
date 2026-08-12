@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { getTranslations } from "next-intl/server";
 
 import type { Agent } from "@/types/database";
 import { createClient } from "@/lib/supabase/server";
@@ -79,14 +80,20 @@ export const getCurrentAgent = cache(async function getCurrentAgent(): Promise<
 export const getSession = cache(async function getSession(): Promise<Session | null> {
   /* İkisi de aynı önbelleklenmiş kullanıcıyı paylaşıyor; `getCurrentAgent`
      yalnızca `agents` sorgusu kadar ek maliyet getiriyor. */
-  const [user, agent] = await Promise.all([
+  const [user, agent, t] = await Promise.all([
     getVerifiedUser(),
     getCurrentAgent(),
+    getTranslations("common"),
   ]);
 
   if (!user) return null;
 
-  return toSession(user, agent);
+  /* Yedek ad ve unvan sözlükten: `toSession` saf olduğu için metni buradan
+     alıyor (gerekçe `session.ts` içindeki `SessionFallbacks` başlığında). */
+  return toSession(user, agent, {
+    name: t("fallbackUserName"),
+    title: t("awaitingRole"),
+  });
 });
 
 /**

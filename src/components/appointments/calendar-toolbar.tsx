@@ -2,11 +2,11 @@
 
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useFormatter, useTranslations } from "next-intl";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import {
   CALENDAR_VIEWS,
-  CALENDAR_VIEW_LABELS,
   formatViewLabel,
   shiftDate,
   toDateKey,
@@ -40,6 +40,8 @@ export function CalendarToolbar({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useTranslations("appointments");
+  const format = useFormatter();
 
   const navigate = React.useCallback(
     (patch: { view?: CalendarView; date?: DateKey }) => {
@@ -59,7 +61,7 @@ export function CalendarToolbar({
       <div className="flex items-center gap-1 rounded-lg border border-hairline bg-surface-inset p-1">
         <button
           type="button"
-          aria-label="Önceki"
+          aria-label={t("toolbar.previous")}
           onClick={() => navigate({ date: shiftDate(view, date, -1) })}
           className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-surface hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
@@ -67,7 +69,7 @@ export function CalendarToolbar({
         </button>
         <button
           type="button"
-          aria-label="Sonraki"
+          aria-label={t("toolbar.next")}
           onClick={() => navigate({ date: shiftDate(view, date, 1) })}
           className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-surface hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
@@ -81,20 +83,20 @@ export function CalendarToolbar({
         disabled={isToday}
         onClick={() => navigate({ date: toDateKey(Date.now()) })}
       >
-        Bugün
+        {t("toolbar.today")}
       </Button>
 
       {/* --- Görünüm başlığı ---
           `order` ile mobilde alt satıra alınıyor: dar ekranda başlık ile
           sekmeler yan yana sığmıyor, başlık tam genişlik alıyor. */}
       <p className="order-last w-full text-[14px] font-medium tabular-nums text-foreground md:order-none md:w-auto md:flex-1">
-        {formatViewLabel(view, date)}
+        {formatViewLabel(format, view, date)}
       </p>
 
       {/* --- Görünüm sekmeleri --- */}
       <div
         role="tablist"
-        aria-label="Takvim görünümü"
+        aria-label={t("toolbar.viewsAria")}
         className="ml-auto flex items-center gap-1 rounded-lg border border-hairline bg-surface-inset p-1 md:ml-0"
       >
         {CALENDAR_VIEWS.map((candidate) => (
@@ -112,7 +114,7 @@ export function CalendarToolbar({
                 : "text-muted-foreground hover:text-foreground",
             )}
           >
-            {CALENDAR_VIEW_LABELS[candidate]}
+            {t(`view.${candidate}`)}
           </button>
         ))}
       </div>

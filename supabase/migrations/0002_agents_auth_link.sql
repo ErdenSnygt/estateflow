@@ -1,5 +1,5 @@
 -- =============================================================================
--- Emlak CRM — personel ↔ auth bağı ve rol bazlı yetkilendirme
+-- EstateFlow — personel ↔ auth bağı ve rol bazlı yetkilendirme
 -- =============================================================================
 -- Faz 6. 0001'de RLS "giriş yapmış herkes her şeyi yapabilir" seviyesindeydi ve
 -- dosyanın sonunda şu not duruyordu: "Rol bazlı ayrım ayrı bir fazda gelecek —

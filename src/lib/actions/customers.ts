@@ -77,7 +77,12 @@ export async function updateCustomer(
   const supabase = await createClient();
 
   /* Eski portre adresi güncelleme öncesi okunur; değiştiyse dosya yetim
-     kalacak demektir. */
+     kalacak demektir.
+
+     FAZ 19'DAN SONRA BU DAL YALNIZCA TEMİZLİK: müşteri fotoğrafı kaldırıldı ve
+     `toCustomerInput` artık her zaman `null` yazıyor. Yani buradaki silme,
+     özellik kaldırılmadan önce yüklenmiş bir dosya varsa onu bucket'tan
+     düşürüyor. Kaldırmak, o dosyaları kalıcı olarak yetim bırakırdı. */
   const { data: current } = await supabase
     .from("customers")
     .select("avatar_url")

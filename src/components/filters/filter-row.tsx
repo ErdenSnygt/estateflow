@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { SlidersHorizontal, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -48,6 +49,7 @@ export function FilterRow({
 }) {
   const isMobile = useMediaQuery("(max-width: 767.98px)");
   const [isOpen, setIsOpen] = React.useState(false);
+  const t = useTranslations("filters");
 
   if (!isMobile) {
     return (
@@ -56,7 +58,7 @@ export function FilterRow({
         {activeCount > 0 && (
           <Button variant="ghost" size="sm" onClick={onClear} className="gap-1.5">
             <X className="size-3.5" />
-            Temizle
+            {t("clear")}
             <Badge variant="brand" className="ml-0.5">
               {activeCount}
             </Badge>
@@ -75,7 +77,7 @@ export function FilterRow({
           onClick={() => setIsOpen(true)}
         >
           <SlidersHorizontal className="size-4" />
-          Filtrele
+          {t("trigger")}
           {activeCount > 0 && (
             <Badge variant="brand" className="ml-1">
               {activeCount}
@@ -86,7 +88,7 @@ export function FilterRow({
         {activeCount > 0 && (
           <Button variant="ghost" size="sm" onClick={onClear}>
             <X className="size-3.5" />
-            Temizle
+            {t("clear")}
           </Button>
         )}
       </div>
@@ -94,11 +96,11 @@ export function FilterRow({
       <SheetContent aria-describedby={undefined}>
         <SheetHeader>
           <div className="min-w-0">
-            <SheetTitle>Filtreler</SheetTitle>
+            <SheetTitle>{t("title")}</SheetTitle>
             <SheetDescription>
               {activeCount > 0
-                ? `${activeCount} filtre etkin`
-                : "Sonuçları daraltmak için seçim yapın"}
+                ? t("activeCount", { count: activeCount })
+                : t("hint")}
             </SheetDescription>
           </div>
           <SheetCloseButton />
@@ -120,7 +122,7 @@ export function FilterRow({
           </div>
 
           <SheetClose asChild>
-            <Button className="mt-4 w-full">Sonuçları göster</Button>
+            <Button className="mt-4 w-full">{t("showResults")}</Button>
           </SheetClose>
         </SheetBody>
       </SheetContent>

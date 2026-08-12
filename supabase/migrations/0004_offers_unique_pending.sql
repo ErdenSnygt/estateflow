@@ -1,5 +1,5 @@
 -- =============================================================================
--- Emlak CRM — bir çift için tek bekleyen teklif
+-- EstateFlow — bir çift için tek bekleyen teklif
 -- =============================================================================
 -- Faz 8 sonrası düzeltme.
 --

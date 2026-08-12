@@ -1,5 +1,5 @@
 -- =============================================================================
--- Emlak CRM — mesajlar, evraklar ve bildirimler
+-- EstateFlow — mesajlar, evraklar ve bildirimler
 -- =============================================================================
 -- Faz 12. Menüdeki son üç "yakında" ekranı: Mesajlar, Evraklar, Bildirimler.
 -- Üçü birlikte çünkü ortak bir altyapı paylaşıyorlar — dosya işlemleri

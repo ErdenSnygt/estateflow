@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getFormatter, getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { Eye, Heart, Medal } from "lucide-react";
 
@@ -11,12 +12,11 @@ import { getAgentPerformances, getAgents } from "@/lib/data/agents";
 import { getRevenueOverview } from "@/lib/data/revenue";
 import { getCurrentAgent } from "@/lib/auth/server";
 import { isManagerRole } from "@/lib/agents";
-import { STATUS_LABELS } from "@/lib/listings";
 import {
   DEFAULT_PERIOD,
   PERIOD_OPTIONS,
   periodDays,
-  periodLabel,
+  periodValue,
   type PeriodValue,
 } from "@/lib/revenue";
 import {
@@ -24,6 +24,7 @@ import {
   formatCurrencyCompact,
   formatNumber,
 } from "@/lib/format";
+import { formatPercent } from "@/i18n/numbers";
 import { oneOf, type SearchParamsInput } from "@/lib/search-params";
 import { cn } from "@/lib/utils";
 import { AnimatedNumber } from "@/components/animated-number";
@@ -36,9 +37,10 @@ import { CategoryChart } from "@/components/dashboard/category-chart";
 import { PeriodTabs } from "@/components/revenue/period-tabs";
 import { TrendChart } from "@/components/reports/trend-chart";
 
-export const metadata: Metadata = {
-  title: "Raporlar",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("reports.page");
+  return { title: t("title") };
+}
 
 type PageProps = { searchParams: Promise<SearchParamsInput> };
 
@@ -89,14 +91,45 @@ export default async function RaporlarPage({ searchParams }: PageProps) {
 
   const days = periodDays(period);
 
-  const agent = await getCurrentAgent();
+  /* `getCurrentAgent()` ROL İÇİN gerekiyor ama portföy ve satış sorguları
+     ondan bağımsız — beklemelerine gerek yok. Önceki sürüm önce rolü çözüp
+     sonra beşini başlatıyordu; bu, sayfanın tamamını bir ağ turu kadar
+     geciktiriyordu. `getCurrentAgent` istek başına önbellekli, yani aşağıda
+     ikinci kez çağrılması ücretsiz. */
+  const [
+    agent,
+    byCategory,
+    byStatus,
+    mostViewed,
+    mostFavorited,
+    revenue,
+    tListings,
+    t,
+    tRevenue,
+    format,
+  ] = await Promise.all([
+      getCurrentAgent(),
+      getListingsByCategory(),
+      getListingsByStatus(),
+      getTopListings("views_count"),
+      getTopListings("favorites_count"),
+      getRevenueOverview(days),
+      /* Paylaşılan ilan sözlüğü — durum etiketleri `lib/listings.ts`ten
+         Faz 20'de çeviriye taşınmıştı. */
+      getTranslations("listings"),
+      getTranslations("reports"),
+      /* Dönem etiketi Gelirler ile ORTAK: iki sayfa aynı `PeriodTabs`
+         bileşenini ve aynı anahtarları kullanıyor. */
+      getTranslations("revenue"),
+      getFormatter(),
+    ]);
 
   if (!agent) {
     return (
       <div className="space-y-6 pb-4">
         <PageHeader
-          title="Raporlar"
-          description="Portföy, satış ve ekip performansı özeti."
+          title={t("page.title")}
+          description={t("page.noAgentDescription")}
         />
         <AgentNotice />
       </div>
@@ -105,22 +138,15 @@ export default async function RaporlarPage({ searchParams }: PageProps) {
 
   const isManager = isManagerRole(agent.role);
 
-  /* Hepsi paralel. Ekip bölümü yalnızca yöneticide çekiliyor — danışman için
-     iki gereksiz sorgu açmanın anlamı yok. */
-  const [byCategory, byStatus, mostViewed, mostFavorited, revenue, team] =
-    await Promise.all([
-      getListingsByCategory(),
-      getListingsByStatus(),
-      getTopListings("views_count"),
-      getTopListings("favorites_count"),
-      getRevenueOverview(days),
-      isManager
-        ? getAgents().then(async (agents) => ({
-            agents,
-            performances: await getAgentPerformances(agents),
-          }))
-        : Promise.resolve(null),
-    ]);
+  /* Ekip bölümü ancak roller çözüldükten sonra başlayabiliyor ve yalnızca
+     yöneticide çekiliyor — danışman için iki gereksiz sorgu açmanın anlamı
+     yok. */
+  const team = isManager
+    ? await getAgents().then(async (agents) => ({
+        agents,
+        performances: await getAgentPerformances(agents),
+      }))
+    : null;
 
   const totalListings = byStatus.reduce((sum, row) => sum + row.count, 0);
 
@@ -143,8 +169,8 @@ export default async function RaporlarPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-5 pb-4">
       <PageHeader
-        title="Raporlar"
-        description="Portföyün dağılımı, dönem içindeki satış trendi ve ekip performansı."
+        title={t("page.title")}
+        description={t("page.description")}
         actions={<PeriodTabs current={period} />}
       />
 
@@ -153,18 +179,18 @@ export default async function RaporlarPage({ searchParams }: PageProps) {
       {/* ================================================================== */}
       <section className="space-y-3">
         <SectionTitle
-          title="Portföy analizi"
-          hint={`${formatNumber(totalListings)} ilan`}
+          title={t("portfolio.title")}
+          hint={t("portfolio.hint", { count: formatNumber(totalListings) })}
         />
 
         <div className="grid gap-4 lg:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle>Kategori dağılımı</CardTitle>
+              <CardTitle>{t("portfolio.byCategory")}</CardTitle>
             </CardHeader>
             <CardContent className="pt-2">
               {byCategory.length === 0 ? (
-                <EmptyNote>Portföyde ilan yok.</EmptyNote>
+                <EmptyNote>{t("portfolio.empty")}</EmptyNote>
               ) : (
                 <CategoryChart data={byCategory} />
               )}
@@ -173,20 +199,20 @@ export default async function RaporlarPage({ searchParams }: PageProps) {
 
           <Card>
             <CardHeader>
-              <CardTitle>Durum dağılımı</CardTitle>
+              <CardTitle>{t("portfolio.byStatus")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2.5 pt-3">
               {byStatus.length === 0 ? (
-                <EmptyNote>Portföyde ilan yok.</EmptyNote>
+                <EmptyNote>{t("portfolio.empty")}</EmptyNote>
               ) : (
                 byStatus.map((row) => (
                   <div key={row.status} className="space-y-1">
                     <div className="flex items-baseline justify-between gap-2 text-[13px]">
                       <span className="text-secondary-foreground">
-                        {STATUS_LABELS[row.status]}
+                        {tListings(`status.${row.status}`)}
                       </span>
                       <span className="tabular-nums text-muted-foreground">
-                        {row.count} · %{Math.round(row.share * 100)}
+                        {row.count} · {formatPercent(format, row.share)}
                       </span>
                     </div>
                     <div className="h-1.5 overflow-hidden rounded-full bg-surface-inset">
@@ -204,16 +230,18 @@ export default async function RaporlarPage({ searchParams }: PageProps) {
 
         <div className="grid gap-4 lg:grid-cols-2">
           <TopListingCard
-            title="En çok görüntülenen"
+            title={t("portfolio.mostViewed")}
             icon={<Eye className="size-4" />}
             listings={mostViewed}
             metric="views_count"
+            emptyLabel={t("portfolio.noListings")}
           />
           <TopListingCard
-            title="En çok favorilenen"
+            title={t("portfolio.mostFavorited")}
             icon={<Heart className="size-4" />}
             listings={mostFavorited}
             metric="favorites_count"
+            emptyLabel={t("portfolio.noListings")}
           />
         </div>
       </section>
@@ -222,19 +250,22 @@ export default async function RaporlarPage({ searchParams }: PageProps) {
       {/* 2. Satış analizi                                                    */}
       {/* ================================================================== */}
       <section className="space-y-3">
-        <SectionTitle title="Satış analizi" hint={periodLabel(period)} />
+        <SectionTitle
+          title={t("sales.title")}
+          hint={tRevenue(`period.${periodValue(period)}`)}
+        />
 
         <div className="grid gap-3 sm:grid-cols-3">
           <MiniStat
-            label="Kapanan işlem"
+            label={t("sales.dealCount")}
             value={<AnimatedNumber value={revenue.saleCount} />}
           />
           <MiniStat
-            label="Satış hacmi"
+            label={t("sales.volume")}
             value={<AnimatedNumber value={revenue.volume} format="compact" />}
           />
           <MiniStat
-            label="Ortalama işlem"
+            label={t("sales.average")}
             value={
               revenue.saleCount > 0 ? (
                 <AnimatedNumber
@@ -250,13 +281,14 @@ export default async function RaporlarPage({ searchParams }: PageProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Satış hacmi trendi</CardTitle>
+            <CardTitle>{t("sales.trendTitle")}</CardTitle>
           </CardHeader>
           <CardContent className="pt-2">
             {revenue.saleCount === 0 ? (
               <EmptyNote>
-                {periodLabel(period)} içinde kapanan işlem yok. Daha geniş bir
-                dönem seçebilirsiniz.
+                {t("sales.empty", {
+                  period: tRevenue(`periodPhrase.${periodValue(period)}`),
+                })}
               </EmptyNote>
             ) : (
               <TrendChart data={revenue.series} />
@@ -271,17 +303,15 @@ export default async function RaporlarPage({ searchParams }: PageProps) {
       {isManager && (
         <section className="space-y-3">
           <SectionTitle
-            title="Ekip performansı"
-            hint="Tüm zamanlar"
-            badge="Yönetici"
+            title={t("team.title")}
+            hint={t("team.hint")}
+            badge={t("team.badge")}
           />
 
           <Card>
             <CardContent className="space-y-2 p-4">
               {leaderboard.length === 0 ? (
-                <EmptyNote>
-                  Henüz satış kaydı olan danışman yok.
-                </EmptyNote>
+                <EmptyNote>{t("team.empty")}</EmptyNote>
               ) : (
                 leaderboard.map((row, index) => (
                   <Link
@@ -317,9 +347,11 @@ export default async function RaporlarPage({ searchParams }: PageProps) {
                         {row.agent.full_name}
                       </p>
                       <p className="text-[12px] text-muted-foreground">
-                        {row.performance?.totalSales} işlem ·{" "}
-                        {row.performance?.activeListings} aktif ilan ·{" "}
-                        {row.performance?.activeCustomers} aktif müşteri
+                        {t("team.meta", {
+                          sales: row.performance?.totalSales ?? 0,
+                          listings: row.performance?.activeListings ?? 0,
+                          customers: row.performance?.activeCustomers ?? 0,
+                        })}
                       </p>
                     </div>
 
@@ -335,9 +367,7 @@ export default async function RaporlarPage({ searchParams }: PageProps) {
       )}
 
       <p className="px-1 text-[12px] leading-relaxed text-muted-foreground">
-        Raporlar mevcut kayıtlardan anlık hesaplanır; ayrı bir analitik veri
-        deposu tutulmaz. Gördüğünüz sayılar yetkiniz kapsamındaki kayıtlarla
-        sınırlıdır.
+        {t("page.footnote")}
       </p>
     </div>
   );
@@ -389,11 +419,14 @@ function TopListingCard({
   icon,
   listings,
   metric,
+  emptyLabel,
 }: {
   title: string;
   icon: React.ReactNode;
   listings: Awaited<ReturnType<typeof getTopListings>>;
   metric: "views_count" | "favorites_count";
+  /* Etiket DIŞARIDAN: bu yardımcı senkron ve sayfada iki kez çiziliyor. */
+  emptyLabel: string;
 }) {
   return (
     <Card>
@@ -405,7 +438,7 @@ function TopListingCard({
       </CardHeader>
       <CardContent className="space-y-1.5 pt-3">
         {listings.length === 0 ? (
-          <EmptyNote>Gösterilecek ilan yok.</EmptyNote>
+          <EmptyNote>{emptyLabel}</EmptyNote>
         ) : (
           listings.map((listing, index) => (
             <Link

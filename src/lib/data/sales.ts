@@ -166,23 +166,23 @@ export async function getOffersList(
    Dashboard toplamları
    ========================================================================== */
 
-const MONTH_SHORT = [
-  "Oca", "Şub", "Mar", "Nis", "May", "Haz",
-  "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara",
-] as const;
-
-const MONTH_LONG = [
-  "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
-  "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık",
-] as const;
-
+/**
+ * FAZ 20: AY ADLARI BURADAN KALKTI.
+ *
+ * Bu dosyada `MONTH_SHORT` / `MONTH_LONG` diye iki Türkçe dizi vardı ve seri
+ * "Nis" / "Nisan 2026" gibi HAZIR ETİKETLER döndürüyordu. Arayüz iki dilli
+ * olunca bu, veri katmanının dil seçmesi anlamına geliyordu.
+ *
+ * Artık yalnızca ayın BAŞLANGIÇ ANI taşınıyor; etiketi çizen bileşen
+ * üretiyor (`components/dashboard/sales-chart.tsx` → `useFormatter()`).
+ * `recent-activity.tsx` başlığındaki kuralın aynısı: "cümlenin fiili UI'da
+ * durur, veri katmanı yalnızca yapıyı taşır".
+ */
 export type SalesPoint = {
   /** "2026-04" — sıralama ve anahtar için. */
   month: string;
-  /** "Nis" — eksen etiketi. */
-  label: string;
-  /** "Nisan 2026" — tooltip. */
-  fullLabel: string;
+  /** Ayın ilk gününün ISO damgası — etiket bundan biçimlendiriliyor. */
+  monthStart: string;
   sales: number;
   revenue: number;
 };
@@ -227,8 +227,7 @@ export const getSalesTimeSeries = cache(async function getSalesTimeSeries(): Pro
 
     return {
       month: `${date.getUTCFullYear()}-${String(calendarMonth + 1).padStart(2, "0")}`,
-      label: MONTH_SHORT[calendarMonth],
-      fullLabel: `${MONTH_LONG[calendarMonth]} ${date.getUTCFullYear()}`,
+      monthStart: date.toISOString(),
       sales: 0,
       revenue: 0,
     };

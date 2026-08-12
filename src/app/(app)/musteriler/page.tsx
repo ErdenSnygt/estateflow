@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { Plus } from "lucide-react";
 
 import type { SearchParamsInput } from "@/lib/search-params";
@@ -11,9 +12,10 @@ import { CustomersFilterBar } from "@/components/customers/customers-filter-bar"
 import { CustomerResults } from "@/components/customers/customer-results";
 import { CustomerGridSkeleton } from "@/components/customers/customer-card-skeleton";
 
-export const metadata: Metadata = {
-  title: "Müşteriler",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("customers.list");
+  return { title: t("title") };
+}
 
 export default async function MusterilerPage({
   searchParams,
@@ -22,7 +24,10 @@ export default async function MusterilerPage({
 }) {
   const params = await searchParams;
   /* Filtre çubuğu istemci bileşeni; danışman listesini kendisi çekemez. */
-  const agentOptions = await getAgentOptions();
+  const [agentOptions, t] = await Promise.all([
+    getAgentOptions(),
+    getTranslations("customers.list"),
+  ]);
 
   /* İlanlar'daki ile aynı: Suspense anahtarı filtrelerle değişsin ki her
      filtre değişiminde iskelet yeniden görünsün. */
@@ -39,13 +44,13 @@ export default async function MusterilerPage({
   return (
     <div className="space-y-6 pb-4">
       <PageHeader
-        title="Müşteriler"
-        description="Portföyünüzle ilgilenen alıcıları takip edin; her kayıt ilgilendiği ilanlar ve görüşme geçmişiyle birlikte tutulur."
+        title={t("title")}
+        description={t("description")}
         actions={
           <Button asChild>
             <Link href="/musteriler/yeni">
               <Plus className="size-4" />
-              Yeni müşteri
+              {t("new")}
             </Link>
           </Button>
         }

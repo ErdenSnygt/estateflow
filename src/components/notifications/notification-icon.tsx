@@ -1,7 +1,8 @@
 import {
+  ArrowLeftRight,
   Building2,
   CalendarClock,
-  MessageSquare,
+  CircleHelp,
   Receipt,
   UserRoundPlus,
   type LucideIcon,
@@ -21,8 +22,13 @@ const ICONS: Record<NotificationType, LucideIcon> = {
   customer_added: UserRoundPlus,
   listing_created: Building2,
   sale_closed: Receipt,
-  message_received: MessageSquare,
   appointment_scheduled: CalendarClock,
+  /* Faz 18 — üç iş notu olayı. İkonlar `WorkNoteIcon` ile AYNI: panoda soruyu
+     `CircleHelp`, devri `ArrowLeftRight` olarak gören kullanıcı bildirimde de
+     aynı şekli görüyor. */
+  work_note_mention: CircleHelp,
+  work_note_assigned: ArrowLeftRight,
+  work_note_resolved: CircleHelp,
 };
 
 /** Renkler durum token'larından; `chart-*` paleti grafiklere ayrılmış durumda. */
@@ -31,8 +37,11 @@ const TONES: Record<NotificationType, string> = {
   listing_created: "bg-brand-soft text-brand",
   /* Satış tek "iyi haber" — yeşil onun. */
   sale_closed: "bg-success-soft text-success",
-  message_received: "bg-warning-soft text-warning",
   appointment_scheduled: "bg-surface-inset text-secondary-foreground",
+  work_note_mention: "bg-brand-soft text-brand",
+  work_note_assigned: "bg-warning-soft text-warning",
+  /* Çözülen soru da bir "iyi haber": bir iş kapandı. */
+  work_note_resolved: "bg-success-soft text-success",
 };
 
 export function NotificationIcon({

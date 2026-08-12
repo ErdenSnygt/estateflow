@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { Menu } from "lucide-react";
 
@@ -41,6 +42,8 @@ export function MobileNav() {
     setIsMenuOpen(false);
   }, [pathname]);
 
+  const t = useTranslations();
+
   const isActive = (item: NavItem) =>
     pathname === item.href || pathname.startsWith(`${item.href}/`);
 
@@ -53,7 +56,7 @@ export function MobileNav() {
   return (
     <>
       <nav
-        aria-label="Mobil gezinme"
+        aria-label={t("mobileNav.nav")}
         className={cn(
           "fixed inset-x-0 bottom-0 z-40 md:hidden",
           "border-t border-hairline bg-canvas-subtle/95 backdrop-blur-xl",
@@ -66,7 +69,7 @@ export function MobileNav() {
             <li key={item.href} className="flex-1">
               <MobileNavLink
                 href={item.href}
-                label={item.label}
+                label={t(`nav.${item.key}.label`)}
                 icon={item.icon}
                 badgeKey={item.badgeKey}
                 isActive={activeHref === item.href}
@@ -76,7 +79,7 @@ export function MobileNav() {
 
           <li className="flex-1">
             <MobileNavLink
-              label="Daha Fazla"
+              label={t("mobileNav.more")}
               icon={Menu}
               isActive={activeHref === "__menu__"}
               onClick={() => setIsMenuOpen(true)}

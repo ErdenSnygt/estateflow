@@ -9,7 +9,14 @@ import {
   type NotificationPreferences,
 } from "@/lib/notification-preferences";
 import { removeUnusedObjects } from "@/lib/storage/cleanup";
-import { fail, ok, toMessage, type ActionResult } from "@/lib/actions/result";
+import {
+  fail,
+  ok,
+  raw,
+  toMessage,
+  type ActionErrorKey,
+  type ActionResult,
+} from "@/lib/actions/result";
 
 /**
  * ============================================================================
@@ -55,12 +62,12 @@ function revalidateProfile(agentId: string) {
   revalidatePath("/", "layout");
 }
 
-type Guard = { ok: true; id: string } | { ok: false; error: string };
+type Guard = { ok: true; id: string } | { ok: false; error: ActionErrorKey };
 
 async function requireSelf(): Promise<Guard> {
   const agent = await getCurrentAgent();
-  if (!agent) return { ok: false, error: "Personel kaydınız bulunamadı." };
-  if (!agent.is_active) return { ok: false, error: "Hesabınız pasif durumda." };
+  if (!agent) return { ok: false, error: "agentNotFound" };
+  if (!agent.is_active) return { ok: false, error: "accountInactive" };
   return { ok: true, id: agent.id };
 }
 
@@ -84,7 +91,7 @@ export async function updateProfile(
 
   const fullName = input.fullName.trim();
   if (fullName.length < 2) {
-    return fail("Ad soyad en az 2 karakter olmalıdır.");
+    return fail("profileNameMin2");
   }
 
   const supabase = await createClient();
@@ -190,10 +197,10 @@ export async function changePassword(input: {
   if (!guard.ok) return fail(guard.error);
 
   if (input.newPassword.length < 8) {
-    return fail("Yeni şifre en az 8 karakter olmalıdır.");
+    return fail("passwordMin8");
   }
   if (input.newPassword === input.currentPassword) {
-    return fail("Yeni şifre mevcut şifreyle aynı olamaz.");
+    return fail("passwordSameAsOld");
   }
 
   const supabase = await createClient();
@@ -205,7 +212,7 @@ export async function changePassword(input: {
   } = await supabase.auth.getUser();
 
   if (!user?.email) {
-    return fail("Oturum bilgisi okunamadı. Sayfayı yenileyip tekrar deneyin.");
+    return fail("sessionUnreadable");
   }
 
   const { error: verifyError } = await supabase.auth.signInWithPassword({
@@ -216,7 +223,7 @@ export async function changePassword(input: {
   if (verifyError) {
     /* Ham mesaj "Invalid login credentials" — kullanıcıya burada ne anlama
        geldiğini söylüyoruz. */
-    return fail("Mevcut şifreniz doğru değil.");
+    return fail("passwordWrong");
   }
 
   const { error } = await supabase.auth.updateUser({
@@ -225,8 +232,9 @@ export async function changePassword(input: {
 
   if (error) {
     /* Supabase'in kendi şifre politikası (uzunluk, sızmış şifre kontrolü)
-       burada devreye girebiliyor; mesajı olduğu gibi geçiriyoruz. */
-    return fail(error.message);
+       burada devreye girebiliyor; mesajı olduğu gibi geçiriyoruz —
+       `raw` bunun bilinçli olduğunu söylüyor (bkz. `result.ts`). */
+    return fail(raw(error.message));
   }
 
   return ok({ ok: true });

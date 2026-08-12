@@ -1,5 +1,6 @@
 "use client";
 
+import { useFormatter } from "next-intl";
 import { motion } from "framer-motion";
 import {
   ArrowDownRight,
@@ -14,6 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { seriesColor, sparklinePath } from "@/lib/chart";
 import { formatCurrencyCompact, formatNumber } from "@/lib/format";
+import { formatDelta } from "@/i18n/numbers";
 import { useCountUp } from "@/hooks/use-count-up";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -60,6 +62,7 @@ export function KpiCard({
   const Icon = ICONS[icon] ?? Building2;
   const color = seriesColor(accent);
   const animated = useCountUp(value);
+  const intl = useFormatter();
 
   const display =
     format === "currency"
@@ -127,8 +130,10 @@ export function KpiCard({
               )}
             >
               <DeltaIcon className="size-3" />
-              {up ? "+" : ""}
-              {delta.toLocaleString("tr-TR", { maximumFractionDigits: 1 })}%
+              {/* Sabit `tr-TR` idi: hem ondalık ayracı hem yüzde işaretinin
+                  yeri her dilde Türkçe çıkıyordu. Artı işareti de elle
+                  ekleniyordu; ikisini de `Intl` çözüyor. */}
+              {formatDelta(intl, delta / 100)}
             </span>
             <span className="text-[12px] text-muted-foreground">{hint}</span>
           </div>

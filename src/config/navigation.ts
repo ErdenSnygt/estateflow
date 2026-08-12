@@ -17,11 +17,21 @@ import {
 export type NavItem = {
   /** Route path — aynı zamanda listede benzersiz anahtar. */
   href: string;
-  /** Sidebar'da ve navbar başlığında görünen ad. */
-  label: string;
+  /**
+   * Çeviri anahtarı — Faz 19.
+   *
+   * Etiket ve açıklama ARTIK BURADA DEĞİL, `messages/<dil>.json` içindeki
+   * `nav.<key>.label` / `nav.<key>.description` altında. Bu dosya yalnızca
+   * YAPIYI taşıyor: hangi öğe, hangi adres, hangi ikon, hangi grup.
+   *
+   * Ayrım bilinçli: menü yapısı bir yapılandırma, etiketler ise içerik. İkisi
+   * birlikte dururken bir dil eklemek bu dosyayı çoğaltmayı gerektirirdi.
+   *
+   * `href` ADRESLERİ ÇEVRİLMİYOR: `/ilanlar` İngilizce arayüzde de `/ilanlar`.
+   * Gerekçe `src/i18n/config.ts` başlığında.
+   */
+  key: NavKey;
   icon: LucideIcon;
-  /** Empty state ve arama modalında gösterilen kısa açıklama. */
-  description: string;
   /**
    * Rozetin hangi CANLI sayaçtan besleneceği.
    *
@@ -37,135 +47,93 @@ export type NavItem = {
 /** Canlı rozet kaynakları. */
 export type NavBadgeKey = "messages" | "notifications";
 
+/** `messages/*.json` → `nav.<key>` altındaki anahtarlar. */
+export type NavKey =
+  | "dashboard"
+  | "listings"
+  | "customers"
+  | "appointments"
+  | "messages"
+  | "documents"
+  | "sales"
+  | "revenue"
+  | "agents"
+  | "reports"
+  | "notifications"
+  | "settings";
+
+/** `messages/*.json` → `nav.groups.<key>` altındaki anahtarlar. */
+export type NavGroupKey =
+  | "general"
+  | "portfolio"
+  | "communication"
+  | "finance"
+  | "management"
+  | "system";
+
 export type NavGroup = {
-  /** Sidebar'da gösterilen grup başlığı; null ise başlıksız grup. */
-  title: string | null;
-  /** Komut paletinde kullanılan başlık — sidebar'da başlıksız gruplar için gerekli. */
-  paletteTitle: string;
+  /**
+   * Grubun çeviri anahtarı (`nav.groups.<key>`).
+   *
+   * Faz 19'a kadar burada `title` ve `paletteTitle` diye İKİ metin vardı:
+   * sidebar başlıksız grupları çizmiyor, komut paleti ise her gruba başlık
+   * istiyordu. Artık tek anahtar var ve o ayrım `showTitle` ile yapılıyor —
+   * çeviri dosyasında aynı metni iki kez tutmak gerekmiyor.
+   */
+  key: NavGroupKey;
+  /** Sidebar grubun başlığını çizsin mi? Komut paleti her zaman çiziyor. */
+  showTitle: boolean;
   items: NavItem[];
 };
 
 export const navigation: NavGroup[] = [
   {
-    title: null,
-    paletteTitle: "Genel",
+    key: "general",
+    showTitle: false,
+    items: [{ href: "/dashboard", key: "dashboard", icon: LayoutDashboard }],
+  },
+  {
+    key: "portfolio",
+    showTitle: true,
     items: [
-      {
-        href: "/dashboard",
-        label: "Dashboard",
-        icon: LayoutDashboard,
-        description:
-          "Portföyünüzün genel görünümü, güncel metrikler ve günlük özet tek ekranda toplanacak.",
-      },
+      { href: "/ilanlar", key: "listings", icon: Building2 },
+      { href: "/musteriler", key: "customers", icon: Users },
+      { href: "/randevular", key: "appointments", icon: CalendarDays },
     ],
   },
   {
-    title: "Portföy",
-    paletteTitle: "Portföy",
+    key: "communication",
+    showTitle: true,
     items: [
-      {
-        href: "/ilanlar",
-        label: "İlanlar",
-        icon: Building2,
-        description:
-          "Tüm gayrimenkul portföyünüzü listeleyin, fotoğraf ve detaylarıyla yönetin, portallara yayınlayın.",
-      },
-      {
-        href: "/musteriler",
-        label: "Müşteriler",
-        icon: Users,
-        description:
-          "Alıcı ve satıcı kayıtları, talep eşleştirme ve müşteri geçmişi burada takip edilecek.",
-      },
-      {
-        href: "/randevular",
-        label: "Randevular",
-        icon: CalendarDays,
-        description:
-          "Yer gösterme ve görüşme takviminizi günlük, haftalık ve aylık görünümde planlayın.",
-      },
+      /* Faz 18: içerik müşteri yazışmasından EKİP İÇİ İŞ NOTUNA döndü.
+         Adres ve menü sırası bilinçli olarak korundu — kullanıcının menüde
+         aradığı yer burası ve kaydedilmiş bağlantılar kırılmasın. */
+      { href: "/mesajlar", key: "messages", icon: MessageSquare, badgeKey: "messages" },
+      { href: "/evraklar", key: "documents", icon: FileText },
     ],
   },
   {
-    title: "İletişim",
-    paletteTitle: "İletişim",
+    key: "finance",
+    showTitle: true,
     items: [
-      {
-        href: "/mesajlar",
-        label: "Mesajlar",
-        icon: MessageSquare,
-        description:
-          "Müşteri yazışmalarınızı tek gelen kutusunda toplayın, ekip içinde devredin.",
-        badgeKey: "messages",
-      },
-      {
-        href: "/evraklar",
-        label: "Evraklar",
-        icon: FileText,
-        description:
-          "Sözleşme, tapu ve yetki belgelerini güvenle saklayın, sürüm geçmişiyle takip edin.",
-      },
+      { href: "/satislar", key: "sales", icon: Receipt },
+      { href: "/gelirler", key: "revenue", icon: Wallet },
     ],
   },
   {
-    title: "Finans",
-    paletteTitle: "Finans",
+    key: "management",
+    showTitle: true,
     items: [
-      {
-        href: "/satislar",
-        label: "Satışlar",
-        icon: Receipt,
-        description:
-          "Satış ve kiralama süreçlerini aşama aşama izleyin, kapanan işlemleri raporlayın.",
-      },
-      {
-        href: "/gelirler",
-        label: "Gelirler",
-        icon: Wallet,
-        description:
-          "Komisyon gelirlerinizi, tahsilat durumunu ve dönemsel kazancınızı görüntüleyin.",
-      },
+      { href: "/personeller", key: "agents", icon: UserRound },
+      { href: "/raporlar", key: "reports", icon: TrendingUp },
     ],
   },
   {
-    title: "Yönetim",
-    paletteTitle: "Yönetim",
+    key: "system",
+    showTitle: false,
     items: [
-      {
-        href: "/personeller",
-        label: "Personeller",
-        icon: UserRound,
-        description:
-          "Ekip üyelerini davet edin, yetki seviyelerini ve performanslarını yönetin.",
-      },
-      {
-        href: "/raporlar",
-        label: "Raporlar",
-        icon: TrendingUp,
-        description:
-          "Portföy, satış ve ekip performansına dair detaylı analizleri buradan alacaksınız.",
-      },
-    ],
-  },
-  {
-    title: null,
-    paletteTitle: "Sistem",
-    items: [
-      {
-        href: "/bildirimler",
-        label: "Bildirimler",
-        icon: Bell,
-        description:
-          "Sistem uyarıları, hatırlatmalar ve ekip bildirimleri tek akışta toplanacak.",
-        badgeKey: "notifications",
-      },
-      {
-        href: "/ayarlar",
-        label: "Ayarlar",
-        icon: Settings,
-        description:
-          "Hesap, ofis, fatura ve entegrasyon ayarlarınızı buradan yöneteceksiniz.",
-      },
+      { href: "/bildirimler", key: "notifications", icon: Bell, badgeKey: "notifications" },
+      { href: "/ayarlar", key: "settings", icon: Settings },
     ],
   },
 ];

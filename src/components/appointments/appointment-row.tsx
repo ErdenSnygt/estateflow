@@ -1,19 +1,14 @@
 import Link from "next/link";
+import { getFormatter, getTranslations } from "next-intl/server";
 import { Clock, MapPin } from "lucide-react";
 
 import type { AppointmentItem } from "@/lib/data/appointments";
 import {
-  APPOINTMENT_STATUS_LABELS,
   APPOINTMENT_STATUS_TONES,
-  APPOINTMENT_TYPE_LABELS,
   APPOINTMENT_TYPE_PALETTE,
 } from "@/lib/appointments";
-import {
-  formatDayShort,
-  formatTimeRange,
-  toDateKey,
-  type DateKey,
-} from "@/lib/calendar";
+import { formatTimeRange, toDateKey, type DateKey } from "@/lib/calendar";
+import { formatDate } from "@/i18n/dates";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
@@ -24,8 +19,14 @@ import { Badge } from "@/components/ui/badge";
  * bu satırı gösteriyor ve üçünde de randevu üzerinde işlem yapılmıyor —
  * takvimdeki panel için gereken istemci kodunu üç sayfaya birden taşımanın
  * anlamı yok. Satıra tıklamak randevunun günündeki takvime götürüyor.
+ *
+ * ÇEVİRİ: sunucu bileşeni olduğu için `getTranslations()` — `async` olması
+ * çağıranları etkilemiyor, üçü de bu satırı doğrudan JSX'te çiziyor. SAAT
+ * ARALIĞI çevrilmiyor: `formatTimeRange` yalnızca rakam üretiyor ve ofis
+ * saatleri sabit UTC+3 (`lib/calendar.ts`); 24 saatlik gösterim iki dilde de
+ * aynı kalıyor.
  */
-export function AppointmentRow({
+export async function AppointmentRow({
   appointment,
   /** Tarih zaten bağlamdan belliyse (ör. "bugün" listesi) gizlenebilir. */
   showDate = true,
@@ -35,6 +36,11 @@ export function AppointmentRow({
   showDate?: boolean;
   showType?: boolean;
 }) {
+  const [t, format] = await Promise.all([
+    getTranslations("appointments"),
+    getFormatter(),
+  ]);
+
   const palette = APPOINTMENT_TYPE_PALETTE[appointment.appointment_type];
   const day: DateKey = toDateKey(appointment.start_time);
 
@@ -67,7 +73,7 @@ export function AppointmentRow({
               variant={APPOINTMENT_STATUS_TONES[appointment.status]}
               className="shrink-0"
             >
-              {APPOINTMENT_STATUS_LABELS[appointment.status]}
+              {t(`status.${appointment.status}`)}
             </Badge>
           )}
         </div>
@@ -75,16 +81,15 @@ export function AppointmentRow({
         <p className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11.5px] text-muted-foreground">
           <span className="flex items-center gap-1 tabular-nums">
             <Clock className="size-3" />
-            {showDate && `${formatDayShort(day)} · `}
+            {showDate &&
+              `${formatDate(format, appointment.start_time, "dayShort")} · `}
             {formatTimeRange(appointment.start_time, appointment.end_time)}
           </span>
 
           {showType && (
             <>
               <span aria-hidden>·</span>
-              <span>
-                {APPOINTMENT_TYPE_LABELS[appointment.appointment_type]}
-              </span>
+              <span>{t(`type.${appointment.appointment_type}`)}</span>
             </>
           )}
 

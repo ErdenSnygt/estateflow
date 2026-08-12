@@ -1,3 +1,19 @@
+import createNextIntlPlugin from "next-intl/plugin";
+
+/**
+ * next-intl eklentisi — Faz 19.
+ *
+ * Yol AÇIKÇA veriliyor: varsayılan konum `./i18n/request.ts` ya da
+ * `./src/i18n/request.ts`; ikincisi bu projede zaten doğru ama açık yazmak,
+ * dosya taşındığında hatanın "çeviri yok" gibi sessiz değil, derleme
+ * zamanında görünür olmasını sağlıyor.
+ *
+ * Eklenti YALNIZCA sözlüğü ve istek yapılandırmasını bağlıyor; ROUTE
+ * YAPISINA DOKUNMUYOR çünkü bu kurulumda dil öneki yok (gerekçe
+ * `src/i18n/config.ts` başlığında). `src/middleware.ts` olduğu gibi duruyor.
+ */
+const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -21,15 +37,18 @@ const nextConfig = {
        host sessiz bir kırık görsel değil, çalışma zamanı hatası üretir.
 
        İki kaynak birlikte yaşıyor ve bu kalıcı:
-        · Seed görselleri dış adreslerde (picsum / pravatar) — Faz 7'de Storage'a
+        · Seed görselleri dış adreste (Unsplash CDN) — Faz 7'de Storage'a
           TAŞINMADI, kolonlar zaten URL tutuyor ve kaynağı önemli değil.
         · Kullanıcının yüklediği dosyalar Supabase Storage'da. */
     remotePatterns: [
-      // Demo ilan görselleri
-      { protocol: "https", hostname: "picsum.photos" },
-      { protocol: "https", hostname: "fastly.picsum.photos" },
-      // Demo müşteri portreleri
-      { protocol: "https", hostname: "i.pravatar.cc" },
+      /* Demo ilan görselleri. Faz 19'a kadar `picsum.photos` kullanılıyordu;
+         kategori kavramı olmadığı için bir daire ilanının kapağında kahve
+         çekirdeği çıkabiliyordu. Artık elle seçilmiş, kategoriye uygun
+         Unsplash kareleri — havuzlar `scripts/seed-supabase.ts` içinde.
+
+         `i.pravatar.cc` DE KALDIRILDI: müşteri portreleri tamamen kalktı,
+         arayüz baş harf gösteriyor. */
+      { protocol: "https", hostname: "images.unsplash.com" },
       /* Supabase Storage — host proje referansını içerdiği için ortam
          değişkeninden türetiliyor, sabit yazılmıyor.
 
@@ -53,4 +72,4 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);
