@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { ArrowRight, Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
@@ -34,7 +33,6 @@ const stagger = {
 };
 
 export function LoginForm() {
-  const router = useRouter();
   const t = useTranslations("auth");
   const tError = useTranslations("auth.errors");
 
@@ -81,10 +79,26 @@ export function LoginForm() {
       return;
     }
 
-    /* `refresh()` şart: oturum çerezi yazıldı ama sunucu bileşenlerinin
-       önbelleğe alınmış çıktısı hâlâ "girişsiz" hâli gösteriyor. */
-    router.push(nextPath());
-    router.refresh();
+    /*
+     * ============================================================
+     * NEDEN `router.push` DEĞİL, TAM SAYFA GEÇİŞİ
+     * ============================================================
+     * `router.push()` App Router'da hedef sayfayı SUNUCUDA ÇİZDİRİP bekler;
+     * yanıt gelene kadar kullanıcı hâlâ giriş ekranındadır ve düğme
+     * "Giriş yapılıyor…" kalır. Dashboard onlarca Supabase sorgusu atıyor —
+     * yavaş bir bağlantıda toplam 20 saniyeyi geçebiliyor (ölçüldü:
+     * `GET /dashboard 200 in 24225ms`). Kullanıcı bu sürede donmuş bir düğmeye
+     * bakıyor ve giriş başarısız sanıyor; oysa oturum çoktan açılmıştır.
+     *
+     * Tam sayfa geçişinde tarayıcı kendi ilerleme göstergesini veriyor ve
+     * dashboard'ın Suspense sınırları AKARAK geliyor: kabuk ve iskeletler
+     * hemen çiziliyor, veriler arkadan doluyor. Yani bekleme aynı, ama
+     * kullanıcı ne olduğunu görüyor.
+     *
+     * `router.refresh()` de gereksizleşiyor: tam yükleme zaten sunucu
+     * bileşenlerini oturum çerezi ile baştan çiziyor.
+     */
+    window.location.assign(nextPath());
   }
 
   async function handleProvider(provider: OAuthProvider) {

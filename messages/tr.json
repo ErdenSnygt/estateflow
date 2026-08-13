@@ -235,7 +235,9 @@
       "emailNotConfirmed": "E-posta adresiniz henüz doğrulanmamış.",
       "rateLimit": "Çok fazla deneme yapıldı, biraz sonra tekrar deneyin.",
       "providerDisabled": "Bu giriş yöntemi Supabase panelinde henüz etkinleştirilmemiş.",
-      "providerDisabledDetail": "{provider} girişi Supabase panelinde henüz etkinleştirilmemiş. Authentication > Providers altından Client ID ve Secret girip etkinleştirin."
+      "providerDisabledDetail": "{provider} girişi Supabase panelinde henüz etkinleştirilmemiş. Authentication > Providers altından Client ID ve Secret girip etkinleştirin.",
+      "network": "Sunucuya ulaşılamıyor. İnternet bağlantınızı kontrol edip tekrar deneyin.",
+      "unexpected": "Giriş yapılamadı. Lütfen birazdan tekrar deneyin."
     }
   },
   "filters": {

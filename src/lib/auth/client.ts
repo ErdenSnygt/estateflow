@@ -33,7 +33,9 @@ export type AuthErrorKey =
   | "emailNotConfirmed"
   | "rateLimit"
   | "providerDisabled"
-  | "providerDisabledDetail";
+  | "providerDisabledDetail"
+  | "network"
+  | "unexpected";
 
 export type AuthError = {
   key: AuthErrorKey;
@@ -45,8 +47,37 @@ export type AuthError = {
 
 export type AuthResult = { ok: true } | { ok: false; error: AuthError };
 
-/** Supabase'in İngilizce hata mesajlarını sözlük anahtarına eşler. */
-function toAuthError(message: string): AuthError {
+/**
+ * Ham metin GÖSTERİLMEYE DEĞER Mİ?
+ *
+ * `raw` alanı "sözlükte karşılığı olmayan ama ANLAMLI bir cümle" için var.
+ * Supabase her zaman öyle bir şey vermiyor: proje duraklatılmışken gelen
+ * yanıtın gövdesi boş bir nesneydi ve giriş ekranında kullanıcıya tek başına
+ * `{}` gösterildi. Boş, tek karakterlik ya da boş JSON gövdesine benzeyen bir
+ * metin hiçbir şey anlatmıyor — o durumda çevrilmiş genel mesaj daha dürüst.
+ */
+function meaningful(message: string): boolean {
+  const cleaned = message.replace(/[{}[\]":,]/g, " ").trim();
+
+  /* Bir cümle değil, bir değerin adı. Harf içerdikleri için aşağıdaki
+     denetimden geçerlerdi. */
+  if (/^(null|undefined|error|nan)$/i.test(cleaned)) return false;
+
+  /* Kural: JSON noktalama işaretleri atıldıktan sonra geriye ARDIŞIK ÜÇ HARF
+     kalıyorsa bu bir cümledir. `{}`, `[]`, `""` ve boş metin eleniyor; gerçek
+     bir hata cümlesi her dilde geçiyor. */
+  return /[a-zçğıöşü]{3,}/i.test(cleaned);
+}
+
+/**
+ * Supabase'in İngilizce hata mesajlarını sözlük anahtarına eşler.
+ *
+ * DIŞA AKTARILIYOR çünkü test ediliyor (`client.test.ts`): eşlemenin kendisi
+ * saf bir fonksiyon ve giriş ekranının kullanıcıya ne söyleyeceğini o
+ * belirliyor. Bir kez yanlış eşleşti — ağ hatası "şifreniz hatalı" olarak
+ * göründü — ve o hata testle perçinlendi.
+ */
+export function toAuthError(message: string): AuthError {
   if (/invalid login credentials/i.test(message)) {
     return { key: "invalidCredentials" };
   }
@@ -59,7 +90,19 @@ function toAuthError(message: string): AuthError {
   if (/provider is not enabled/i.test(message)) {
     return { key: "providerDisabled" };
   }
-  return { key: "invalidCredentials", raw: message };
+
+  /* AĞ HATASI AYRI BİR ANAHTAR. Eskiden buraya düşen her şey
+     `invalidCredentials` etiketiyle dönüyordu — yani Supabase'e hiç
+     ulaşılamadığında kullanıcıya "şifreniz hatalı" deniyordu. Yanlış bilgi:
+     kullanıcı doğru şifreyi tekrar tekrar dener. */
+  if (/failed to fetch|networkerror|network error|load failed|fetch failed/i.test(message)) {
+    return { key: "network" };
+  }
+
+  /* Tanınmayan hata: metni ancak ANLAMLIYSA geçiriyoruz. */
+  return meaningful(message)
+    ? { key: "unexpected", raw: message }
+    : { key: "unexpected" };
 }
 
 export async function signInWithPassword(
