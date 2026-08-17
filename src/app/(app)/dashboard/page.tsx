@@ -5,7 +5,9 @@ import { getTranslations } from "next-intl/server";
 import { Plus } from "lucide-react";
 
 import { getSession } from "@/lib/auth/server";
+import { greetingPeriod } from "@/lib/greeting";
 import { PageHeader } from "@/components/page-header";
+import { DashboardGreeting } from "@/components/dashboard/greeting";
 import { Button } from "@/components/ui/button";
 import { KpiSection } from "@/components/dashboard/kpi-section";
 import { SalesSection } from "@/components/dashboard/sales-section";
@@ -43,7 +45,12 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6 pb-4">
       <PageHeader
-        title={t("greeting", { name: firstName })}
+        title={
+          <DashboardGreeting
+            name={firstName}
+            fallbackPeriod={greetingPeriod(new Date().getHours())}
+          />
+        }
         description={t("description")}
         actions={
           <Button asChild>

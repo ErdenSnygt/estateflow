@@ -3,7 +3,7 @@ import { cache } from "react";
 import type { OfferStatus } from "@/types/database";
 import type { OfferSortKey, SaleSortKey } from "@/lib/offers";
 import { createClient } from "@/lib/supabase/server";
-import { counted, rows } from "@/lib/data/query";
+import { rows } from "@/lib/data/query";
 import {
   DAY,
   countPerMonth,
@@ -266,22 +266,32 @@ export type SalesStats = {
 export async function getSalesStats(): Promise<SalesStats> {
   const supabase = await createClient();
   const now = Date.now();
-  /* Teklif trendi için 6 aylık pencere; 31 günlük aylara pay bırakıyoruz. */
-  const offerWindow = new Date(now - 190 * DAY).toISOString();
 
-  const [series, pending, offerHistory] = await Promise.all([
+  /* TEK TEKLİF SORGUSU (Faz 26 performans turu).
+     Önce iki sorgu vardı: biri bekleyen teklifleri sayıyor (`head: true`),
+     diğeri 190 günlük pencerede `created_at` çekiyordu. İkisi de aynı tabloya
+     gidiyor ve dashboard'ın maliyeti veride değil İSTEK SAYISINDA —
+     gerekçe `data/stats.ts` başlığında, ölçüm de orada: satır getirmekle tek
+     bir sayı getirmek arasında fark yok, ağ turu ikisinde de aynı.
+
+     İki kolon birlikte çekiliyor, sayım da trend de aynı kümeden çıkıyor.
+     Tarih filtresi kalktı çünkü `countPerMonth` zaten yalnızca son 6 ayın
+     kovalarını dolduruyor — daha eski satırlar hiçbir kovaya düşmüyor ve
+     çıktı bit bit aynı. */
+  const [series, offerHistory] = await Promise.all([
     getSalesTimeSeries(),
-    supabase
-      .from("offers")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "pending"),
-    supabase.from("offers").select("created_at").gte("created_at", offerWindow),
+    supabase.from("offers").select("created_at, status"),
   ]);
 
-  const offerAt = rows<{ created_at: string }>(
+  const offers = rows<{ created_at: string; status: OfferStatus }>(
     offerHistory,
     "Teklif geçmişi",
-  ).map((row) => Date.parse(row.created_at));
+  );
+
+  const pendingOfferCount = offers.filter(
+    (row) => row.status === "pending",
+  ).length;
+  const offerAt = offers.map((row) => Date.parse(row.created_at));
 
   const thisMonth = series[series.length - 1];
   const lastMonth = series[series.length - 2];
@@ -297,7 +307,7 @@ export async function getSalesStats(): Promise<SalesStats> {
       /* Değer o anki bekleyen teklif sayısı; trend ise AYLIK GELEN teklif
          sayısı. İkisi farklı birim — "kaç teklif birikti" tek bir sayıdır,
          geçmişi ancak teklif akışıyla anlatılabilir. */
-      value: counted(pending, "Bekleyen teklif"),
+      value: pendingOfferCount,
       delta: percentChange(
         countWithin(offerAt, now - 30 * DAY, now + DAY),
         countWithin(offerAt, now - 60 * DAY, now - 30 * DAY),

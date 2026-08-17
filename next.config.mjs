@@ -18,6 +18,17 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 const nextConfig = {
   reactStrictMode: true,
 
+  /* Derleme çıktısının klasörü ortam değişkeninden ezilebiliyor.
+     NEDEN: `next dev` ve `next build` aynı `.next` klasörünü paylaşır; biri
+     çalışırken diğerini başlatmak çalışan sunucunun altındaki dosyaları siler
+     ve ekran bomboş kalır (Faz 25'te başımıza geldi). Üretim ölçümü için
+     `NEXT_DIST_DIR=.next-prod npm run build` demek yeterli — geliştirme
+     sunucusu hiç bozulmadan çalışmaya devam ediyor.
+
+     Varsayılan `.next`; yani Vercel'de ve normal kullanımda hiçbir şey
+     değişmiyor. */
+  distDir: process.env.NEXT_DIST_DIR ?? ".next",
+
   /* `X-Powered-By: Next.js` başlığı kapalı. Saldırgana kullanılan çatıyı ve
      dolaylı olarak sürüm ailesini bedava söylemenin bir faydası yok. */
   poweredByHeader: false,

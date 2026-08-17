@@ -15,7 +15,6 @@
     "soonBadge": "Coming soon",
     "profile": "My profile",
     "settings": "Settings",
-    "support": "Support",
     "signOut": "Sign out",
     "fallbackUserName": "User",
     "fallbackUserTitle": "Team member",
@@ -87,8 +86,6 @@
     }
   },
   "navbar": {
-    "themeTrigger": "Switch theme",
-    "themeTooltip": "Light theme coming soon",
     "accountMenu": "Account menu"
   },
   "sidebar": {
@@ -254,7 +251,12 @@
     "rangeTitle": "{label} range ({unit})"
   },
   "dashboard": {
-    "greeting": "Welcome {name} 👋",
+    "greeting": {
+      "morning": "Good morning {name} 👋",
+      "afternoon": "Good afternoon {name} 👋",
+      "evening": "Good evening {name} 👋",
+      "night": "Good night {name} 👋"
+    },
     "description": "Where your portfolio stands today, sales performance and your team's latest activity.",
     "kpi": {
       "totalListings": "Total listings",

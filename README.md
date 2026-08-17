@@ -156,6 +156,17 @@ npm run dev
 | `npm run seed` | Demo veriyi yeniden üretir |
 | `npm run gen:types` | Şema tiplerini Supabase'den çeker |
 
+`npm run dev` çalışırken `npm run build` ÇALIŞTIRMAYIN: ikisi de `.next`
+klasörünü kullanır ve derleme, çalışan sunucunun altındaki dosyaları siler —
+ekran bomboş kalır. Üretim modunu geliştirme sunucusunu kapatmadan ölçmek için
+çıktı klasörünü değiştirin:
+
+```bash
+NEXT_DIST_DIR=.next-prod npx next build && NEXT_DIST_DIR=.next-prod npx next start -p 3100
+```
+
+PowerShell'de: `$env:NEXT_DIST_DIR=".next-prod"` satırını önce çalıştırın.
+
 ---
 
 ## Vercel'e deploy
@@ -323,6 +334,17 @@ yer tutucusu testte düşüyor).
 > göre biçimlenir.
 
 ### Neler çevrilmiyor
+
+> **Kural tek cümlede:** kullanıcı içeriği çevrilmez, sadece arayüz metni
+> çevrilir.
+
+Sınır şu soruyla çiziliyor: **bu metni uygulama mı yazdı, bir insan mı?**
+`listings.title`, `listings.description`, `appointments.title`,
+`work_notes.content`, `customers.notes` gibi serbest metin alanlarına yazılanı
+uygulama üretmiyor — kullanıcı (ya da seed) giriyor. Onlar veri; bir kayıt
+sonradan okuyanın diline göre değişemez. Bu davranış Faz 21/22'de randevu
+başlıkları ve bildirim satırlarıyla belirlenmişti, bütün serbest metin alanları
+için geçerli.
 
 - **Seed/veri içeriği** — ilan başlıkları, müşteri adları, iş notu metinleri.
   Bunlar veri, arayüz metni değil.
@@ -584,6 +606,88 @@ kaldırılmıştı.
 
 ---
 
+## Performans (Faz 26)
+
+### Nasıl ölçüldü
+
+Next'in derleme sonunda bastığı **First Load JS** tablosu bu projede eksik
+okunuyor: route grubu layout'unun parçalarını (`(app)/layout`) sayfalara
+yazmıyor, oysa tarayıcı onları da indiriyor. Ölçüm bu yüzden
+`app-build-manifest.json` üzerinden yapıldı — sayfanın, kök layout'un ve
+`(app)` layout'unun parçaları birleştirilip her biri gzip'lendi.
+
+Yöntem üretim sunucusunda doğrulandı: `/login` için hesap 267 kB dedi,
+tarayıcının `performance` API'si 267.1 kB ölçtü (16 parça, TTFB 55 ms).
+
+### En büyük üç bulgu
+
+**1. Supabase istemcisi giriş yapmış HER sayfanın ilk yükündeydi — 65 kB gzip.**
+
+Zincir tek satırdı: navbar → `lib/auth/client.ts` → `lib/supabase/client.ts` →
+supabase-js. Navbar uygulama kabuğunun içinde, yani her sayfada. Kütüphanenin
+tamamı sadece "Çıkış yap" düğmesi ve bildirim rozetinin Realtime aboneliği
+için iniyordu — ikisi de ilk boyama için gereksiz, çünkü biri bir tıklamayı,
+diğeri bir `useEffect`i bekliyor.
+
+İki değişiklik:
+
+- `signOut` kendi modülüne alındı (`lib/auth/sign-out.ts`) ve import'u
+  fonksiyonun içine, dinamik hâle geçti. `lib/auth/client.ts` supabase-js'i
+  statik import etmeye devam ediyor — giriş ekranı onu zaten kullanıyor.
+- `useRealtimeInsert` kütüphaneyi efektin içinde `await import(...)` ile
+  çekiyor. Tipler `typeof import(...)` ile türetiliyor, yani `Database` genel
+  tipi korunuyor ve çalışma zamanına hiçbir şey sızmıyor.
+
+| Sayfa | Önce | Sonra |
+| ----- | ---- | ----- |
+| `/dashboard` | 308 kB | **243 kB** |
+| `/ayarlar` | 313 kB | **248 kB** |
+| `/personeller` | 321 kB | **255 kB** |
+| `/ilanlar/[id]` | 338 kB | **272 kB** |
+
+Aynı etki Next'in kendi tablosunda dolaylı görünüyor: `/login`in kendi parçası
+8.99 kB'den 74.6 kB'ye çıktı. Büyüyen bir şey yok — supabase-js paylaşılan
+parçadan çıkıp yalnızca giriş ekranının parçasına taşındı.
+
+**2. Dashboard ve personel detayı gereksiz ağ turu ödüyordu.**
+
+Darboğaz sorgunun kendisi değil, İSTEK SAYISI: ölçüm `lib/data/stats.ts`
+başlığında duruyor — 46 satır getirmek (146 ms) ile tek bir sayı getirmek
+(183 ms) arasında fark yok, ikisi de bir gidiş-dönüş. Yavaş bir bağlantıda her
+tur ~2 saniye sürüyordu (giriş turunda ölçüldü).
+
+- `getSalesStats`: `offers` tablosuna iki ayrı sorgu vardı — biri bekleyenleri
+  sayıyor, diğeri trend için `created_at` çekiyordu. Tek sorguya indi
+  (`created_at, status`), iki sayı da aynı kümeden çıkıyor.
+- `getAgentPerformance`: dört `head: true` sayımı (müşteri toplam/aktif, ilan
+  toplam/aktif) iki dar sorguya indi.
+
+Dashboard 11 → **10** tur, `/personeller/[id]` 5 → **3** tur. Çıktı bit bit
+aynı; `countPerMonth` zaten yalnızca son 6 ayın kovalarını dolduruyor,
+dolayısıyla kalkan tarih filtresi hiçbir sayıyı değiştirmiyor.
+
+**3. İki rozet gereksiz yere istemci bileşeniydi.**
+
+`ListingStatusBadge` ve `AgentRoleBadge` durum, olay ya da efekt içermiyor —
+tek yaptıkları `useTranslations` çağırmak, o da sunucu bileşenlerinde de
+çalışıyor. `"use client"` işareti kalktı; bileşenler artık İKİ TARAFLI:
+sunucudan çağrıldıklarında tarayıcıya hiç inmiyorlar, istemciden
+çağrıldıklarında (`agent-form`, `interest-card`) o sayfanın istemci parçasına
+giriyorlar. Kazanç küçük ama yön doğru — ve yorumdaki "bu bir istemci
+bileşeni olmak zorunda" gerekçesi yanlıştı.
+
+### Bakılıp DEĞİŞTİRİLMEYENLER
+
+| Ne | Bulgu |
+| -- | ----- |
+| N+1 sorgu | Yok. `getAgentPerformances` zaten üç geniş sorgu + bellekte gruplama; imzalı URL'ler `createSignedUrls` ile tek istekte. |
+| `next/image` | Her kullanım `fill` + `sizes` taşıyor, galeride ilk kare `priority`. Storage önizlemeleri ve imzalı adresler bilerek düz `<img>` — gerekçeleri kendi dosyalarında. |
+| Sayfaya özgü ağır kütüphane | Yok. Grafikler ve takvim elle yazılmış SVG/CSS; `zod` + `react-hook-form` (29 kB) yalnızca form route'larında. |
+| `framer-motion` (39 kB) | Her sayfada, çünkü sayfa geçişi uygulama kabuğunda ve kartların çoğu onu kullanıyor. Geç yükleme ilk geçişi kırardı; `LazyMotion` + `m` göçü ~30 dosyaya dokunur. Bilinçli olarak ertelendi. |
+| Gereksiz re-render | Bariz bir örnek çıkmadı: rozet sayıları context'ten geliyor ve sunucuda hesaplanıyor, Realtime geri çağrısı `ref`te tutuluyor (aboneliğin her render'da kapanıp açılmasını önlüyor). |
+
+---
+
 ## Neden "mesajlaşma" değil "iş notu"
 
 Faz 12'de `/mesajlar` iki panelli bir gelen kutusuydu: solda müşteri
@@ -669,7 +773,17 @@ gerekçesiyle yazılı:
 
 ## Bilinen sınırlar
 
-Gizlenmiyor, sayılıyor: iki adımlı doğrulama, açık tema, çoklu dil, API
-anahtarı yönetimi, e-posta değiştirme, randevu hatırlatması, ofis bazlı kapsam
-ve komisyon oranının satış anında dondurulması henüz yok. Her birinin nedeni
+Gizlenmiyor, sayılıyor: iki adımlı doğrulama, açık tema, API anahtarı
+yönetimi, e-posta değiştirme, randevu hatırlatması, ofis bazlı kapsam ve
+komisyon oranının satış anında dondurulması henüz yok. Her birinin nedeni
 [docs/MIMARI.md](docs/MIMARI.md#henüz-yapılmayanlar) sonundaki listede.
+
+*(Çoklu dil bu listeden Faz 25'te çıktı — arayüzün tamamı iki dilde.)*
+
+**Eksik olanın DÜĞMESİ de yok (Faz 27).** Yapılmamış bir özelliğin yerinde
+duran, tıklanınca hiçbir şey olmayan bir kontrol, eksiklikten daha kötü: sessiz
+bir hata gibi görünüyor. Navbar'daki tema düğmesi ve profil menüsündeki
+"Destek" öğesi bu yüzden kaldırıldı. Geriye kalan iki "yakında" işareti
+(Ayarlar'daki iki adımlı doğrulama ve API anahtarları) bilinçli: ikisi de
+rozetle işaretli ve yanlarında ne bekleneceğini anlatan bir cümle var —
+söz veren bir alan ile sessizce ölü bir düğme aynı şey değil.

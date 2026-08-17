@@ -2,7 +2,13 @@
 
 import * as React from "react";
 
-import { createClient } from "@/lib/supabase/client";
+/* Tipler modülün KENDİSİNDEN türetiliyor (`typeof import(...)` tip konumunda
+   çalışır ve derlemede tamamen siliniyor). Böylece `Database` genel tipi de
+   korunuyor — `SupabaseClient`i çıplak import etmek onu kaybettirirdi. */
+type BrowserClient = ReturnType<
+  typeof import("@/lib/supabase/client").createClient
+>;
+type Channel = ReturnType<BrowserClient["channel"]>;
 
 /**
  * ============================================================================
@@ -38,6 +44,21 @@ import { createClient } from "@/lib/supabase/client";
  * yalnızca eşleşen satırlar gönderiliyor. Hepsini alıp tarayıcıda elemek,
  * başkalarının bildirimlerini ağdan geçirmek olurdu — RLS Realtime kanalında
  * da geçerli ama filtreyi doğru yere koymak yine de bizim işimiz.
+ *
+ * -----------------------------------------------------------------------------
+ * SUPABASE-JS GEÇ YÜKLENİYOR (Faz 26)
+ * -----------------------------------------------------------------------------
+ * Bu kanca uygulama kabuğunun içinde (`nav-badge-provider`, `notification-bell`)
+ * yani GİRİŞ YAPMIŞ HER SAYFADA çalışıyor. Kütüphane statik import edildiğinde
+ * ~51 kB gzip her sayfanın İLK YÜKÜNE biniyordu — üstelik ilk boyama için
+ * gereksiz: abonelik zaten `useEffect` içinde, yani boyamadan sonra kuruluyor.
+ *
+ * Import artık efektin içinde ve dinamik. Davranış aynı: rozetler ilk çizimde
+ * sunucudan gelen sayıyla doğru; canlı güncelleme parça indikten hemen sonra
+ * (ölçülebilir bir gecikme yok, kullanıcı zaten bir olay beklemekte).
+ *
+ * Sadece TİP importu statik — `import type` derlemede siliniyor, çalışma
+ * zamanında kütüphaneyi çağırmıyor.
  */
 
 type Options = {
@@ -63,21 +84,33 @@ export function useRealtimeInsert<T extends Record<string, unknown>>(
   React.useEffect(() => {
     if (!enabled || !filter) return;
 
-    const supabase = createClient();
+    /* Kütüphane inerken bileşen sökülmüş olabilir; o durumda kanalı hiç
+       açmıyoruz. Açıldıysa da temizlik için elimizde tutuyoruz. */
+    let cancelled = false;
+    let open: { client: BrowserClient; channel: Channel } | null = null;
 
-    const subscription = supabase
-      .channel(channel)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table, filter },
-        (payload) => handler.current(payload.new as T),
-      )
-      .subscribe();
+    void (async () => {
+      const { createClient } = await import("@/lib/supabase/client");
+      if (cancelled) return;
+
+      const supabase = createClient();
+      const subscription = supabase
+        .channel(channel)
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table, filter },
+          (payload) => handler.current(payload.new as T),
+        )
+        .subscribe();
+
+      open = { client: supabase, channel: subscription };
+    })();
 
     /* Temizlik ŞART: sayfa değiştiğinde kanal kapanmazsa gezinme başına bir
        soket birikir ve aynı olay birden çok kez işlenir. */
     return () => {
-      void supabase.removeChannel(subscription);
+      cancelled = true;
+      if (open) void open.client.removeChannel(open.channel);
     };
   }, [table, filter, channel, enabled]);
 }

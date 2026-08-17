@@ -8,7 +8,7 @@ import { LogOut, Moon, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { navigation, type NavBadgeKey } from "@/config/navigation";
 import { useNavBadge } from "@/components/layout/nav-badge-provider";
-import { signOut } from "@/lib/auth/client";
+import { signOut } from "@/lib/auth/sign-out";
 import { useSessionUser } from "@/components/layout/session-provider";
 import { LanguageToggleRow } from "@/components/layout/language-switcher";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";

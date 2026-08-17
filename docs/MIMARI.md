@@ -1836,4 +1836,8 @@ Yeni bölüm eklerken:
   olmadığı için elle eklenen ilanların konumu boştur
 - **Mobil form akışı** — uzun formlar mobilde çalışıyor ama adım göstergesi
   yok; bölümler arası gezinme kaydırmaya bırakılmış durumda
-- Açık tema · çoklu dil (UI hazır, işlevsiz)
+- **Açık tema** — tek tema (koyu) ile tasarlandı. Faz 27'de navbar'daki
+  işlevsiz tema düğmesi KALDIRILDI; geriye Ayarlar'daki açıklamalı bölüm ve
+  mobil çekmecedeki "Yakında" rozetli satır kaldı. Yapılmamış bir özelliğin
+  düğmesini ekranda tutmak, eksikliği bir hataya çeviriyordu.
+  *(Çoklu dil bu satırdan çıktı: Faz 19–25'te tamamlandı.)*

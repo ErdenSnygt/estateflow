@@ -15,7 +15,6 @@
     "soonBadge": "Yakında",
     "profile": "Profilim",
     "settings": "Ayarlar",
-    "support": "Destek",
     "signOut": "Çıkış yap",
     "fallbackUserName": "Kullanıcı",
     "fallbackUserTitle": "Ekip üyesi",
@@ -87,8 +86,6 @@
     }
   },
   "navbar": {
-    "themeTrigger": "Tema değiştir",
-    "themeTooltip": "Açık tema yakında",
     "accountMenu": "Hesap menüsü"
   },
   "sidebar": {
@@ -254,7 +251,12 @@
     "rangeTitle": "{label} aralığı ({unit})"
   },
   "dashboard": {
-    "greeting": "Hoş geldin {name} 👋",
+    "greeting": {
+      "morning": "Günaydın {name} 👋",
+      "afternoon": "İyi günler {name} 👋",
+      "evening": "İyi akşamlar {name} 👋",
+      "night": "İyi geceler {name} 👋"
+    },
     "description": "Portföyünüzün bugünkü durumu, satış performansı ve ekibin son hareketleri.",
     "kpi": {
       "totalListings": "Toplam İlan",

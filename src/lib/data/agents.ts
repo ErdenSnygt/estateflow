@@ -1,6 +1,6 @@
-import type { Agent } from "@/types/database";
+import type { Agent, Customer, Listing } from "@/types/database";
 import { createClient } from "@/lib/supabase/server";
-import { counted, maybeRow, rows } from "@/lib/data/query";
+import { maybeRow, rows } from "@/lib/data/query";
 import { monthStartUtc } from "@/lib/data/stats";
 import { getAgentSalesTotal } from "@/lib/data/sales";
 
@@ -104,55 +104,62 @@ function emptyPerformance(agentId: string): AgentPerformance {
 /**
  * Tek personelin performansı — detay sayfası için.
  *
- * Beş sorgu tek turda: dördü `head: true` sayım (satır aktarılmaz), biri
- * satış tutarlarını çeker. Toplama JavaScript'te yapılıyor; gerekçe
- * `data/stats.ts` başlığında (PostgREST aggregate desteği projeye göre kapalı
- * olabiliyor, satır sayısı ise birkaç yüz).
+ * DÖRT SORGU YERİNE İKİ (Faz 26 performans turu). Önce her sayım kendi
+ * `head: true` sorgusunu açıyordu: müşteri toplamı, aktif müşteri, ilan
+ * toplamı, aktif ilan — dördü de aynı iki tabloya gidiyordu, tek farkları bir
+ * `where` koşuluydu. Dashboard'dakiyle aynı gerekçe (`data/stats.ts`
+ * başlığında ölçümü var): maliyet veride değil İSTEK SAYISINDA, bir sayı
+ * getirmekle bir kolon getirmek arasında fark yok.
+ *
+ * Artık her tablodan tek bir dar kolon (`status`) çekiliyor ve iki sayı da
+ * o kümeden düşüyor. Toplama JavaScript'te; PostgREST aggregate desteği
+ * projeye göre kapalı olabiliyor, satır sayısı ise birkaç yüz.
  */
 export async function getAgentPerformance(
   agentId: string,
 ): Promise<AgentPerformance> {
   const supabase = await createClient();
 
-  const [agent, totalCustomers, activeCustomers, totalListings, activeListings, sales] =
-    await Promise.all([
-      supabase
-        .from("agents")
-        .select("commission_rate")
-        .eq("id", agentId)
-        .maybeSingle(),
-      supabase
-        .from("customers")
-        .select("id", { count: "exact", head: true })
-        .eq("assigned_agent_id", agentId),
-      supabase
-        .from("customers")
-        .select("id", { count: "exact", head: true })
-        .eq("assigned_agent_id", agentId)
-        .neq("status", "soguk"),
-      supabase
-        .from("listings")
-        .select("id", { count: "exact", head: true })
-        .eq("agent_id", agentId),
-      supabase
-        .from("listings")
-        .select("id", { count: "exact", head: true })
-        .eq("agent_id", agentId)
-        .eq("status", "aktif"),
-      /* Satış toplamları Satışlar modülünden geliyor — ciro mantığı tek
-         yerde dursun. Prim çarpımı burada kalıyor çünkü oran `agents`
-         tablosunda. */
-      getAgentSalesTotal(agentId),
-    ]);
+  const [agent, customers, listings, sales] = await Promise.all([
+    supabase
+      .from("agents")
+      .select("commission_rate")
+      .eq("id", agentId)
+      .maybeSingle(),
+    supabase
+      .from("customers")
+      .select("status")
+      .eq("assigned_agent_id", agentId),
+    supabase.from("listings").select("status").eq("agent_id", agentId),
+    /* Satış toplamları Satışlar modülünden geliyor — ciro mantığı tek
+       yerde dursun. Prim çarpımı burada kalıyor çünkü oran `agents`
+       tablosunda. */
+    getAgentSalesTotal(agentId),
+  ]);
 
   const rate =
     maybeRow(agent, "Personel prim oranı")?.commission_rate ?? 0;
 
+  const customerRows = rows<{ status: Customer["status"] }>(
+    customers,
+    "Personel müşterileri",
+  );
+  const listingRows = rows<{ status: Listing["status"] }>(
+    listings,
+    "Personel ilanları",
+  );
+
   const result = emptyPerformance(agentId);
-  result.totalCustomers = counted(totalCustomers, "Personel müşteri sayısı");
-  result.activeCustomers = counted(activeCustomers, "Personel aktif müşteri");
-  result.totalListings = counted(totalListings, "Personel ilan sayısı");
-  result.activeListings = counted(activeListings, "Personel aktif ilan");
+  result.totalCustomers = customerRows.length;
+  /* "Aktif müşteri" = soğuk OLMAYAN; eşiği tersinden yazmak eski sorgudaki
+     `.neq("status", "soguk")` koşulunun birebir karşılığı. */
+  result.activeCustomers = customerRows.filter(
+    (row) => row.status !== "soguk",
+  ).length;
+  result.totalListings = listingRows.length;
+  result.activeListings = listingRows.filter(
+    (row) => row.status === "aktif",
+  ).length;
   result.totalSales = sales.totalSales;
   result.totalRevenue = sales.totalRevenue;
   result.monthlySales = sales.monthlySales;

@@ -188,7 +188,6 @@ export async function signInWithProvider(
   return error ? { ok: false, error: toAuthError(error.message) } : { ok: true };
 }
 
-export async function signOut(): Promise<void> {
-  const supabase = createClient();
-  await supabase.auth.signOut();
-}
+/* `signOut` BURADA DEĞİL, `lib/auth/sign-out.ts` içinde — gerekçe o dosyanın
+   başlığında. Kısaca: bu modül supabase-js'i statik import ediyor ve çıkış
+   düğmesi uygulama kabuğunda, yani her sayfada duruyor. */

@@ -5,7 +5,10 @@ import { ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type PageHeaderProps = {
-  title: string;
+  /* `string` DEĞİL, `ReactNode`: dashboard başlığı saate göre değişiyor ve
+     metni bir istemci bileşeni üretiyor (`dashboard/greeting.tsx`). Diğer
+     bütün sayfalar düz metin geçmeye devam ediyor. */
+  title: React.ReactNode;
   description?: string;
   /** Sağ tarafta duran birincil/ikincil aksiyonlar. */
   actions?: React.ReactNode;

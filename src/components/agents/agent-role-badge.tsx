@@ -1,5 +1,3 @@
-"use client";
-
 import { useTranslations } from "next-intl";
 
 import type { AgentRole } from "@/types/database";
@@ -7,14 +5,18 @@ import { AGENT_ROLE_TONES } from "@/lib/agents";
 import { Badge } from "@/components/ui/badge";
 
 /**
- * `ListingStatusBadge` / `CustomerStatusBadge` ile aynı desen — TEK FARKLA:
- * bu rozet İSTEMCİ BİLEŞENİ, diğer üçü sunucu bileşeni.
+ * `ListingStatusBadge` / `CustomerStatusBadge` ile aynı desen ve artık aynı
+ * sınıfta: hiçbiri `"use client"` taşımıyor.
  *
- * Gerekçe: rol rozeti listelerin yanında personel düzenleme formunun da
- * içinde çiziliyor (`agent-form.tsx`, kilitli rol alanı) ve bir istemci
- * bileşeninin ağacında `async` bir sunucu bileşeni kullanılamıyor. İki ayrı
- * rozet yazmak yerine ikisini de karşılayan tarafta duruyor; maliyeti bir
- * `useTranslations` çağrısı.
+ * Rol rozeti hem listelerde (sunucu) hem personel düzenleme formunda
+ * (`agent-form.tsx`, kilitli rol alanı — istemci) çiziliyor. Faz 25'e kadar
+ * bu yüzden istemci bileşeni ilan edilmişti; oysa gerekmiyordu. `async`
+ * OLMAYAN bir sunucu bileşeni işaretsiz bırakıldığında her iki bağlamda da
+ * çalışır: sunucudan çağrılınca sunucuda çizilir, istemciden çağrılınca o
+ * sayfanın istemci parçasına girer. `useTranslations` ikisini de destekliyor.
+ *
+ * Kazanç `/personeller` ve `/personeller/[id]` paketlerinde: rozet oralarda
+ * yalnızca sunucudan çağrılıyor ve artık tarayıcıya hiç inmiyor.
  */
 export function AgentRoleBadge({
   role,

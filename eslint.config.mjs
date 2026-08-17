@@ -20,7 +20,10 @@ const compat = new FlatCompat({ baseDirectory: __dirname });
 
 const config = [
   {
-    ignores: [".next/**", "node_modules/**", "next-env.d.ts"],
+    /* `.next-*` deseni `NEXT_DIST_DIR` ile açılan alternatif çıktı
+       klasörlerini de kapsıyor (gerekçe `next.config.mjs` içinde) — derleme
+       çıktısını lint'lemek 12 bin uyarı üretiyor ve hiçbiri bize ait değil. */
+    ignores: [".next/**", ".next-*/**", "node_modules/**", "next-env.d.ts"],
   },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {

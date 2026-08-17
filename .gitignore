@@ -1,5 +1,7 @@
 node_modules
 .next
+# NEXT_DIST_DIR ile acilan alternatif derleme klasorleri (bkz. next.config.mjs)
+.next-*
 out
 build
 .DS_Store

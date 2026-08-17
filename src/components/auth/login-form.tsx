@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
-import { ArrowRight, Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
+import { ArrowRight, Check, Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { site } from "@/config/site";
@@ -217,17 +217,46 @@ export function LoginForm() {
             variants={fadeUp}
             className="flex cursor-pointer items-center gap-2.5 text-[13px] text-secondary-foreground"
           >
-            <input
-              type="checkbox"
-              defaultChecked
-              className={cn(
-                "size-4 appearance-none rounded-[5px] border border-hairline-strong bg-surface-inset",
-                "transition-all duration-150 checked:border-brand checked:bg-brand",
-                "checked:bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22white%22 stroke-width=%223%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><polyline points=%2220 6 9 17 4 12%22/></svg>')]",
-                "checked:bg-[length:11px_11px] checked:bg-center checked:bg-no-repeat",
-                "focus-visible:ring-2 focus-visible:ring-ring",
-              )}
-            />
+            {/* ONAY İŞARETİ ARTIK GERÇEK BİR SVG (Faz 27).
+
+                Önce tik, kutunun CSS ARKA PLANI olarak veriliyordu:
+                `checked:bg-[url('data:image/svg+xml;utf8,<svg … />')]`. Ekranda
+                hiç görünmüyordu ve sebebi ince: keyfi değerin İÇİNDE BOŞLUK
+                VARDI. `class` özniteliği boşluktan bölünür, yani tarayıcı bunu
+                tek bir sınıf değil, `checked:bg-[url('data:image/svg+xml;utf8,
+                <svg`, `xmlns=%22http://www.w3.org/2000/svg%22`, … diye bir
+                yığın anlamsız parça olarak görüyordu. Tailwind de aynı şeyi
+                görüp hiçbir kural üretmiyordu. (Tailwind'de keyfi değerdeki
+                boşluk `_` ile yazılır; burada atlanmış.)
+
+                Sonuç: kutu işaretlenince yalnızca maviye dönüyor, tik
+                çıkmıyordu — "seçili mi değil mi" ancak renk farkından
+                anlaşılıyordu.
+
+                Yerine `peer` + gerçek bir ikon: durum yine input'un kendisinde
+                (kontrolsüz, `defaultChecked`), ikon yalnızca görüntü. Üretilen
+                kural `.peer-checked\:opacity-100:is(:where(.peer):checked~*)`
+                ve ikon input'un HEMEN SONRASINDA durmak zorunda — kardeş
+                birleştirici bunu gerektiriyor. */}
+            <span className="relative inline-flex shrink-0">
+              <input
+                type="checkbox"
+                defaultChecked
+                className={cn(
+                  "peer size-4 appearance-none rounded-[5px] border border-hairline-strong bg-surface-inset",
+                  "transition-colors duration-150 checked:border-brand checked:bg-brand",
+                  "focus-visible:ring-2 focus-visible:ring-ring",
+                )}
+              />
+              <Check
+                aria-hidden
+                strokeWidth={3.5}
+                className={cn(
+                  "pointer-events-none absolute left-1/2 top-1/2 size-3 -translate-x-1/2 -translate-y-1/2",
+                  "text-white opacity-0 transition-opacity duration-150 peer-checked:opacity-100",
+                )}
+              />
+            </span>
             {t("rememberMe")}
           </motion.label>
 

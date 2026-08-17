@@ -7,10 +7,8 @@ import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import {
   Bell,
-  LifeBuoy,
   LogOut,
   MessageSquare,
-  Moon,
   Search,
   Settings,
   UserRound,
@@ -20,7 +18,7 @@ import { cn } from "@/lib/utils";
 import { findNavItem } from "@/config/navigation";
 import { site } from "@/config/site";
 import { useMetaKey } from "@/hooks/use-meta-key";
-import { signOut } from "@/lib/auth/client";
+import { signOut } from "@/lib/auth/sign-out";
 import { useSessionUser } from "@/components/layout/session-provider";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -154,26 +152,16 @@ export function Navbar({ onOpenSearch, notificationBell }: NavbarProps) {
           className="hidden md:flex"
         />
 
-        {/* Tema — şu an tek tema var, UI hazır dursun.
-            `aria-label` ŞART: içinde yalnızca ikon var ve tooltip erişilebilir
-            isim SAYILMIYOR — ekran okuyucu odaklandığında "düğme" der,
-            hangisi olduğunu söylemez. Yandaki dil düğmesinde bu etiket
-            baştan beri vardı, burada atlanmıştı. */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              type="button"
-              aria-label={t("navbar.themeTrigger")}
-              className={cn(
-                "hidden size-9 items-center justify-center rounded-lg text-muted-foreground md:flex",
-                "transition-colors duration-200 hover:bg-surface-hover hover:text-foreground",
-              )}
-            >
-              <Moon className="size-[18px]" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>{t("navbar.themeTooltip")}</TooltipContent>
-        </Tooltip>
+        {/* TEMA DÜĞMESİ KALDIRILDI (Faz 27). Burada bir ay ikonu duruyordu ve
+            hiçbir şey yapmıyordu; tooltip'i "Açık tema yakında" diyordu ama
+            düğme normal görünüyor, hover'da renk değiştiriyor ve tıklanınca
+            hiçbir şey olmuyordu. Uygulama tek temayla tasarlandı ve bu karar
+            Ayarlar sayfasındaki açıklama kutusunda gerekçesiyle anlatılıyor —
+            navbar'da işlevsiz bir düğme tutmak o açıklamayı okumamış kullanıcı
+            için sessiz bir hata gibi görünüyordu.
+
+            Mobil menü çekmecesindeki tema satırı YERİNDE DURUYOR: o `disabled`
+            ve yanında "Yakında" rozeti taşıyor, yani ne olduğunu söylüyor. */}
 
         {/* Dil seçimi — Faz 19'da gerçek oldu. Mobilde gizli: navbar 375 px'de
             üç öğeye iniyor ve dil, menü çekmecesinde satır olarak duruyor. */}
@@ -235,10 +223,9 @@ export function Navbar({ onOpenSearch, notificationBell }: NavbarProps) {
                 <DropdownMenuShortcut>{metaKey},</DropdownMenuShortcut>
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              <LifeBuoy />
-              {t("common.support")}
-            </DropdownMenuItem>
+            {/* "Destek" öğesi KALDIRILDI (Faz 27): bir yere bağlanmıyordu,
+                tıklanınca menü kapanıp hiçbir şey olmuyordu. Gerçek bir destek
+                kanalı (e-posta, form) tanımlandığında geri gelir. */}
 
             <DropdownMenuSeparator />
 

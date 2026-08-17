@@ -430,6 +430,14 @@ describe("satış, gelir ve rapor anahtarları karşılanıyor", () => {
   it("satış ve teklif sekmelerinin etiketi var", () => {
     expectKeys("sales.tabs", ["sales", "offers"]);
   });
+
+  it("selamlamanın dört dönemi de sözlükte", async () => {
+    /* Faz 27. Dönem anahtarı `lib/greeting.ts` içinde üretiliyor ve doğrudan
+       `t()`ye veriliyor; karşılığı olmayan bir dönem eklenirse dashboard
+       başlığında "dashboard.greeting.noon" yazardı. */
+    const { GREETING_PERIODS } = await import("@/lib/greeting");
+    expectKeys("dashboard.greeting", GREETING_PERIODS);
+  });
 });
 
 describe("personel, ayar ve profil anahtarları karşılanıyor", () => {

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { LockKeyhole, LogOut } from "lucide-react";
 
-import { signOut } from "@/lib/auth/client";
+import { signOut } from "@/lib/auth/sign-out";
 import { Button } from "@/components/ui/button";
 
 /**
