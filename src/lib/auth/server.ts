@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 
 import type { Agent } from "@/types/database";
 import { createClient } from "@/lib/supabase/server";
-import { isManagerRole } from "@/lib/agents";
+import { canViewAll, isManagerRole, isReadOnlyRole } from "@/lib/agents";
 
 import { toSession, type Session } from "./session";
 
@@ -110,4 +110,34 @@ export async function getManagerAgent(): Promise<Agent | null> {
      politikalar kapanır); buradaki kontrol arayüzün de aynı şeyi söylemesi
      için. */
   return agent && agent.is_active && isManagerRole(agent.role) ? agent : null;
+}
+
+/**
+ * Yönetici kapsamını GÖRMEYE yetkili kayıt — yönetici ya da demo (Faz 28).
+ *
+ * `getManagerAgent()` ile arasındaki fark tek kelime ama sınırı o kelime
+ * çiziyor: bu fonksiyon SAYFA AÇAR, öteki YAZMA İZNİ VERİR.
+ *
+ *   /personeller            → `getViewerAgent()`  (demo bakabilir)
+ *   /personeller/[id]       → `getViewerAgent()`  (demo bakabilir)
+ *   /personeller/[id]/duzenle → `getManagerAgent()` (demo giremez)
+ *
+ * Demo düzenleme sayfasına girebilseydi formu doldurup kaydete basar ve
+ * ancak o zaman engellenirdi — reddi kapıda vermek daha dürüst.
+ */
+export async function getViewerAgent(): Promise<Agent | null> {
+  const agent = await getCurrentAgent();
+  return agent && agent.is_active && canViewAll(agent.role) ? agent : null;
+}
+
+/**
+ * Giriş yapan kullanıcı salt okunur mu?
+ *
+ * `lib/actions/guard.ts` bunu her yazma action'ının başında soruyor. Ayrı bir
+ * fonksiyon olmasının sebebi `getCurrentAgent()`in `cache()` ile sarılı
+ * olması: soru bir istekte kaç kez sorulursa sorulsun tek bir sorgu.
+ */
+export async function isReadOnlySession(): Promise<boolean> {
+  const agent = await getCurrentAgent();
+  return isReadOnlyRole(agent?.role);
 }

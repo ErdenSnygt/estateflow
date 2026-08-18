@@ -18,6 +18,7 @@ import {
   type NavBadgeCounts,
 } from "@/components/layout/nav-badge-provider";
 import { AgentNotice } from "@/components/layout/agent-notice";
+import { DemoNotice } from "@/components/demo/demo-notice";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import type { Session } from "@/lib/auth/session";
 
@@ -140,6 +141,7 @@ export function AppShell({
                   örtmesin. 64 px çubuk + telefon home göstergesi. */}
               <div className="mx-auto h-full w-full max-w-[1600px] px-4 py-6 pb-[calc(5rem+env(safe-area-inset-bottom))] sm:px-6 md:pb-6">
                 <AgentNotice />
+                <DemoNotice />
                 <PageTransition>{children}</PageTransition>
               </div>
             </main>

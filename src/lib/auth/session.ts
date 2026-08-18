@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import type { User } from "@supabase/supabase-js";
 
 import type { Agent, AgentRole, Database } from "@/types/database";
+import { isReadOnlyRole } from "@/lib/agents";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase/env";
 
 /**
@@ -60,6 +61,19 @@ export type Session = {
    * farklı durumlar ve ikincisi `agentId === null` ile ayırt ediliyor.
    */
   isActive: boolean;
+  /**
+   * Salt okunur tanıtım hesabı mı (Faz 28).
+   *
+   * `agentRole === "demo"` ile aynı bilgi ama TÜRETİLMİŞ HÂLİ burada duruyor:
+   * arayüzün sorduğu soru "rolü ne" değil, "yazabilir mi". İstemci
+   * bileşenlerinin rol adını bilip kural uygulaması, kuralı iki yere
+   * kopyalamak olurdu — bir gün ikinci bir salt okunur rol eklenirse
+   * `toSession` dışında hiçbir yer değişmiyor.
+   *
+   * Bu alan bir GÜVENLİK SINIRI DEĞİL, bir arayüz ipucu. Gerçek engel RLS'te
+   * ve `lib/actions/guard.ts` içinde.
+   */
+  isReadOnly: boolean;
 };
 
 /** "Erden Saygut" → "ES" · "erden" → "E" */
@@ -121,6 +135,7 @@ export function toSession(
     agentId: agent?.id ?? null,
     agentRole: agent?.role ?? null,
     isActive: agent ? agent.is_active : true,
+    isReadOnly: isReadOnlyRole(agent?.role),
   };
 }
 

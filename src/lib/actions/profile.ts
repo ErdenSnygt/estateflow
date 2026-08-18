@@ -17,6 +17,7 @@ import {
   type ActionErrorKey,
   type ActionResult,
 } from "@/lib/actions/result";
+import { denyIfReadOnly } from "@/lib/actions/guard";
 
 /**
  * ============================================================================
@@ -86,6 +87,8 @@ export type ProfileInput = {
 export async function updateProfile(
   input: ProfileInput,
 ): Promise<ActionResult<{ id: string }>> {
+  const denied = await denyIfReadOnly();
+  if (denied) return denied;
   const guard = await requireSelf();
   if (!guard.ok) return fail(guard.error);
 
@@ -146,6 +149,8 @@ export async function updateProfile(
 export async function updateNotificationPreferences(
   preferences: Partial<NotificationPreferences>,
 ): Promise<ActionResult<{ id: string }>> {
+  const denied = await denyIfReadOnly();
+  if (denied) return denied;
   const guard = await requireSelf();
   if (!guard.ok) return fail(guard.error);
 
@@ -193,6 +198,8 @@ export async function changePassword(input: {
   currentPassword: string;
   newPassword: string;
 }): Promise<ActionResult<{ ok: true }>> {
+  const denied = await denyIfReadOnly();
+  if (denied) return denied;
   const guard = await requireSelf();
   if (!guard.ok) return fail(guard.error);
 

@@ -16,6 +16,7 @@ import {
 } from "@/lib/actions/result";
 import { getCurrentAgent } from "@/lib/auth/server";
 import { notify } from "@/lib/actions/notify";
+import { denyIfReadOnly } from "@/lib/actions/guard";
 
 /**
  * ============================================================================
@@ -61,6 +62,8 @@ export async function createOffer(input: {
   customerId: string;
   amount: number;
 }): Promise<ActionResult<{ id: string }>> {
+  const denied = await denyIfReadOnly();
+  if (denied) return denied;
   const supabase = await createClient();
 
   if (!Number.isFinite(input.amount) || input.amount <= 0) {
@@ -189,6 +192,8 @@ export async function updateOfferStatus(
   offerId: string,
   next: OfferStatus,
 ): Promise<ActionResult<{ id: string; saleCreated: boolean }>> {
+  const denied = await denyIfReadOnly();
+  if (denied) return denied;
   const supabase = await createClient();
 
   const { data: offer, error: readError } = await supabase

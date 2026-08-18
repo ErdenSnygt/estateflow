@@ -11,7 +11,7 @@ import {
 import { getAgentPerformances, getAgents } from "@/lib/data/agents";
 import { getRevenueOverview } from "@/lib/data/revenue";
 import { getCurrentAgent } from "@/lib/auth/server";
-import { isManagerRole } from "@/lib/agents";
+import { canViewAll } from "@/lib/agents";
 import {
   DEFAULT_PERIOD,
   PERIOD_OPTIONS,
@@ -136,7 +136,7 @@ export default async function RaporlarPage({ searchParams }: PageProps) {
     );
   }
 
-  const isManager = isManagerRole(agent.role);
+  const isManager = canViewAll(agent.role);
 
   /* Ekip bölümü ancak roller çözüldükten sonra başlayabiliyor ve yalnızca
      yöneticide çekiliyor — danışman için iki gereksiz sorgu açmanın anlamı

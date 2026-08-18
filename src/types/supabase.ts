@@ -92,8 +92,14 @@ export type CommissionStatus = "pending" | "collected" | "overdue";
  * Yetkilendirme rolü. `agents.title` (görünen unvan) ile karıştırılmamalı:
  * unvan serbest metin ve yalnızca gösterim, rol RLS politikalarının okuduğu
  * alan. Ayrım `0002_agents_auth_link.sql` içinde gerekçelendirildi.
+ *
+ * `demo` FAZ 28'DE EKLENDİ ve diğer üçünden farklı bir eksende duruyor.
+ * Öbür roller "ne kadarını görür" sorusunu yanıtlıyor; `demo` buna ikinci bir
+ * soru ekliyor: "yazabilir mi". Görünürlükte patron kadar geniş, yazmada
+ * hiçbir şey. Bu yüzden `isManagerRole()` onu İÇERMEZ — o fonksiyon yazma
+ * kapılarında da kullanılıyor. Geniş görüşün adı ayrı: `canViewAll()`.
  */
-export type AgentRole = "patron" | "ofis_muduru" | "danisman";
+export type AgentRole = "patron" | "ofis_muduru" | "danisman" | "demo";
 
 /**
  * Randevu kategorisi. Renk kodlaması buradan türüyor — eşleme

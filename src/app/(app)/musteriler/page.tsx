@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Plus } from "lucide-react";
 
@@ -11,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { CustomersFilterBar } from "@/components/customers/customers-filter-bar";
 import { CustomerResults } from "@/components/customers/customer-results";
 import { CustomerGridSkeleton } from "@/components/customers/customer-card-skeleton";
+import { WriteLink } from "@/components/demo/write-link";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("customers.list");
@@ -48,10 +48,10 @@ export default async function MusterilerPage({
         description={t("description")}
         actions={
           <Button asChild>
-            <Link href="/musteriler/yeni">
+            <WriteLink href="/musteriler/yeni">
               <Plus className="size-4" />
               {t("new")}
-            </Link>
+            </WriteLink>
           </Button>
         }
       />

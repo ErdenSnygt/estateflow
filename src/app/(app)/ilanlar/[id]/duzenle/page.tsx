@@ -8,6 +8,8 @@ import { getCurrentAgent } from "@/lib/auth/server";
 import { canAssignAgent } from "@/lib/agents";
 import { PageHeader } from "@/components/page-header";
 import { ListingForm } from "@/components/listings/listing-form";
+import { ReadOnlyPageGuard } from "@/components/demo/read-only-page-guard";
+import { isReadOnlySession } from "@/lib/auth/server";
 
 type PageProps = { params: Promise<{ id: string }> };
 
@@ -28,6 +30,10 @@ export async function generateMetadata({
 }
 
 export default async function EditListingPage({ params }: PageProps) {
+  /* Demo hesabi bu sayfayi ACAMAZ (Faz 28): formu doldurup kaydete
+     bastiktan sonra reddedilmek, reddi kapida vermekten kotu. */
+  if (await isReadOnlySession()) return <ReadOnlyPageGuard />;
+
   const { id } = await params;
   const [listing, agents, currentAgent, t] = await Promise.all([
     getListingById(id),

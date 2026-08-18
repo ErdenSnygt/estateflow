@@ -11,6 +11,7 @@ import {
   type ActionErrorKey,
   type ActionResult,
 } from "@/lib/actions/result";
+import { denyIfReadOnly } from "@/lib/actions/guard";
 
 /**
  * ============================================================================
@@ -46,6 +47,8 @@ async function requireAgentId(): Promise<
 export async function markNotificationRead(
   id: string,
 ): Promise<ActionResult<{ id: string }>> {
+  const denied = await denyIfReadOnly();
+  if (denied) return denied;
   const guard = await requireAgentId();
   if (!guard.ok) return fail(guard.error);
 
@@ -71,6 +74,8 @@ export async function markNotificationRead(
 export async function markNotificationUnread(
   id: string,
 ): Promise<ActionResult<{ id: string }>> {
+  const denied = await denyIfReadOnly();
+  if (denied) return denied;
   const guard = await requireAgentId();
   if (!guard.ok) return fail(guard.error);
 
@@ -91,6 +96,8 @@ export async function markNotificationUnread(
 export async function markAllNotificationsRead(): Promise<
   ActionResult<{ count: number }>
 > {
+  const denied = await denyIfReadOnly();
+  if (denied) return denied;
   const guard = await requireAgentId();
   if (!guard.ok) return fail(guard.error);
 
@@ -120,6 +127,8 @@ export async function markAllNotificationsRead(): Promise<
 export async function deleteNotification(
   id: string,
 ): Promise<ActionResult<{ id: string }>> {
+  const denied = await denyIfReadOnly();
+  if (denied) return denied;
   const guard = await requireAgentId();
   if (!guard.ok) return fail(guard.error);
 

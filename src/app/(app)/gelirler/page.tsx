@@ -5,7 +5,7 @@ import { Coins, Receipt, TrendingUp, Wallet } from "lucide-react";
 
 import { getRevenueByAgent, getRevenueOverview } from "@/lib/data/revenue";
 import { getCurrentAgent } from "@/lib/auth/server";
-import { isManagerRole } from "@/lib/agents";
+import { canViewAll } from "@/lib/agents";
 import {
   DEFAULT_PERIOD,
   PERIOD_OPTIONS,
@@ -81,7 +81,7 @@ export default async function GelirlerPage({ searchParams }: PageProps) {
     );
   }
 
-  const isManager = isManagerRole(agent.role);
+  const isManager = canViewAll(agent.role);
   const { totals } = overview;
 
   return (

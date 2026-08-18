@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Plus } from "lucide-react";
 
@@ -10,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ListingsFilterBar } from "@/components/listings/listings-filter-bar";
 import { ListingResults } from "@/components/listings/listing-results";
 import { ListingGridSkeleton } from "@/components/listings/listing-card-skeleton";
+import { WriteLink } from "@/components/demo/write-link";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("listings");
@@ -46,10 +46,10 @@ export default async function IlanlarPage({
         description={t("description")}
         actions={
           <Button asChild>
-            <Link href="/ilanlar/yeni">
+            <WriteLink href="/ilanlar/yeni">
               <Plus className="size-4" />
               {t("new")}
-            </Link>
+            </WriteLink>
           </Button>
         }
       />

@@ -22,6 +22,7 @@ import {
   type ActionErrorKey,
   type ActionResult,
 } from "@/lib/actions/result";
+import { denyIfReadOnly } from "@/lib/actions/guard";
 
 /**
  * ============================================================================
@@ -112,6 +113,8 @@ export type CreateAppointmentInput = {
 export async function createAppointment(
   input: CreateAppointmentInput,
 ): Promise<ActionResult<{ id: string }>> {
+  const denied = await denyIfReadOnly();
+  if (denied) return denied;
   const timeError = checkTimes(input.startIso, input.endIso);
   if (timeError) return fail(timeError);
 
@@ -203,6 +206,8 @@ export async function updateAppointment(
   id: string,
   input: UpdateAppointmentInput,
 ): Promise<ActionResult<{ id: string }>> {
+  const denied = await denyIfReadOnly();
+  if (denied) return denied;
   const supabase = await createClient();
 
   const { data: current, error: readError } = await supabase
@@ -274,6 +279,8 @@ export async function setAppointmentStatus(
   id: string,
   next: AppointmentStatus,
 ): Promise<ActionResult<{ id: string; timelineAdded: boolean }>> {
+  const denied = await denyIfReadOnly();
+  if (denied) return denied;
   const supabase = await createClient();
 
   const { data: appointment, error: readError } = await supabase
@@ -389,6 +396,8 @@ export async function setAppointmentStatus(
 export async function deleteAppointment(
   id: string,
 ): Promise<ActionResult<{ id: string }>> {
+  const denied = await denyIfReadOnly();
+  if (denied) return denied;
   const supabase = await createClient();
 
   const { data: appointment } = await supabase

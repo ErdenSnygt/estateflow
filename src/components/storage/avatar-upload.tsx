@@ -11,6 +11,7 @@ import { useUploadErrorMessage } from "@/i18n/upload-error";
 import { formatBytes, formatPercent } from "@/i18n/numbers";
 import { ACCEPT_ATTRIBUTE, MAX_UPLOAD_BYTES } from "@/lib/storage/paths";
 import { Button } from "@/components/ui/button";
+import { useReadOnlyGuard } from "@/components/demo/read-only-guard";
 
 /**
  * Tek görsellik portre yükleme alanı.
@@ -40,6 +41,7 @@ export function AvatarUpload({
   disabled?: boolean;
   className?: string;
 }) {
+  const { isReadOnly, notify } = useReadOnlyGuard();
   const t = useTranslations("upload");
   const format = useFormatter();
   const uploadMessage = useUploadErrorMessage();
@@ -49,6 +51,15 @@ export function AvatarUpload({
   const isUploading = ratio !== null;
 
   async function handleFile(file: File | undefined) {
+    /* Yukleme kutulari server action'dan GECMIYOR — tarayicidan dogrudan
+       Storage'a gidiyorlar, yani `denyIfReadOnly()` muhafizi devreye
+       girmiyor. Asil engel Storage RLS'inde (`0013_demo_role.sql`); buradaki
+       kontrol demo kullanicinin ham bir 403 yerine ne oldugunu anlatan bir
+       bildirim gormesi icin. */
+    if (isReadOnly) {
+      notify();
+      return;
+    }
     if (!file) return;
 
     setRatio(0);

@@ -146,7 +146,9 @@ const iso = (value: number) => new Date(value).toISOString();
  *
  * Ayrımın gerekçesi `supabase/migrations/0002_agents_auth_link.sql` başlığında.
  */
-type AgentRole = "patron" | "ofis_muduru" | "danisman";
+/* `src/types/supabase.ts` ile aynı birlik, elle kopyalı: bu script bilerek
+   uygulamadan hiçbir şey import etmiyor (dosyanın başındaki nota bakın). */
+type AgentRole = "patron" | "ofis_muduru" | "danisman" | "demo";
 
 type AgentRow = {
   id: string;
@@ -187,7 +189,46 @@ const agents: AgentRow[] = [
 const TEST_USER_EMAIL = "erden@test.com";
 const TEST_USER_AGENT_ID = "agt-1";
 
-async function linkTestUser() {
+/**
+ * Salt okunur demo personeli (Faz 28).
+ *
+ * `agents` DİZİSİNDE DEĞİL, ayrı duruyor ve bu bilinçli iki sebeple:
+ *
+ *  1. O dizi aynı zamanda bir DAĞITIM tablosu — ilanlar, müşteriler ve
+ *     randevular `agents[index % agents.length]` ile paylaştırılıyor. Demoyu
+ *     araya koymak hem ona portföy verirdi (oysa hiçbir satırın sahibi
+ *     olmamalı) hem de mevcut dağılımı 6 kişiden 7'ye kaydırıp seed'in
+ *     ürettiği bütün veriyi değiştirirdi.
+ *  2. Demo hesabının görüşü SAHİPLİKTEN değil politikadan geliyor
+ *     (`0013_demo_role.sql`). Sıfır satıra sahip olması onun her şeyi
+ *     görmesine engel değil.
+ *
+ * `0013` bu kaydı zaten açıyor; buradaki kopya seed'in `agents` tablosunu
+ * tamamen silmesi yüzünden gerekli — aksi halde her `npm run seed` demoyu
+ * uçururdu.
+ */
+const DEMO_USER_EMAIL = "demo@estateflow.app";
+
+const demoAgent: AgentRow = {
+  id: "agt-demo",
+  full_name: "Demo Kullanıcı",
+  initials: "DK",
+  title: "Salt Okunur Erişim",
+  role: "demo",
+  email: DEMO_USER_EMAIL,
+  phone: "",
+  commission_rate: 0,
+  user_id: null,
+};
+
+/** Bir e-postayı Auth kullanıcısıyla eşleştirir; bulamazsa uyarı basar. */
+async function linkAuthUser(
+  agent: AgentRow | undefined,
+  email: string,
+  label: string,
+) {
+  if (!agent) return;
+
   const { data, error } = await supabase.auth.admin.listUsers({ perPage: 200 });
 
   if (error) {
@@ -196,23 +237,29 @@ async function linkTestUser() {
   }
 
   const user = data.users.find(
-    (candidate) => candidate.email?.toLowerCase() === TEST_USER_EMAIL,
+    (candidate) => candidate.email?.toLowerCase() === email,
   );
-
-  const agent = agents.find((candidate) => candidate.id === TEST_USER_AGENT_ID);
-  if (!agent) return;
 
   if (!user) {
     console.log(
-      `  ! ${TEST_USER_EMAIL} bulunamadı; ${TEST_USER_AGENT_ID} bir hesaba bağlanmadı.\n` +
+      `  ! ${email} bulunamadı; ${agent.id} bir hesaba bağlanmadı.\n` +
         "    Dashboard > Authentication > Users altından oluşturup seed'i tekrar çalıştırın.",
     );
     return;
   }
 
   agent.user_id = user.id;
-  agent.email = TEST_USER_EMAIL;
-  console.log(`  ✓ ${TEST_USER_AGENT_ID} → ${TEST_USER_EMAIL} (patron)`);
+  agent.email = email;
+  console.log(`  ✓ ${agent.id} → ${email} (${label})`);
+}
+
+async function linkTestUser() {
+  await linkAuthUser(
+    agents.find((candidate) => candidate.id === TEST_USER_AGENT_ID),
+    TEST_USER_EMAIL,
+    "patron",
+  );
+  await linkAuthUser(demoAgent, DEMO_USER_EMAIL, "demo · salt okunur");
 }
 
 /* ==========================================================================
@@ -1894,7 +1941,9 @@ async function main() {
   /* Personel satırları yazılmadan ÖNCE: eşleştirme `agents` dizisini yerinde
      güncelliyor. */
   await linkTestUser();
-  await insertAll("agents", agents);
+  /* Demo satırı sona ekleniyor: dağıtımda kullanılan `agents` dizisi
+     bozulmadan tabloya girmesi gerekiyor (gerekçe `demoAgent` başlığında). */
+  await insertAll("agents", [...agents, demoAgent]);
   await insertAll("listings", listings);
   await insertAll("customers", customers);
   await insertAll("customer_listing_interests", interests);

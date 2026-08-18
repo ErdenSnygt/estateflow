@@ -17,7 +17,7 @@ import {
 import { getAgentById, getAgentPerformance } from "@/lib/data/agents";
 import { getListings } from "@/lib/data/listings";
 import { getCustomers } from "@/lib/data/customers";
-import { getManagerAgent } from "@/lib/auth/server";
+import { getViewerAgent } from "@/lib/auth/server";
 import { formatCurrency, formatCurrencyCompact } from "@/lib/format";
 import { formatRate } from "@/i18n/numbers";
 import { formatDate } from "@/i18n/dates";
@@ -33,6 +33,7 @@ import { Button } from "@/components/ui/button";
 import { StaffGuard } from "@/components/agents/staff-guard";
 import { ListingRow } from "@/components/listings/listing-row";
 import { CustomerCard } from "@/components/customers/customer-card";
+import { WriteLink } from "@/components/demo/write-link";
 
 type PageProps = { params: Promise<{ id: string }> };
 
@@ -53,7 +54,7 @@ const PREVIEW_LIMIT = 6;
 export default async function AgentDetailPage({ params }: PageProps) {
   const { id } = await params;
 
-  const manager = await getManagerAgent();
+  const manager = await getViewerAgent();
   if (!manager) return <StaffGuard />;
 
   const agent = await getAgentById(id);
@@ -83,10 +84,10 @@ export default async function AgentDetailPage({ params }: PageProps) {
         actions={
           <>
             <Button variant="secondary" asChild>
-              <Link href={`/personeller/${agent.id}/duzenle`}>
+              <WriteLink href={`/personeller/${agent.id}/duzenle`}>
                 <Pencil className="size-4" />
                 {tCommon("edit")}
-              </Link>
+              </WriteLink>
             </Button>
             {/* Kendi hesabını pasifleştirme düğmesi hiç gösterilmiyor;
                 action da reddediyor. */}

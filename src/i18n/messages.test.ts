@@ -467,8 +467,11 @@ describe("personel, ayar ve profil anahtarları karşılanıyor", () => {
   it("yetki rollerinin etiketi var", async () => {
     /* DEĞERLER Türkçe kalıyor (Postgres enum'u), etiketler çevriliyor —
        takvim görünümleriyle aynı ayrım. */
-    const { AGENT_ROLES } = await import("@/lib/agents");
-    expectKeys("agents.role", AGENT_ROLES);
+    /* `AGENT_ROLES` DEĞİL `ALL_AGENT_ROLES`: rozet demo hesabına da çiziliyor,
+       yani `agents.role.demo` sözlükte olmak zorunda — oysa demo personel
+       formunda seçilebilir bir rol değil (gerekçe `lib/agents.ts` içinde). */
+    const { ALL_AGENT_ROLES } = await import("@/lib/agents");
+    expectKeys("agents.role", ALL_AGENT_ROLES);
   });
 
   it("her rozetin adı ve açıklaması var", async () => {

@@ -206,7 +206,8 @@
       "noteTargetNotFound": "Seçilen personel bulunamadı.",
       "noteTargetInactive": "{name} pasif bir hesap; not ona yönlendirilemez.",
       "noteHandoffCustomerForbidden": "Bu müşteriyi devredemezsiniz; yalnızca sorumlusu olduğunuz kayıtları devredebilirsiniz.",
-      "noteHandoffListingForbidden": "Bu ilanı devredemezsiniz; yalnızca sorumlusu olduğunuz kayıtları devredebilirsiniz."
+      "noteHandoffListingForbidden": "Bu ilanı devredemezsiniz; yalnızca sorumlusu olduğunuz kayıtları devredebilirsiniz.",
+      "demoReadOnly": "Bu bir demo hesabıdır, değişiklik yapılamaz."
     }
   },
   "auth": {
@@ -1178,7 +1179,8 @@
     "role": {
       "patron": "Patron",
       "ofis_muduru": "Ofis Müdürü",
-      "danisman": "Danışman"
+      "danisman": "Danışman",
+      "demo": "Demo"
     },
     "inactive": "Pasif",
     "page": {
@@ -1499,5 +1501,15 @@
       "connection": "Bağlantı hatası — yükleme tamamlanamadı.",
       "aborted": "Yükleme iptal edildi."
     }
+  },
+  "demo": {
+    "badge": "Demo Modu",
+    "badgeReadOnly": "Salt Okunur",
+    "bannerTitle": "Demo Modu — Salt Okunur",
+    "bannerBody": "Uygulamanın tamamını gezebilirsiniz; hiçbir değişiklik kaydedilmez.",
+    "blockedTitle": "Bu bir demo hesabıdır",
+    "blockedBody": "Değişiklik yapılamaz. Gezinmeye devam edebilirsiniz.",
+    "loginButton": "Demo hesabıyla gör",
+    "loginFilled": "Demo bilgileri dolduruldu — Giriş yap'a basın."
   }
 }

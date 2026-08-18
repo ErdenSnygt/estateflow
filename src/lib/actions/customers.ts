@@ -8,6 +8,7 @@ import { fail, ok, toMessage, type ActionResult } from "@/lib/actions/result";
 import { removeStorageObjects } from "@/lib/storage/cleanup";
 import { getCurrentAgent } from "@/lib/auth/server";
 import { notify } from "@/lib/actions/notify";
+import { denyIfReadOnly } from "@/lib/actions/guard";
 
 /**
  * ============================================================================
@@ -27,6 +28,8 @@ function revalidateCustomers(id?: string) {
 export async function createCustomer(
   input: CustomerInsert,
 ): Promise<ActionResult<{ id: string }>> {
+  const denied = await denyIfReadOnly();
+  if (denied) return denied;
   const supabase = await createClient();
 
   const { data, error } = await supabase
@@ -74,6 +77,8 @@ export async function updateCustomer(
   id: string,
   input: CustomerUpdate,
 ): Promise<ActionResult<{ id: string }>> {
+  const denied = await denyIfReadOnly();
+  if (denied) return denied;
   const supabase = await createClient();
 
   /* Eski portre adresi güncelleme öncesi okunur; değiştiyse dosya yetim

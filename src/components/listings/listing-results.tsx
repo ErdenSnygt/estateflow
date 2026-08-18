@@ -14,6 +14,7 @@ import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import { ListingCard } from "@/components/listings/listing-card";
 import { ListingRow } from "@/components/listings/listing-row";
+import { WriteLink } from "@/components/demo/write-link";
 
 /**
  * Sonuç listesi ayrı bir async bileşen: sayfanın geri kalanı (başlık, filtre
@@ -49,10 +50,10 @@ export async function ListingResults({
             </Button>
           ) : (
             <Button asChild>
-              <Link href="/ilanlar/yeni">
+              <WriteLink href="/ilanlar/yeni">
                 <Plus className="size-4" />
                 {t("newLong")}
-              </Link>
+              </WriteLink>
             </Button>
           )
         }

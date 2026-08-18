@@ -62,5 +62,9 @@ export function useSessionUser(): Session {
     agentId: null,
     agentRole: null,
     isActive: true,
+    /* `false` ve bu bilinçli: `isReadOnly` bir YASAK değil, bir UYARI bayrağı.
+       Bilinmeyen bir oturumu demo sanıp ekrana "Salt Okunur" bandı asmak
+       yanlış bilgi olurdu. Gerçek engel zaten RLS ve action muhafızında. */
+    isReadOnly: false,
   };
 }

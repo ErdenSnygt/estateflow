@@ -45,6 +45,7 @@ export const ok = <T>(data: T): ActionResult<T> => ({ ok: true, data });
 
 /** `messages.errors.actions` altındaki anahtarlar. */
 export type ActionErrorKey =
+  | "demoReadOnly"
   | "agentNotFound"
   | "accountInactive"
   | "noPermission"

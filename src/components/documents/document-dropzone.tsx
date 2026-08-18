@@ -31,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useReadOnlyGuard } from "@/components/demo/read-only-guard";
 
 /**
  * ============================================================================
@@ -70,6 +71,7 @@ export function DocumentDropzone({
   fixedCustomerId?: string;
   fixedListingId?: string;
 }) {
+  const { isReadOnly, notify } = useReadOnlyGuard();
   const router = useRouter();
   const t = useTranslations("documents");
   const format = useFormatter();
@@ -85,6 +87,15 @@ export function DocumentDropzone({
   const isUploading = progress !== null;
 
   function acceptFile(files: FileList | null) {
+    /* Yukleme kutulari server action'dan GECMIYOR — tarayicidan dogrudan
+       Storage'a gidiyorlar, yani `denyIfReadOnly()` muhafizi devreye
+       girmiyor. Asil engel Storage RLS'inde (`0013_demo_role.sql`); buradaki
+       kontrol demo kullanicinin ham bir 403 yerine ne oldugunu anlatan bir
+       bildirim gormesi icin. */
+    if (isReadOnly) {
+      notify();
+      return;
+    }
     const file = files?.[0];
     if (!file) return;
 

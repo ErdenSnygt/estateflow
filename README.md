@@ -46,7 +46,7 @@ Türkçe **ve İngilizce** arayüz, koyu tema, masaüstü + tablet + mobil.
 | Arayüz | Tailwind CSS v4, shadcn/ui (Radix), framer-motion, lucide |
 | Form | react-hook-form + zod |
 | Çok dillilik | **next-intl** — Türkçe / İngilizce, URL öneki yok; **tamamlandı** |
-| Test | Vitest — 310 test, 17 dosya |
+| Test | Vitest — 326 test, 19 dosya |
 
 Grafikler **kütüphanesiz**: SVG doğrudan üretiliyor (`lib/chart.ts`).
 Takvimdeki sürükle-bırak da öyle — Pointer Events, ek bağımlılık yok.
@@ -78,7 +78,7 @@ yazılı.
 
 ### 3. Şema
 
-`supabase/migrations/` altındaki **on iki dosyayı sırayla** Supabase Dashboard →
+`supabase/migrations/` altındaki **on üç dosyayı sırayla** Supabase Dashboard →
 **SQL Editor**'a yapıştırıp çalıştırın. Hepsi idempotenttir; tekrar
 çalıştırmak zarar vermez.
 
@@ -99,6 +99,7 @@ yazılı.
 | `0010_settings.sql` | Bildirim tercihleri, kapak görseli, şirket ayarları |
 | `0011_commission.sql` | Komisyon tahsilat durumu (`sales.commission_status`) |
 | `0012_work_notes.sql` | **İş notları** — `conversations`/`messages` düşüyor, `work_notes` geliyor |
+| `0013_demo_role.sql` | **Demo rolü** — salt okunur tanıtım hesabı, yalnızca SELECT politikaları |
 
 `0012` `0008`'in kurduğu iki tabloyu **düşürüyor**. Sırayla çalıştırıldığında
 sorun yok: `0008` tabloları kurar, `0012` onların yerine `work_notes` koyar.
@@ -136,7 +137,16 @@ Supabase Dashboard → **Authentication → Users → Add user** ile bir hesap a
 sonra `0002_agents_auth_link.sql` içindeki e-postayı kendi hesabınızla
 değiştirip o bölümü tekrar çalıştırın. Seed bağı korur.
 
-### 6. Çalıştırın
+### 6. Demo hesabı (isteğe bağlı)
+
+Herkese açık, salt okunur bir tanıtım hesabı. Kurulumu test kullanıcısıyla
+aynı: Dashboard → **Authentication → Users → Add user** ile
+`demo@estateflow.app` hesabını açın, sonra `0013_demo_role.sql` dosyasını
+tekrar çalıştırın (bağ kurulur). Şifre için aşağıdaki nota bakın.
+
+Gerekmiyorsa atlayın — uygulamanın geri kalanı bu hesap olmadan da çalışır.
+
+### 7. Çalıştırın
 
 ```bash
 npm run dev
@@ -603,6 +613,96 @@ bakıyor.
 
 **Kapsam dışı kalan tek şey:** AI Asistan — o modül zaten daha önce
 kaldırılmıştı.
+
+---
+
+## Demo hesabı — salt okunur erişim (Faz 28)
+
+`demo@estateflow.app` uygulamanın tamamını **patron kadar geniş** görür ve
+**hiçbir şey yazamaz**. Rol dördüncü bir `agents.role` değeri: `demo`.
+
+### Neden `is_manager()` genişletilmedi
+
+İlk akla gelen çözüm `is_manager()`i "veya demo" diye açmaktı. Yanlış olurdu:
+politikaların çoğu `for all` ve o fonksiyon hem `using` (okuma) hem
+`with check` (yazma) tarafında geçiyor — demoya yazma yetkisi de verirdi.
+
+Aynı ayrım arayüz tarafında da yapıldı: `isManagerRole()` **yazma** kapılarında
+kaldı, okuma kapıları yeni `canViewAll()` fonksiyonuna geçti. Tek bir yüklem
+iki soruyu birden yanıtlayamıyordu.
+
+### Üç katman, üç farklı iş
+
+| Katman | Ne yapıyor | Olmasa ne olurdu |
+| ------ | ---------- | ---------------- |
+| **RLS** (`0013_demo_role.sql`) | `demo` için yalnızca SELECT politikaları; INSERT/UPDATE/DELETE için **hiçbir politika yok** ve RLS'in varsayılanı reddetmek | Arayüz kandırılabilirdi — istek doğrudan PostgREST'e atılır |
+| **Server action** (`lib/actions/guard.ts`) | 31 yazma action'ının ilk satırında `denyIfReadOnly()` | Postgres `42501` dönerdi, kullanıcı "yetkiniz yok" görürdü — doğru ama eksik cümle |
+| **Arayüz** (`components/demo/`) | Yazma sayfalarına giden bağlantılar yutuluyor, kalıcı bant + navbar rozeti | Kullanıcı formu doldurup en sonda reddedilirdi |
+
+**Yazma yasağı bir kural yazarak değil, kural YAZMAYARAK kuruldu.** Unutulan
+bir tablo demoya yazma değil, okuma bile vermez; hata güvenli tarafa düşüyor.
+
+Sistem `pg_policies` üzerinden doğrulanabilir — bu sorgu **boş dönmeli**:
+
+```sql
+select tablename, policyname, cmd from pg_policies
+where schemaname = 'public' and qual like '%is_demo%' and cmd <> 'SELECT';
+```
+
+### Storage'da kapatılan gerçek açık
+
+Yükleme kutuları server action'dan **geçmiyor** — tarayıcıdan doğrudan
+Storage'a XHR atıyorlar, yani muhafız devreye girmiyordu. 0003 ve 0009'daki
+yükleme politikaları da "giriş yapmış ve bir personel kaydına bağlı herkes"
+diyordu; demo hesabı da bağlı bir personel. Yani **demo dosya
+yükleyebiliyordu** — herkese açık bir hesapla herkese açık bir bucket'a.
+
+0013 bu iki politikayı `and not is_demo()` ile yeniden kuruyor. Diğer rollerin
+davranışı değişmiyor (`is_demo()` onlar için `false`). Bu, "sadece politika
+ekle" kuralının tek bilinçli istisnası: izin veren bir kural zaten varken onu
+daraltmadan kapatmak mümkün değil.
+
+### Gizlemek yerine engelleyip anlatmak
+
+Düğmeler yerinde duruyor ve tıklanabiliyor; tıklanınca "Bu bir demo hesabıdır"
+bildirimi çıkıyor. Gerekçe: demo hesabının işi uygulamayı **göstermek**.
+Gizlenen bir düğme, var olmayan bir özellik gibi okunur — tanıtım hesabı
+tanıtacağı şeyi saklamış olurdu.
+
+Tek istisna **giriş noktaları**: `/ilanlar/yeni` gibi form sayfaları demoya
+kapalı (`ReadOnlyPageGuard`), personel davet diyaloğu açılmıyor. Formu
+doldurduktan sonra reddedilmek bilgilendirme değil, zaman kaybı.
+
+### Şifre neden migration'da değil
+
+Migration dosyaları sürüm kontrolünde. Auth kullanıcısı Dashboard'dan **elle**
+açılıyor — `0002`'deki test kullanıcısı deseninin aynısı; `0013` yalnızca
+`agents` satırını kurup e-postayla eşleştiriyor.
+
+Şifrenin kendisi `src/config/demo.ts` içinde ve **bu bilinçli bir istisna**:
+giriş ekranındaki "Demo hesabıyla gör" düğmesi alanları dolduruyor, yani
+tarayıcıya inen bir değer zaten gizli olamaz. Bunu sızıntı değil yayın yapan
+şey hesabın kendisi — yazma yetkisi sıfır, sahip olduğu satır yok, ele
+geçirilecek bir şeyi yok. **Projedeki başka hiçbir kimlik bilgisi kaynak koda
+yazılmaz**; gerçek anahtarlar `.env.local` içinde.
+
+Düğme otomatik giriş **yapmıyor**, sadece dolduruyor: ziyaretçi hangi hesapla
+girdiğini görüyor ve "Giriş yap"a kendi basıyor.
+
+### Periyodik sıfırlama gerekli mi
+
+**Veri bütünlüğü için hayır.** Demo hiçbir satır yazamadığı için veri
+kirlenmiyor; klasik "demo hesabını gece yarısı sıfırla" cron'una ihtiyaç yok.
+
+**Tazelik için evet, ama seyrek.** `npm run seed` tarihleri çalıştığı ana göre
+üretiyor: satış grafiği "son 12 ay", randevular "bu hafta". Seed'in üstünden
+aylar geçerse takvim boşalır ve grafik sağa doğru düzleşir — veri bozulmaz ama
+demo eskimiş görünür. **Üç ayda bir** yeniden çalıştırmak yeterli.
+
+İki uyarı: seed **bütün tabloları siliyor**, yani gerçek veriyle paylaşılan bir
+projede çalıştırılmamalı; ve `agents` tablosunu da sildiği için demo kaydını
+kendisi yeniden kuruyor (`demoAgent`, `scripts/seed-supabase.ts`) —
+`0013`'ü tekrar çalıştırmaya gerek yok, Auth bağı seed içinde yeniden kuruluyor.
 
 ---
 

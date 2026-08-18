@@ -4,7 +4,15 @@ import * as React from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
-import { ArrowRight, Check, Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
+import {
+  ArrowRight,
+  Check,
+  Eye,
+  EyeOff,
+  Loader2,
+  Lock,
+  Mail,
+} from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { site } from "@/config/site";
@@ -14,6 +22,7 @@ import {
   type AuthError,
   type OAuthProvider,
 } from "@/lib/auth/client";
+import { DEMO_EMAIL, DEMO_PASSWORD } from "@/config/demo";
 import { LogoMark } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,6 +44,7 @@ const stagger = {
 export function LoginForm() {
   const t = useTranslations("auth");
   const tError = useTranslations("auth.errors");
+  const tDemo = useTranslations("demo");
 
   /* Anahtarın argümanları anahtara göre değişiyor; birlik hâlinde çağırınca
      next-intl hepsini birden istiyor. Eşleşmeyi `lib/auth/client.ts` garanti
@@ -46,6 +56,9 @@ export function LoginForm() {
     React.useState<OAuthProvider | null>(null);
   const [showPassword, setShowPassword] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  /** Demo kısayolunun bıraktığı bilgi notu — hata değil, onay. */
+  const [notice, setNotice] = React.useState<string | null>(null);
+  const formRef = React.useRef<HTMLFormElement>(null);
 
   /* Sağlayıcıdan hatayla dönülmüşse (`/auth/callback` yönlendirir) göster.
      `useSearchParams` yerine doğrudan okuma: bu bileşen Suspense sınırı
@@ -62,9 +75,45 @@ export function LoginForm() {
 
   const busy = isSubmitting || pendingProvider !== null;
 
+  /*
+   * ============================================================
+   * DEMO KISAYOLU — DOLDURUR, GİRMEZ (Faz 28)
+   * ============================================================
+   * Düğme yalnızca iki alanı dolduruyor; "Giriş yap"a kullanıcı basıyor.
+   * Otomatik giriş yapmamasının sebebi ŞEFFAFLIK: ziyaretçi hangi hesapla,
+   * hangi bilgilerle girdiğini görüyor ve isterse aynı bilgilerle başka bir
+   * yerden de deneyebiliyor. Bir düğmenin kullanıcıyı habersiz oturuma
+   * sokması, tanıtım amaçlı bile olsa, kullanıcının kendi tarayıcısında ne
+   * olduğunu bilme hakkını atlıyor.
+   *
+   * ŞİFRE BURADA AÇIK YAZILI ve bu bilinçli bir istisna: bu hesabın tamamı
+   * herkese açık olmak üzere kuruldu, veritabanı tarafında hiçbir yazma
+   * yetkisi yok (`0013_demo_role.sql`) ve ele geçirilecek bir şeyi de yok.
+   * Başka HİÇBİR kimlik bilgisi kaynak koda yazılmaz.
+   */
+  const fillDemoCredentials = () => {
+    setError(null);
+    const form = formRef.current;
+    if (!form) return;
+
+    const email = form.elements.namedItem("email") as HTMLInputElement | null;
+    const password = form.elements.namedItem(
+      "password",
+    ) as HTMLInputElement | null;
+
+    if (email) email.value = DEMO_EMAIL;
+    if (password) password.value = DEMO_PASSWORD;
+
+    setNotice(tDemo("loginFilled"));
+    /* Odak "Giriş yap"a değil e-postaya gitmiyor: kullanıcının bir sonraki
+       adımı zaten gönderme düğmesi ve alanlar dolu. */
+    email?.focus();
+  };
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
+    setNotice(null);
     setIsSubmitting(true);
 
     const data = new FormData(event.currentTarget);
@@ -146,7 +195,18 @@ export function LoginForm() {
           "shadow-[0_24px_70px_-20px_rgba(0,0,0,0.75)]",
         )}
       >
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form ref={formRef} onSubmit={handleSubmit} className="space-y-5">
+          {notice && !error && (
+            <motion.p
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              role="status"
+              className="rounded-lg border border-hairline-strong bg-surface-inset px-3.5 py-2.5 text-[12.5px] leading-relaxed text-secondary-foreground"
+            >
+              {notice}
+            </motion.p>
+          )}
+
           {error && (
             <motion.p
               initial={{ opacity: 0, y: -4 }}
@@ -288,6 +348,28 @@ export function LoginForm() {
               {t("or")}
             </span>
             <span className="h-px flex-1 bg-hairline-strong" />
+          </motion.div>
+
+          {/* Demo kısayolu — sağlayıcı düğmelerinin üstünde, onlarla aynı
+              kabukta. Ayrı bir görsel dil icat etmiyor: giriş kartındaki
+              ikincil düğmeler zaten böyle görünüyor. */}
+          <motion.div variants={fadeUp}>
+            <button
+              type="button"
+              onClick={fillDemoCredentials}
+              disabled={busy}
+              className={cn(
+                "flex h-11 w-full items-center justify-center gap-2.5 rounded-lg",
+                "border border-dashed border-hairline-strong bg-transparent",
+                "text-[13.5px] font-medium text-secondary-foreground",
+                "transition-colors hover:bg-surface-hover hover:text-foreground",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                "disabled:cursor-not-allowed disabled:opacity-60",
+              )}
+            >
+              <Eye className="size-4 text-brand" />
+              {tDemo("loginButton")}
+            </button>
           </motion.div>
 
           <motion.div variants={fadeUp} className="grid gap-2.5">

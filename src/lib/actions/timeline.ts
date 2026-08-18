@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import type { CustomerEventType } from "@/types/database";
 import { createClient } from "@/lib/supabase/server";
 import { fail, ok, toMessage, type ActionResult } from "@/lib/actions/result";
+import { denyIfReadOnly } from "@/lib/actions/guard";
 
 /**
  * ============================================================================
@@ -26,6 +27,8 @@ export async function createCustomerEvent(input: {
   type: CustomerEventType;
   note: string;
 }): Promise<ActionResult<{ id: string }>> {
+  const denied = await denyIfReadOnly();
+  if (denied) return denied;
   const supabase = await createClient();
 
   const { data, error } = await supabase

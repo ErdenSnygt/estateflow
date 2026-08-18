@@ -18,6 +18,7 @@ import {
   type ActionErrorSource,
   type ActionResult,
 } from "@/lib/actions/result";
+import { denyIfReadOnly } from "@/lib/actions/guard";
 
 /**
  * ============================================================================
@@ -202,6 +203,8 @@ export type CreateWorkNoteInput = {
 export async function createWorkNote(
   input: CreateWorkNoteInput,
 ): Promise<ActionResult<{ id: string }>> {
+  const denied = await denyIfReadOnly();
+  if (denied) return denied;
   const content = input.content.trim();
   const hasAttachment = Boolean(input.attachmentPath);
 
@@ -411,6 +414,8 @@ export async function createWorkNote(
 export async function resolveWorkNote(
   id: string,
 ): Promise<ActionResult<{ id: string }>> {
+  const denied = await denyIfReadOnly();
+  if (denied) return denied;
   const agent = await getCurrentAgent();
   if (!agent?.is_active) return fail("noPermission");
 
@@ -468,6 +473,8 @@ export async function resolveWorkNote(
 export async function reopenWorkNote(
   id: string,
 ): Promise<ActionResult<{ id: string }>> {
+  const denied = await denyIfReadOnly();
+  if (denied) return denied;
   const supabase = await createClient();
 
   const { data: note, error: readError } = await supabase
@@ -515,6 +522,8 @@ export async function reopenWorkNote(
 export async function deleteWorkNote(
   id: string,
 ): Promise<ActionResult<{ id: string }>> {
+  const denied = await denyIfReadOnly();
+  if (denied) return denied;
   const agent = await getCurrentAgent();
   if (!agent?.is_active) return fail("noPermission");
 

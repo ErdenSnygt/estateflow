@@ -8,6 +8,8 @@ import { getCurrentAgent } from "@/lib/auth/server";
 import { canAssignAgent } from "@/lib/agents";
 import { PageHeader } from "@/components/page-header";
 import { CustomerForm } from "@/components/customers/customer-form";
+import { ReadOnlyPageGuard } from "@/components/demo/read-only-page-guard";
+import { isReadOnlySession } from "@/lib/auth/server";
 
 type PageProps = { params: Promise<{ id: string }> };
 
@@ -28,6 +30,10 @@ export async function generateMetadata({
 }
 
 export default async function EditCustomerPage({ params }: PageProps) {
+  /* Demo hesabi bu sayfayi ACAMAZ (Faz 28): formu doldurup kaydete
+     bastiktan sonra reddedilmek, reddi kapida vermekten kotu. */
+  if (await isReadOnlySession()) return <ReadOnlyPageGuard />;
+
   const { id } = await params;
   const [customer, agents, currentAgent, t] = await Promise.all([
     getCustomerById(id),

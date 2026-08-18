@@ -9,6 +9,7 @@ import { getCurrentAgent } from "@/lib/auth/server";
 import { isManagerRole } from "@/lib/agents";
 import { canTransitionCommission } from "@/lib/revenue";
 import { fail, ok, toMessage, type ActionResult } from "@/lib/actions/result";
+import { denyIfReadOnly } from "@/lib/actions/guard";
 
 /**
  * ============================================================================
@@ -34,6 +35,8 @@ export async function updateCommissionStatus(
   saleId: string,
   next: CommissionStatus,
 ): Promise<ActionResult<{ id: string }>> {
+  const denied = await denyIfReadOnly();
+  if (denied) return denied;
   const agent = await getCurrentAgent();
 
   if (!agent) return fail("agentNotFound");

@@ -6,6 +6,8 @@ import { getCurrentAgent } from "@/lib/auth/server";
 import { canAssignAgent } from "@/lib/agents";
 import { PageHeader } from "@/components/page-header";
 import { CustomerForm } from "@/components/customers/customer-form";
+import { ReadOnlyPageGuard } from "@/components/demo/read-only-page-guard";
+import { isReadOnlySession } from "@/lib/auth/server";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("customers.form");
@@ -13,6 +15,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function NewCustomerPage() {
+  /* Demo hesabi bu sayfayi ACAMAZ (Faz 28): formu doldurup kaydete
+     bastiktan sonra reddedilmek, reddi kapida vermekten kotu. */
+  if (await isReadOnlySession()) return <ReadOnlyPageGuard />;
+
   const [agents, currentAgent, t, tDetail] = await Promise.all([
     getAgents(),
     getCurrentAgent(),

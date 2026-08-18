@@ -11,6 +11,7 @@ import {
   removeStorageObjects,
   removeUnusedObjects,
 } from "@/lib/storage/cleanup";
+import { denyIfReadOnly } from "@/lib/actions/guard";
 
 /**
  * ============================================================================
@@ -46,6 +47,8 @@ function revalidateListings(id?: string) {
 export async function createListing(
   input: ListingInsert,
 ): Promise<ActionResult<{ id: string }>> {
+  const denied = await denyIfReadOnly();
+  if (denied) return denied;
   const supabase = await createClient();
 
   /* `id` gönderilmiyor: kod üretimi veritabanındaki dizide (`iln-` + nextval)
@@ -80,6 +83,8 @@ export async function updateListing(
   id: string,
   input: ListingUpdate,
 ): Promise<ActionResult<{ id: string }>> {
+  const denied = await denyIfReadOnly();
+  if (denied) return denied;
   const supabase = await createClient();
 
   /* `images` de okunuyor: güncelleme sonrası artık kullanılmayan dosyaları
@@ -112,6 +117,8 @@ export async function updateListing(
 }
 
 export async function deleteListing(id: string): Promise<ActionResult> {
+  const denied = await denyIfReadOnly();
+  if (denied) return denied;
   const supabase = await createClient();
 
   /* Görseller satır silinmeden ÖNCE okunmalı — sonrasında adreslerine

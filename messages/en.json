@@ -206,7 +206,8 @@
       "noteTargetNotFound": "The selected team member was not found.",
       "noteTargetInactive": "{name} is an inactive account; the note cannot be directed to them.",
       "noteHandoffCustomerForbidden": "You cannot hand this customer over; you can only hand over records you are responsible for.",
-      "noteHandoffListingForbidden": "You cannot hand this listing over; you can only hand over records you are responsible for."
+      "noteHandoffListingForbidden": "You cannot hand this listing over; you can only hand over records you are responsible for.",
+      "demoReadOnly": "This is a demo account — changes cannot be saved."
     }
   },
   "auth": {
@@ -1178,7 +1179,8 @@
     "role": {
       "patron": "Owner",
       "ofis_muduru": "Office Manager",
-      "danisman": "Agent"
+      "danisman": "Agent",
+      "demo": "Demo"
     },
     "inactive": "Inactive",
     "page": {
@@ -1499,5 +1501,15 @@
       "connection": "Connection error — the upload could not finish.",
       "aborted": "Upload cancelled."
     }
+  },
+  "demo": {
+    "badge": "Demo Mode",
+    "badgeReadOnly": "Read Only",
+    "bannerTitle": "Demo Mode — Read Only",
+    "bannerBody": "Explore the whole app; nothing you change is saved.",
+    "blockedTitle": "This is a demo account",
+    "blockedBody": "Changes cannot be saved. Feel free to keep exploring.",
+    "loginButton": "Explore the demo",
+    "loginFilled": "Demo credentials filled in — press Sign in."
   }
 }

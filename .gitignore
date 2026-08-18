@@ -16,3 +16,5 @@ next-env.d.ts
 
 # `npm run gen:types` cikti dosyasi; elle bakilip supabase.ts icine tasinir.
 src/types/supabase.generated.ts
+
+.vercel

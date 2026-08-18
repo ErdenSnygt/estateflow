@@ -10,6 +10,7 @@ import { uploadImage } from "@/lib/storage/upload";
 import { useUploadErrorMessage } from "@/i18n/upload-error";
 import { formatBytes, formatPercent } from "@/i18n/numbers";
 import { ACCEPT_ATTRIBUTE, MAX_UPLOAD_BYTES } from "@/lib/storage/paths";
+import { useReadOnlyGuard } from "@/components/demo/read-only-guard";
 
 /**
  * İlan galerisi.
@@ -43,6 +44,7 @@ export function ImageDropzone({
   onChange: (images: string[]) => void;
   invalid?: boolean;
 }) {
+  const { isReadOnly, notify } = useReadOnlyGuard();
   const t = useTranslations("listings.images");
   const format = useFormatter();
   const uploadMessage = useUploadErrorMessage();
@@ -58,6 +60,16 @@ export function ImageDropzone({
 
   const addFiles = React.useCallback(async (files: FileList | null) => {
     if (!files || files.length === 0) return;
+
+    /* Yükleme kutuları server action'dan GEÇMİYOR — tarayıcıdan doğrudan
+       Storage'a gidiyorlar, yani `denyIfReadOnly()` muhafızı devreye girmiyor.
+       Asıl engel Storage RLS'inde (`0013_demo_role.sql`); buradaki kontrol
+       demo kullanıcının ham bir 403 yerine ne olduğunu anlatan bir bildirim
+       görmesi için. */
+    if (isReadOnly) {
+      notify();
+      return;
+    }
 
     const selected = Array.from(files);
 
@@ -96,7 +108,7 @@ export function ImageDropzone({
     /* `t` ve `uploadMessage` bağımlılıkta: dil değişince yeni çevirmenle
        yeniden kurulmalı. `latest` ref'i zaten değer/geri çağrı tazeliğini
        üstlendiği için bu yeniden kurulma bir yükleme akışını bozmuyor. */
-  }, [t, uploadMessage]);
+  }, [t, uploadMessage, isReadOnly, notify]);
 
   function removeAt(index: number) {
     /* Dosya Storage'dan BURADA silinmiyor: kullanıcı formu kaydetmeden

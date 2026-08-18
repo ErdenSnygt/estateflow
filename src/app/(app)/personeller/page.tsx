@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { UserRound } from "lucide-react";
 
 import { getAgentPerformances, getAgents } from "@/lib/data/agents";
-import { getManagerAgent } from "@/lib/auth/server";
+import { getViewerAgent } from "@/lib/auth/server";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState } from "@/components/empty-state";
 import { AgentCard } from "@/components/agents/agent-card";
@@ -18,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
 /**
  * Ekip listesi.
  *
- * YETKİ İKİ KATMANDA: burada `getManagerAgent()` sayfayı kapatıyor, RLS de
+ * YETKİ İKİ KATMANDA: burada `getViewerAgent()` sayfayı kapatıyor, RLS de
  * `agents_read` politikasıyla verinin kendisini kapatıyor. Yalnızca sayfayı
  * kapatmak yeterli olmazdı — bir danışman veriyi başka bir yoldan (ör. form
  * açılırı) çekebilirdi. Yalnızca RLS'e güvenmek de yetmezdi: sayfa açılır,
@@ -29,7 +29,7 @@ export default async function PersonellerPage() {
      RLS tarafından tek satıra iniyor, boşuna beklemeye değmez. Performans
      toplamları `agents`e bağlı olduğu için ancak ondan sonra başlayabiliyor. */
   const [manager, agents, t] = await Promise.all([
-    getManagerAgent(),
+    getViewerAgent(),
     getAgents(),
     getTranslations("agents.page"),
   ]);

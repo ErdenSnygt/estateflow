@@ -28,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useReadOnlyGuard } from "@/components/demo/read-only-guard";
 
 /**
  * Personel daveti.
@@ -47,6 +48,7 @@ export function InviteAgentDialog({
   /** Yalnızca patron, patron rolü atayabilir. */
   canAssignPatron: boolean;
 }) {
+  const { intercept } = useReadOnlyGuard();
   const router = useRouter();
   const t = useTranslations("agents");
   const tCommon = useTranslations("common");
@@ -130,7 +132,12 @@ export function InviteAgentDialog({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => (open ? setIsOpen(true) : reset())}>
       <DialogTrigger asChild>
-        <Button>
+        {/* Demo hesabında diyalog AÇILMIYOR (Faz 28): davet formu bir e-posta,
+            bir rol ve bir prim oranı istiyor; hepsini doldurup en sonda
+            "yapamazsınız" demek, reddi kapıda vermekten kötü. `onClick`
+            `DialogTrigger`ın kendi açma davranışından önce çalışıyor ve
+            `stopPropagation` onu durduruyor. */}
+        <Button onClick={intercept}>
           <UserPlus className="size-4" />
           {t("invite.trigger")}
         </Button>

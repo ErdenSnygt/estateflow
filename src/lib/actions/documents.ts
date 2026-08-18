@@ -8,6 +8,7 @@ import { getCurrentAgent } from "@/lib/auth/server";
 import { removeDocumentObjects } from "@/lib/storage/cleanup";
 import { signedUrlFor } from "@/lib/storage/signed";
 import { fail, ok, toMessage, type ActionResult } from "@/lib/actions/result";
+import { denyIfReadOnly } from "@/lib/actions/guard";
 
 /**
  * ============================================================================
@@ -42,6 +43,8 @@ export type CreateDocumentInput = {
 export async function createDocument(
   input: CreateDocumentInput,
 ): Promise<ActionResult<{ id: string }>> {
+  const denied = await denyIfReadOnly();
+  if (denied) return denied;
   const title = input.title.trim();
   if (!title) return fail("documentTitleRequired");
   if (!input.path) return fail("documentUploadFailed");
@@ -92,6 +95,8 @@ export async function updateDocument(
     listingId?: string | null;
   },
 ): Promise<ActionResult<{ id: string }>> {
+  const denied = await denyIfReadOnly();
+  if (denied) return denied;
   const supabase = await createClient();
 
   const { data: current, error: readError } = await supabase
@@ -138,6 +143,8 @@ export async function updateDocument(
 export async function deleteDocument(
   id: string,
 ): Promise<ActionResult<{ id: string }>> {
+  const denied = await denyIfReadOnly();
+  if (denied) return denied;
   const supabase = await createClient();
 
   const { data: document } = await supabase

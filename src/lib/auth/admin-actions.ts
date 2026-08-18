@@ -16,6 +16,7 @@ import {
   type ActionResult,
 } from "@/lib/actions/result";
 import { removeStorageObjects } from "@/lib/storage/cleanup";
+import { denyIfReadOnly } from "@/lib/actions/guard";
 
 /**
  * ============================================================================
@@ -176,6 +177,8 @@ export async function inviteAgent(input: {
   role: AgentRole;
   commissionRate: number;
 }): Promise<ActionResult<InviteResult>> {
+  const denied = await denyIfReadOnly();
+  if (denied) return denied;
   const guard = await requireManager();
   if (!guard.ok) return fail(guard.error);
 
@@ -295,6 +298,8 @@ export async function updateAgent(
     avatarUrl: string;
   },
 ): Promise<ActionResult<{ id: string }>> {
+  const denied = await denyIfReadOnly();
+  if (denied) return denied;
   const guard = await requireManager();
   if (!guard.ok) return fail(guard.error);
 
@@ -403,6 +408,8 @@ export async function setAgentActive(
   agentId: string,
   isActive: boolean,
 ): Promise<ActionResult<{ id: string }>> {
+  const denied = await denyIfReadOnly();
+  if (denied) return denied;
   const guard = await requireManager();
   if (!guard.ok) return fail(guard.error);
 

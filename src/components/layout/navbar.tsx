@@ -20,6 +20,7 @@ import { site } from "@/config/site";
 import { useMetaKey } from "@/hooks/use-meta-key";
 import { signOut } from "@/lib/auth/sign-out";
 import { useSessionUser } from "@/components/layout/session-provider";
+import { DemoBadge } from "@/components/demo/demo-notice";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Kbd } from "@/components/ui/kbd";
@@ -162,6 +163,9 @@ export function Navbar({ onOpenSearch, notificationBell }: NavbarProps) {
 
             Mobil menü çekmecesindeki tema satırı YERİNDE DURUYOR: o `disabled`
             ve yanında "Yakında" rozeti taşıyor, yani ne olduğunu söylüyor. */}
+
+        {/* Demo rozeti — yalnızca salt okunur hesapta çiziliyor (Faz 28). */}
+        <DemoBadge />
 
         {/* Dil seçimi — Faz 19'da gerçek oldu. Mobilde gizli: navbar 375 px'de
             üç öğeye iniyor ve dil, menü çekmecesinde satır olarak duruyor. */}

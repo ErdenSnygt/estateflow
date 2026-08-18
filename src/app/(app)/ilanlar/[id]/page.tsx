@@ -55,6 +55,7 @@ import { OfferDialog } from "@/components/offers/offer-dialog";
 import { ListingCard } from "@/components/listings/listing-card";
 import { AppointmentRow } from "@/components/appointments/appointment-row";
 import { DocumentSection } from "@/components/documents/document-section";
+import { WriteLink } from "@/components/demo/write-link";
 
 type PageProps = { params: Promise<{ id: string }> };
 
@@ -127,10 +128,10 @@ export default async function ListingDetailPage({ params }: PageProps) {
               />
             )}
             <Button variant="secondary" asChild>
-              <Link href={`/ilanlar/${listing.id}/duzenle`}>
+              <WriteLink href={`/ilanlar/${listing.id}/duzenle`}>
                 <Pencil className="size-4" />
                 {tCommon("edit")}
-              </Link>
+              </WriteLink>
             </Button>
             <DeleteListingDialog
               listingId={listing.id}

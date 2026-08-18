@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
 import {
@@ -34,6 +33,7 @@ import {
 } from "@/lib/data/work-notes";
 import { RelatedWorkNotes } from "@/components/work-notes/related-work-notes";
 import { AppointmentRow } from "@/components/appointments/appointment-row";
+import { WriteLink } from "@/components/demo/write-link";
 
 type PageProps = { params: Promise<{ id: string }> };
 
@@ -116,10 +116,10 @@ export default async function CustomerDetailPage({ params }: PageProps) {
               </a>
             </Button>
             <Button variant="secondary" asChild>
-              <Link href={`/musteriler/${customer.id}/duzenle`}>
+              <WriteLink href={`/musteriler/${customer.id}/duzenle`}>
                 <Pencil className="size-4" />
                 {tCommon("edit")}
-              </Link>
+              </WriteLink>
             </Button>
             <Button asChild>
               <a href={`mailto:${customer.email}`}>

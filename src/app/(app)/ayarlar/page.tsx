@@ -13,7 +13,7 @@ import {
 
 import { getCurrentAgent } from "@/lib/auth/server";
 import { getCompanySettings } from "@/lib/data/company";
-import { isManagerRole } from "@/lib/agents";
+import { canViewAll } from "@/lib/agents";
 import { PageHeader } from "@/components/page-header";
 import { AgentNotice } from "@/components/layout/agent-notice";
 import { Button } from "@/components/ui/button";
@@ -65,7 +65,7 @@ export default async function AyarlarPage() {
     );
   }
 
-  const isManager = isManagerRole(agent.role);
+  const isManager = canViewAll(agent.role);
 
   return (
     <div className="space-y-5 pb-4">

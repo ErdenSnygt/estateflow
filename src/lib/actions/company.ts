@@ -7,6 +7,7 @@ import { getCurrentAgent } from "@/lib/auth/server";
 import { isManagerRole } from "@/lib/agents";
 import { removeUnusedObjects } from "@/lib/storage/cleanup";
 import { fail, ok, toMessage, type ActionResult } from "@/lib/actions/result";
+import { denyIfReadOnly } from "@/lib/actions/guard";
 
 /**
  * ============================================================================
@@ -35,6 +36,8 @@ export type CompanyInput = {
 export async function updateCompanySettings(
   input: CompanyInput,
 ): Promise<ActionResult<{ ok: true }>> {
+  const denied = await denyIfReadOnly();
+  if (denied) return denied;
   const agent = await getCurrentAgent();
 
   if (!agent) return fail("agentNotFound");
